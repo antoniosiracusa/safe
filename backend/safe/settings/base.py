@@ -30,12 +30,26 @@ INSTALLED_APPS = [
     "channels",
     # SAFE
     "safe.apps.core",
+    "safe.apps.tenancy",
+    "safe.apps.authn",
+    "safe.apps.authz",
+    "safe.apps.lookups",
+    "safe.apps.org",
+    "safe.apps.territory",
+    "safe.apps.rescue",
+    "safe.apps.devices",
+    "safe.apps.crypto",
+    "safe.apps.jobs",
+    "safe.apps.audit",
 ]
+
+AUTH_USER_MODEL = "org.AppUser"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "safe.apps.tenancy.middleware.TenantMiddleware",
 ]
 
 ROOT_URLCONF = "safe.urls"
@@ -55,8 +69,8 @@ TEMPLATES = [
 DATABASES = {"default": env.db("DATABASE_URL")}
 DATABASES["default"]["ENGINE"] = "django.contrib.gis.db.backends.postgis"
 DATABASES["default"]["CONN_MAX_AGE"] = 60
-# Una transazione per richiesta: necessaria per SET LOCAL app.company_id (RLS)
-DATABASES["default"]["ATOMIC_REQUESTS"] = True
+# La transazione per richiesta è aperta dal TenantMiddleware (SET LOCAL app.company_id per RLS)
+DATABASES["default"]["ATOMIC_REQUESTS"] = False
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # --- Redis: cache, Celery, Channels -------------------------------------------
@@ -84,8 +98,8 @@ CHANNEL_LAYERS = {
 
 # --- REST framework ------------------------------------------------------------
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": [],  # M1: safe.apps.authn.OIDCJWTAuthentication
-    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
+    "DEFAULT_AUTHENTICATION_CLASSES": ["safe.apps.authn.drf.OIDCAuthentication"],
+    "DEFAULT_PERMISSION_CLASSES": ["safe.apps.authz.drf.HasPermission"],
     "DEFAULT_PAGINATION_CLASS": "safe.apps.core.pagination.StandardPagination",
     "PAGE_SIZE": 50,
     "DEFAULT_FILTER_BACKENDS": [

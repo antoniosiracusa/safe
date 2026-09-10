@@ -71,10 +71,11 @@ exclude = ["migrations"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "DJ", "S", "T20", "N", "SIM"]
-ignore = ["S101", "S105", "S106"]  # assert nei test; password di sviluppo in settings
+ignore = ["S101", "S105", "S106", "DJ008"]  # assert nei test; password di sviluppo; __str__ sulle tabelle ponte
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S", "DJ"]
+"safe/apps/tenancy/rls.py" = ["S608"]  # SQL DDL costruito da costanti interne
 
 [tool.mypy]
 python_version = "3.13"
