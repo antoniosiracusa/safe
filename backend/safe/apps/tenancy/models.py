@@ -103,9 +103,9 @@ class TenantModel(models.Model):
 
     def save(self, *args: Any, **kwargs: Any) -> None:
         # company_id imposto dal contesto server, mai dal client
-        if self.company_id is None:  # type: ignore[attr-defined]
+        if self.company_id is None:
             current = get_current_company_id()
             if current is None:
                 raise RuntimeError("Nessun tenant nel contesto: impossibile salvare un oggetto tenant.")
-            self.company_id = current  # type: ignore[attr-defined]
+            self.company_id = current
         super().save(*args, **kwargs)

@@ -29,7 +29,7 @@ def required_for(view, request: Request) -> tuple[str, ...]:  # noqa: ANN001
     if mapping is not None and action is not None:
         return tuple(mapping.get(action, mapping.get("*", ())))
     if mapping is not None:
-        return tuple(mapping.get(request.method.lower(), mapping.get("*", ())))
+        return tuple(mapping.get((request.method or "get").lower(), mapping.get("*", ())))
     return tuple(getattr(view, "required_permissions", ()))
 
 

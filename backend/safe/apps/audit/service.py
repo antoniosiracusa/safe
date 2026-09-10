@@ -21,6 +21,8 @@ def record(
     company_id = get_current_company_id()
     if company_id is None and actor is not None:
         company_id = actor.company_id
+    if company_id is None:
+        raise ValueError("audit senza tenant: impossibile registrare l'azione")
     ip = None
     user_agent = ""
     if request is not None:

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import ClassVar
+
 from django.contrib.auth.models import AbstractBaseUser
 from django.db import models
 
@@ -51,10 +53,10 @@ class AppUser(AbstractBaseUser, TenantModel):
     teams = models.ManyToManyField(Team, through="UserTeam", related_name="users")
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS: list[str] = []
+    REQUIRED_FIELDS: ClassVar[list[str]] = []
 
-    objects = AppUserManager()
-    all_objects = UnscopedManager()
+    objects = AppUserManager()  # type: ignore[misc]
+    all_objects = UnscopedManager()  # type: ignore[misc]
 
     class Meta(TenantModel.Meta):
         db_table = "app_user"
@@ -64,7 +66,7 @@ class AppUser(AbstractBaseUser, TenantModel):
         return self.email
 
     @property
-    def is_active(self) -> bool:  # usato da Django auth
+    def is_active(self) -> bool:  # type: ignore[override]  # usato da Django auth
         return self.status == self.Status.ACTIVE
 
     @property

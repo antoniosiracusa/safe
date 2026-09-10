@@ -16,7 +16,7 @@ class _ProtectedView(APIView):
         return Response({"secret": True})
 
 
-def test_role_union_grant_deny(company):
+def test_role_union_grant_deny(company, tenant):
     user = create_user(
         company, "x@a.test", roles=("rescuer",), grants=("exports.regional",), denies=("events.edit",)
     )
@@ -48,7 +48,7 @@ def test_missing_permission_returns_403_without_data(api_client, rescuer_user, c
         clear_url_caches()
 
 
-def test_permission_cache_invalidated_on_change(company):
+def test_permission_cache_invalidated_on_change(company, tenant):
     from safe.apps.authz.models import Permission, UserPermission
     from safe.apps.authz.resolve import invalidate
     from safe.apps.tenancy.context import tenant_context
@@ -61,3 +61,9 @@ def test_permission_cache_invalidated_on_change(company):
         )
     invalidate(user.id)
     assert "events.delete" in effective_permissions(user)
+
+
+def test_permissions_are_empty_outside_tenant_context(company):
+    """Fuori dal contesto tenant (nessuna richiesta autenticata) la RLS non espone ruoli né grant."""
+    user = create_user(company, "z@a.test", roles=("company_admin",))
+    assert effective_permissions(user) == frozenset()

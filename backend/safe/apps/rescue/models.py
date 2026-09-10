@@ -81,7 +81,7 @@ class ImportBatch(TenantModel):
 
 class ActiveQuerySetMixin:
     def alive(self):  # noqa: ANN201
-        return self.filter(deleted_at__isnull=True)  # type: ignore[attr-defined]
+        return self.filter(deleted_at__isnull=True)
 
 
 class Event(TenantModel):
@@ -188,31 +188,35 @@ class Event(TenantModel):
         return self.locked_at is not None
 
     def local_date(self) -> dt.date:
-        tz = zoneinfo.ZoneInfo(self.company.timezone if self.company_id else "Europe/Rome")  # type: ignore[attr-defined]
+        tz = zoneinfo.ZoneInfo(self.company.timezone if self.company_id else "Europe/Rome")
         return self.dateandtime.astimezone(tz).date()
 
     def clean(self) -> None:
         errors: dict[str, str] = {}
-        if self.zone_id and self.ski_area_id and self.zone.ski_area_id != self.ski_area_id:  # type: ignore[attr-defined]
+        zone = self.zone if self.zone_id else None
+        slope = self.slope if self.slope_id else None
+        if zone is not None and self.ski_area_id and zone.ski_area_id != self.ski_area_id:
             errors["zone"] = "La zona non appartiene al comprensorio."
-        if self.slope_id and self.zone_id and self.slope.zone_id != self.zone_id:  # type: ignore[attr-defined]
+        if slope is not None and self.zone_id and slope.zone_id != self.zone_id:
             errors["slope"] = "La pista non appartiene alla zona."
         if errors:
             raise ValidationError(errors)
 
     def save(self, *args: Any, **kwargs: Any) -> None:
         # coerenza territoriale e derivazioni (equivalente del trigger trg_event_before)
-        if self.slope_id and not self.zone_id:
-            self.zone_id = self.slope.zone_id  # type: ignore[attr-defined]
-        if self.zone_id and not self.ski_area_id:
-            self.ski_area_id = self.zone.ski_area_id  # type: ignore[attr-defined]
-        if self.slope_id and not self.difficulty_id:
-            self.difficulty_id = self.slope.difficulty_id  # type: ignore[attr-defined]
-        if self.company_id is None:  # type: ignore[attr-defined]
+        slope = self.slope if self.slope_id else None
+        if slope is not None and not self.zone_id:
+            self.zone_id = slope.zone_id
+        zone = self.zone if self.zone_id else None
+        if zone is not None and not self.ski_area_id:
+            self.ski_area_id = zone.ski_area_id
+        if slope is not None and not self.difficulty_id:
+            self.difficulty_id = slope.difficulty_id
+        if self.company_id is None:
             current = get_current_company_id()
             if current is None:
                 raise RuntimeError("Nessun tenant nel contesto: impossibile salvare un evento.")
-            self.company_id = current  # type: ignore[attr-defined]
+            self.company_id = current
         self.season = Season.for_date(self.local_date())
         super().save(*args, **kwargs)
 
@@ -337,10 +341,11 @@ class Person(TenantModel):
         return self.pii_ciphertext is not None
 
     def save(self, *args: Any, **kwargs: Any) -> None:
-        if self.company_id is None and self.event_id:  # type: ignore[attr-defined]
-            self.company_id = self.event.company_id  # type: ignore[attr-defined]
-        if self.gravest_injury_id and not self.injury_place_id:
-            self.injury_place_id = self.gravest_injury.parent_id  # type: ignore[attr-defined]
+        if self.company_id is None and self.event_id:
+            self.company_id = self.event.company_id
+        gravest = self.gravest_injury if self.gravest_injury_id else None
+        if gravest is not None and not self.injury_place_id:
+            self.injury_place_id = gravest.parent_id
         super().save(*args, **kwargs)
 
 

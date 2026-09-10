@@ -44,10 +44,10 @@ def tenant_context(company_id: uuid.UUID) -> Iterator[None]:
     try:
         with transaction.atomic():
             _set_local(company_id, False)
-            try:
-                yield
-            finally:
-                _set_local(prev_company, prev_bypass)
+            yield
+            # uscita regolare: il savepoint viene rilasciato, quindi ripristiniamo il contesto precedente.
+            # In caso di eccezione il rollback del savepoint ripristina da solo le impostazioni.
+            _set_local(prev_company, prev_bypass)
     finally:
         _bypass.reset(token_b)
         _current_company.reset(token)
@@ -61,9 +61,7 @@ def bypass_tenant() -> Iterator[None]:
     try:
         with transaction.atomic():
             _set_local(None, True)
-            try:
-                yield
-            finally:
-                _set_local(prev_company, prev_bypass)
+            yield
+            _set_local(prev_company, prev_bypass)
     finally:
         _bypass.reset(token)

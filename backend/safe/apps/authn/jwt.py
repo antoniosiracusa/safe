@@ -38,7 +38,7 @@ def _jwks() -> PyJWKClient:
     global _jwks_client
     if _jwks_client is None:
         _jwks_client = PyJWKClient(
-            f"{settings.OIDC_ISSUER}/protocol/openid-connect/certs",
+            settings.OIDC_JWKS_URL,
             cache_keys=True,
             lifespan=settings.OIDC_JWKS_CACHE_SECONDS,
         )

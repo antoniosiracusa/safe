@@ -127,6 +127,7 @@ CORS_ALLOW_CREDENTIALS = False
 # --- OIDC ----------------------------------------------------------------------
 OIDC_ISSUER = env("OIDC_ISSUER")
 OIDC_AUDIENCE = env("OIDC_AUDIENCE", default="safe-api")
+OIDC_JWKS_URL = env("OIDC_JWKS_URL", default=f"{OIDC_ISSUER}/protocol/openid-connect/certs")
 OIDC_JWKS_CACHE_SECONDS = 3600
 
 # --- Internazionalizzazione ----------------------------------------------------

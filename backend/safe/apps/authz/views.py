@@ -7,10 +7,16 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from safe.apps.crypto.models import CompanyKey, CompanyKeyGrant, UserKey
-from safe.apps.org.models import UserTeam
+from safe.apps.org.models import AppUser, UserTeam
 
 from .drf import HasPermission
 from .resolve import permission_map
+
+
+def current_user(request: Request) -> AppUser:
+    user = request.user
+    assert isinstance(user, AppUser)  # garantito da HasPermission
+    return user
 
 
 class MeResponseSerializer(serializers.Serializer):
@@ -29,7 +35,7 @@ class MeView(APIView):
 
     @extend_schema(tags=["me"], responses=MeResponseSerializer)
     def get(self, request: Request) -> Response:
-        user = request.user
+        user = current_user(request)
         company = user.company
         teams = [
             {"id": str(ut.team_id), "name": ut.team.name, "is_default": ut.is_default}
@@ -73,9 +79,11 @@ class MeView(APIView):
         tags=["me"], request={"application/json": {"type": "object"}}, responses=MeResponseSerializer
     )
     def patch(self, request: Request) -> Response:
-        locale = request.data.get("locale")
+        data = request.data if isinstance(request.data, dict) else {}
+        locale = data.get("locale")
         if locale not in ("it", "en", "de"):
             raise serializers.ValidationError({"locale": ["Valore non ammesso."]})
-        request.user.locale = locale
-        request.user.save(update_fields=["locale", "updated_at"])
+        user = current_user(request)
+        user.locale = locale
+        user.save(update_fields=["locale", "updated_at"])
         return self.get(request)
