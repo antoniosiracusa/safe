@@ -1,0 +1,130 @@
+{% load i18n %}<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="utf-8">
+<title>Report evento {{ log_id }}</title>
+<style>
+  @page { size: A4; margin: 14mm 12mm 16mm 12mm;
+    @bottom-left { content: "log: {{ log_id }}"; font-size: 7pt; color: #666; }
+    @bottom-center { content: "Pagina " counter(page) " / " counter(pages); font-size: 7pt; color: #666; }
+    @bottom-right { content: "SAFE"; font-size: 7pt; color: #666; } }
+  body { font-family: "DejaVu Sans", Arial, sans-serif; font-size: 8.5pt; color: #111; }
+  h1 { font-size: 14pt; text-align: center; margin: 0 0 6mm; }
+  h2 { font-size: 11pt; margin: 0 0 4mm; border-bottom: 1px solid #333; padding-bottom: 1mm; }
+  .brand { display: flex; align-items: center; gap: 3mm; margin-bottom: 4mm; }
+  .brand .mark { width: 9mm; height: 9mm; border-radius: 50%; background: #c8102e; color: #fff; font-weight: bold; font-size: 12pt; text-align: center; line-height: 9mm; }
+  .brand .name { font-weight: bold; font-size: 11pt; letter-spacing: 0.05em; }
+  .brand .sub { font-size: 7.5pt; color: #555; }
+  .head { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1mm 6mm; margin-bottom: 4mm; }
+  .head div { border-bottom: 1px solid #999; padding: 1mm 0; }
+  .head b { color: #333; }
+  .grids { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2mm; margin-bottom: 3mm; }
+  .grids.four { grid-template-columns: repeat(4, 1fr); }
+  .grids.three { grid-template-columns: repeat(3, 1fr); }
+  .grid { border: 1px solid #bbb; }
+  .grid h3 { margin: 0; background: #3b82c4; color: #fff; font-size: 7.5pt; padding: 1mm 1.5mm; }
+  .grid div { display: flex; gap: 1.5mm; padding: 0.6mm 1.5mm; border-top: 1px solid #ddd; font-size: 7pt; }
+  .grid div.on { background: #fff3b0; font-weight: bold; }
+  .grid .box { width: 3mm; display: inline-block; text-align: center; font-weight: bold; color: #b00; }
+  table.two { width: 100%; border-collapse: collapse; page-break-inside: avoid; }
+  table.two td { width: 50%; vertical-align: top; padding: 0 3mm 0 0; }
+  table.two td + td { padding: 0 0 0 3mm; }
+  .map img { width: 100%; height: 46mm; object-fit: cover; border: 1px solid #ccc; }
+  .lines { border-bottom: 1px solid #999; height: 5mm; }
+  .note { min-height: 12mm; border: 1px solid #ccc; padding: 1.5mm; white-space: pre-wrap; }
+  .person { page-break-before: always; }
+  .small { font-size: 7pt; color: #555; }
+  .pill { display: inline-block; border: 1px solid #999; border-radius: 3mm; padding: 0 2mm; margin-right: 1mm; }
+  .privacy { font-size: 7pt; color: #555; margin-top: 3mm; border-top: 1px dashed #bbb; padding-top: 1mm; }
+</style>
+</head>
+<body>
+{% with u=unclassified %}
+<div class="brand"><div class="mark">S</div><div><div class="name">SAFE</div><div class="sub">{{ company.name }}</div></div></div>
+<h1>{% if lang == "en" %}Event report{% elif lang == "de" %}Ereignisbericht{% else %}Report sull'evento{% endif %}</h1>
+
+<div class="head">
+  <div><b>Data/ora evento</b> {{ local_dt|date:"d F Y, H:i" }}</div>
+  <div><b>Pista / luogo</b> {{ slope }}{% if regional_code %} ({{ regional_code }}){% endif %} · {{ zone }}</div>
+  <div><b>Altitudine</b> {% if event.altitude_m %}{{ event.altitude_m }} m{% else %}—{% endif %}</div>
+  <div><b>Squadra</b> {{ team }}</div>
+  <div><b>Chiamante</b> {{ event.caller|default:"—" }}</div>
+  <div><b>Ora ricezione chiamata</b> {{ event.call_received_at|default:"—" }}</div>
+  <div><b>Tempo dall'incidente</b> {{ event.time_since_incident|default:"—" }}</div>
+  <div><b>Ora chiamata soccorso esterno</b> {{ event.external_rescue_call_at|default:"—" }}</div>
+  <div><b>Stato</b> {% if event.fully_valid %}valido{% else %}non valido{% endif %}{% if event.locked_at %} · bloccato{% endif %}</div>
+</div>
+
+<div class="grids">
+  <div class="grid"><h3>Tipo di luogo</h3>{% for c in location_type_grid %}<div class="{% if c.checked %}on{% endif %}"><span class="box">{% if c.checked %}X{% endif %}</span>{{ c.label }}</div>{% endfor %}</div>
+  <div class="grid"><h3>Difficoltà pista</h3>{% for c in difficulty_grid %}<div class="{% if c.checked %}on{% endif %}"><span class="box">{% if c.checked %}X{% endif %}</span>{{ c.label }}</div>{% endfor %}</div>
+  <div class="grid"><h3>Caratteristiche luogo</h3>{% for c in feature_grid %}<div class="{% if c.checked %}on{% endif %}"><span class="box">{% if c.checked %}X{% endif %}</span>{{ c.label }}</div>{% endfor %}</div>
+  <div class="grid"><h3>Condizioni neve</h3>{% for c in snow_grid %}<div class="{% if c.checked %}on{% endif %}"><span class="box">{% if c.checked %}X{% endif %}</span>{{ c.label }}</div>{% endfor %}</div>
+  <div class="grid"><h3>Causa</h3>{% for c in cause_grid %}<div class="{% if c.checked %}on{% endif %}"><span class="box">{% if c.checked %}X{% endif %}</span>{{ c.label }}</div>{% endfor %}</div>
+</div>
+<div class="grids">
+  <div class="grid"><h3>Vento</h3>{% for c in wind_grid %}<div class="{% if c.checked %}on{% endif %}"><span class="box">{% if c.checked %}X{% endif %}</span>{{ c.label }}</div>{% endfor %}</div>
+  <div class="grid"><h3>Visibilità</h3>{% for c in visibility_grid %}<div class="{% if c.checked %}on{% endif %}"><span class="box">{% if c.checked %}X{% endif %}</span>{{ c.label }}</div>{% endfor %}</div>
+  <div class="grid"><h3>Traffico</h3>{% for c in traffic_grid %}<div class="{% if c.checked %}on{% endif %}"><span class="box">{% if c.checked %}X{% endif %}</span>{{ c.label }}</div>{% endfor %}</div>
+  <div class="grid"><h3>Innevamento</h3>{% for c in snow_making_grid %}<div class="{% if c.checked %}on{% endif %}"><span class="box">{% if c.checked %}X{% endif %}</span>{{ c.label }}</div>{% endfor %}</div>
+  <div class="grid"><h3>Meteo</h3>{% for c in weather_grid %}<div class="{% if c.checked %}on{% endif %}"><span class="box">{% if c.checked %}X{% endif %}</span>{{ c.label }}</div>{% endfor %}</div>
+</div>
+<div class="grids three">
+  <div class="grid"><h3>Testimoni</h3><div>{{ witnesses }}</div></div>
+  <div class="grid"><h3>Tipo di evento</h3>{% for c in event_type_grid %}<div class="{% if c.checked %}on{% endif %}"><span class="box">{% if c.checked %}X{% endif %}</span>{{ c.label }}</div>{% endfor %}</div>
+  <div class="grid"><h3>Relazione di servizio</h3><div>{{ service_report }}</div></div>
+</div>
+
+<p><b>Operatori</b> {% for o in operators %}<span class="pill">{{ o }}</span>{% empty %}—{% endfor %}</p>
+
+<table class="two"><tr>
+  <td class="map">
+    <b>Luogo dell'incidente</b>{% if coords %} <span class="small">({{ coords }})</span>{% endif %}<br>
+    {% if map_uri %}<img src="{{ map_uri }}" alt="">{% else %}<div class="lines"></div><div class="lines"></div><div class="lines"></div>{% endif %}
+    {% if event.location_description %}<div class="small">{{ event.location_description }}</div>{% endif %}
+  </td>
+  <td><b>Note</b><div class="note">{{ event.note|default:"" }}</div>{% if event.cause_note %}<p class="small"><b>Causa (note):</b> {{ event.cause_note }}</p>{% endif %}</td>
+</tr></table>
+
+{% for pc in persons %}
+<div class="person">
+  <h2>Persona {{ pc.p.sequence }}{% if pc.p.role_id %} - {{ pc.role }}{% endif %}</h2>
+  <div class="head">
+    <div><b>Cognome</b> {{ pc.p.initials_surname|default:"·" }}</div>
+    <div><b>Nome</b> {{ pc.p.initials_firstname|default:"·" }}</div>
+    <div><b>Genere</b> {{ pc.gender }}</div>
+    <div><b>Età</b> {{ pc.p.age|default_if_none:"—" }}</div>
+    <div><b>Nazione</b> {{ pc.country }}</div>
+    <div><b>Dati identificativi</b> {% if pc.identity_note %}(cifrati){% else %}—{% endif %}</div>
+    <div><b>Casco</b> {{ pc.helmet }}</div>
+    <div><b>Proprietà attrezzatura</b> {{ pc.equipment_owner }}</div>
+    <div><b>Stato attrezzatura</b> {{ pc.equipment_condition }}</div>
+  </div>
+  <div class="grids four">
+    <div class="grid"><h3>Attrezzatura</h3>{% for c in pc.equipment_grid %}<div class="{% if c.checked %}on{% endif %}"><span class="box">{% if c.checked %}X{% endif %}</span>{{ c.label }}</div>{% endfor %}</div>
+    <div class="grid"><h3>Assicurazione</h3>{% for c in pc.insurance_grid %}<div class="{% if c.checked %}on{% endif %}"><span class="box">{% if c.checked %}X{% endif %}</span>{{ c.label }}</div>{% endfor %}{% if pc.p.insurance_note %}<div class="small">{{ pc.p.insurance_note }}</div>{% endif %}</div>
+    <div class="grid"><h3>Alloggiato presso</h3>{% for c in pc.accommodation_grid %}<div class="{% if c.checked %}on{% endif %}"><span class="box">{% if c.checked %}X{% endif %}</span>{{ c.label }}</div>{% endfor %}</div>
+    <div class="grid"><h3>Destinazione</h3>{% for c in pc.destination_grid %}<div class="{% if c.checked %}on{% endif %}"><span class="box">{% if c.checked %}X{% endif %}</span>{{ c.label }}</div>{% endfor %}</div>
+  </div>
+  <div class="grids three">
+    <div class="grid"><h3>Diagnosi presunta</h3>{% for c in pc.diagnosis_grid %}<div class="{% if c.checked %}on{% endif %}"><span class="box">{% if c.checked %}X{% endif %}</span>{{ c.label }}</div>{% endfor %}</div>
+    <div>
+      <div class="grid"><h3>Sede lesione</h3><div>{{ pc.injury_place }}</div>{% for i in pc.injuries %}<div class="{% if i.rank == 'primary' %}on{% endif %}"><span class="box">{% if i.rank == 'primary' %}P{% else %}S{% endif %}</span>{{ i.part }}</div>{% endfor %}</div>
+      <div class="grid" style="margin-top:2mm"><h3>Altre protezioni</h3>{% for x in pc.protections %}<div class="on"><span class="box">X</span>{{ x }}</div>{% empty %}<div>—</div>{% endfor %}</div>
+      <div class="grid" style="margin-top:2mm"><h3>Mezzi di evacuazione</h3>{% for m in pc.means %}<div class="on"><span class="box">{{ forloop.counter }}</span>{{ m }}</div>{% empty %}<div>{{ u }}</div>{% endfor %}{% if pc.p.evacuation_means_note %}<div class="small">{{ pc.p.evacuation_means_note }}</div>{% endif %}</div>
+    </div>
+    <div>
+      <div class="grid"><h3>Responsabilità</h3>{% for c in pc.responsibility_grid %}<div class="{% if c.checked %}on{% endif %}"><span class="box">{% if c.checked %}X{% endif %}</span>{{ c.label }}</div>{% endfor %}</div>
+      <div class="grid" style="margin-top:2mm"><h3>Violazioni amministrative</h3><div>{{ pc.violations }}</div></div>
+      <div class="grid" style="margin-top:2mm"><h3>Soccorso rifiutato</h3><div>{{ pc.rescue_refusal }}</div></div>
+    </div>
+  </div>
+  {% if pc.p.diagnosis_note %}<p><b>Diagnosi (note)</b> {{ pc.p.diagnosis_note }}</p>{% endif %}
+  <p><b>Note</b></p><div class="note">{{ pc.p.note|default:"" }}</div>
+</div>
+{% endfor %}
+
+<p class="privacy">Documento pseudonimizzato: contiene solo iniziali, età e nazione delle persone soccorse; i dati identificativi restano cifrati nel sistema. Scaricato da: {{ downloaded_by }} | {{ generated_at|date:"d/m/Y, H:i:s" }}</p>
+{% endwith %}
+</body>
+</html>

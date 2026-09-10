@@ -35,6 +35,12 @@ ROUTES = [
     ("get", "/api/v1/map/events.geojson", ("map.view",)),
     ("get", "/api/v1/map/ski-areas.geojson", ("map.view",)),
     ("get", "/api/v1/map/styles", ("map.view",)),
+    ("get", "/api/v1/events/{event}/report.pdf", ("reports.pdf",)),
+    ("post", "/api/v1/exports/dataset", ("exports.dataset",)),
+    ("post", "/api/v1/exports/regional/preview", ("exports.regional",)),
+    ("post", "/api/v1/exports/regional", ("exports.regional",)),
+    ("get", "/api/v1/exports", ("exports.dataset",)),
+    ("get", "/api/v1/exports/administrative-areas", ("exports.regional",)),
 ]
 
 

@@ -90,7 +90,7 @@
             <td>{{ row.destination | lookup: 'destination' }}</td>
             <td>@if (row.has_identity) { <i class="pi pi-lock" [pTooltip]="t('persons.identity_encrypted')" tooltipPosition="left"></i> } @else { — }</td>
             <td><safe-state-tag kind="valid" [value]="row.valid" /></td>
-            <td><p-button icon="pi pi-file-pdf" [text]="true" [disabled]="true" [pTooltip]="t('placeholder.pdf_m5')" tooltipPosition="left" [attr.aria-label]="t('fields.pdf')" /></td>
+            <td><safe-pdf-button [eventId]="row.event_id" /></td>
           </tr>
         </ng-template>
         <ng-template #emptymessage>

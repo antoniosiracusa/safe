@@ -1,0 +1,97 @@
+<ng-container *transloco="let t">
+  <p-toast />
+  <div class="page-head">
+    <h1>{{ t('exports.regional_title') }}</h1>
+  </div>
+  <p class="intro">{{ t('exports.regional_intro') }}</p>
+
+  <ng-container *safeCan="'exports.regional'">
+    <section class="card">
+      <h2>{{ t('exports.parameters') }}</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label for="rx-template">{{ t('exports.template') }}</label>
+          <input id="rx-template" class="p-inputtext p-component" type="text" [value]="t('exports.template_veneto_a01')" readonly />
+        </div>
+        <div class="field">
+          <label for="rx-season">{{ t('exports.season') }}</label>
+          <p-select inputId="rx-season" [options]="filterOptions.options().seasons" optionLabel="label" optionValue="value" [ngModel]="season()" (ngModelChange)="season.set($event); invalidate()" appendTo="body" styleClass="w-full" />
+        </div>
+        <div class="field">
+          <label for="rx-area">{{ t('exports.area') }}</label>
+          <p-select inputId="rx-area" [options]="areaOptions()" optionLabel="label" optionValue="value" [ngModel]="area()" (ngModelChange)="area.set($event); invalidate()" [disabled]="areasLoaded() !== true" appendTo="body" styleClass="w-full" />
+          @if (areasLoaded() === false) { <p class="hint">{{ t('exports.area_not_loaded') }}</p> }
+        </div>
+        <div class="field">
+          <label for="rx-teams">{{ t('exports.teams') }}</label>
+          <p-multiSelect inputId="rx-teams" [options]="filterOptions.options().teams" optionLabel="label" optionValue="value" [ngModel]="teams()" (ngModelChange)="teams.set($event); invalidate()" [placeholder]="t('exports.teams_all')" [maxSelectedLabels]="2" [selectedItemsLabel]="t('filters.selected')" appendTo="body" styleClass="w-full" />
+        </div>
+        <div class="field">
+          <label for="rx-format">{{ t('exports.format') }}</label>
+          <p-selectButton inputId="rx-format" [options]="formatOptions" optionLabel="label" optionValue="value" [ngModel]="format()" (ngModelChange)="format.set($event)" [allowEmpty]="false" />
+        </div>
+        <div class="field checks">
+          <div class="check">
+            <p-checkbox inputId="rx-dup" [binary]="true" [ngModel]="mergeDuplicates()" (ngModelChange)="mergeDuplicates.set($event); invalidate()" />
+            <label for="rx-dup">{{ t('exports.merge_duplicates') }}</label>
+          </div>
+          <div class="check">
+            <p-checkbox inputId="rx-bld" [binary]="true" [ngModel]="excludeBuildings()" (ngModelChange)="excludeBuildings.set($event); invalidate()" />
+            <label for="rx-bld">{{ t('exports.exclude_buildings') }}</label>
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <p-button [label]="t('exports.preview')" icon="pi pi-search" [outlined]="true" [loading]="previewing()" [disabled]="!season() || generating()" (onClick)="runPreview()" />
+        <p-button [label]="t('exports.generate')" icon="pi pi-file-excel" [loading]="generating()" [disabled]="!canGenerate()" (onClick)="generate()" />
+        @if (!preview() && !previewing()) { <span class="hint">{{ t('exports.preview_first') }}</span> }
+      </div>
+      @if (error()) { <p class="error-box" role="alert" style="margin-top: 0.75rem">{{ error() }}</p> }
+    </section>
+
+    @if (preview(); as pv) {
+      <section class="card" aria-live="polite">
+        <h2>{{ t('exports.preview') }}</h2>
+        <div class="kpis">
+          <div class="kpi"><span class="label">{{ t('exports.persons_total') }}</span><span class="value">{{ pv.persons_total }}</span></div>
+          <div class="kpi"><span class="label">{{ t('exports.excluded_buildings') }}</span><span class="value">{{ pv.excluded_in_buildings.count }}</span></div>
+          <div class="kpi"><span class="label">{{ t('exports.excluded_outside') }}</span><span class="value">{{ pv.excluded_outside_area.count }}</span></div>
+          <div class="kpi"><span class="label">{{ t('exports.duplicates') }}</span><span class="value">{{ pv.duplicate_groups.count }}</span><span class="sub">{{ pv.duplicate_groups.persons_merged }} {{ t('exports.persons_merged') }}</span></div>
+          <div class="kpi accent"><span class="label">{{ t('exports.exportable') }}</span><span class="value">{{ pv.exportable_persons }}</span></div>
+        </div>
+        @if (pv.warnings.length) {
+          <ul class="warnings">
+            @for (w of pv.warnings; track w.code) {
+              <li><i class="pi pi-exclamation-triangle" aria-hidden="true"></i> {{ warningText(w) }}</li>
+            }
+          </ul>
+        }
+        @if (pv.duplicate_groups.groups.length) {
+          <h3>{{ t('exports.dup_groups_title') }}</h3>
+          <table class="dups">
+            <thead>
+              <tr>
+                <th>{{ t('fields.dateandtime') }}</th>
+                <th>{{ t('exports.teams') }}</th>
+                <th>{{ t('fields.event') }}</th>
+                <th>{{ t('exports.dup_joint') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (g of pv.duplicate_groups.groups; track g.kept_person_id) {
+                <tr>
+                  <td>{{ g.dateandtime | date: 'dd/MM/yyyy HH:mm' }}</td>
+                  <td>{{ g.teams.join(' + ') }}</td>
+                  <td>@for (e of g.event_ids; track e; let last = $last) { <code>{{ shortId(e) }}</code>@if (!last) { , } }</td>
+                  <td>{{ g.joint ? t('common.yes') : t('common.no') }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </section>
+    }
+
+    <safe-job-history kind="export_regional" />
+  </ng-container>
+</ng-container>

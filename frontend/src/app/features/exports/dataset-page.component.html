@@ -1,0 +1,41 @@
+<ng-container *transloco="let t">
+  <p-toast />
+  <div class="page-head">
+    <h1>{{ t('exports.dataset_title') }}</h1>
+  </div>
+  <p class="intro">{{ t('exports.dataset_intro') }}</p>
+
+  <ng-container *safeCan="'exports.dataset'">
+    <section class="card">
+      <h2>{{ t('exports.parameters') }}</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label for="dx-dataset">{{ t('exports.dataset') }}</label>
+          <p-selectButton inputId="dx-dataset" [options]="datasetOptions()" optionLabel="label" optionValue="value" [ngModel]="dataset()" (ngModelChange)="dataset.set($event)" [allowEmpty]="false" />
+        </div>
+        <div class="field">
+          <label for="dx-format">{{ t('exports.format') }}</label>
+          <p-selectButton inputId="dx-format" [options]="formatOptions" optionLabel="label" optionValue="value" [ngModel]="format()" (ngModelChange)="format.set($event)" [allowEmpty]="false" />
+        </div>
+      </div>
+
+      <h3>{{ t('exports.active_filters') }}</h3>
+      @if (chips().length) {
+        <div class="filters-summary">
+          @for (c of chips(); track c.key) {
+            <span class="chip"><b>{{ t(c.key) }}:</b>{{ c.value }}</span>
+          }
+        </div>
+      } @else {
+        <p class="hint">{{ t('exports.no_filters') }}</p>
+      }
+      <p class="hint">{{ t('exports.local_filters_note') }}</p>
+
+      <div class="actions">
+        <p-button [label]="t('exports.generate')" icon="pi pi-download" [loading]="generating()" (onClick)="generate()" />
+      </div>
+    </section>
+
+    <safe-job-history kind="export_dataset" />
+  </ng-container>
+</ng-container>

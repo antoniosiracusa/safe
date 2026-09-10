@@ -62,6 +62,6 @@ La CI (GitHub Actions) esegue lint, test con PostGIS e Redis di servizio, e il b
 | M2 | CRUD eventi e persone, sezione Dati (import storico escluso su richiesta) | fatto ([runbook](docs/runbook-M2.md)) |
 | M3 | statistiche (22 rotte aggregate, 6 pagine, benchmark 100k) | fatto ([runbook](docs/runbook-M3.md)) |
 | M4 | mappa (Mapbox GL JS, stili, layer, cluster, heatmap, selettore posizione) | fatto ([runbook](docs/runbook-M4.md)) |
-| M5 | esportazioni, PDF, anteprima qualità | |
+| M5 | job asincroni, PDF rapporto, export dataset CSV/XLSX, export regionale A01 con anteprima qualità | fatto ([runbook](docs/runbook-M5.md)) |
 | M6 | utenti, squadre, dispositivi | |
 | M7 | cifratura, audit, hardening | |

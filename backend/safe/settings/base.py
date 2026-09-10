@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     "safe.apps.audit",
     "safe.apps.stats",
     "safe.apps.maps",
+    "safe.apps.reports",
+    "safe.apps.exports",
 ]
 
 AUTH_USER_MODEL = "org.AppUser"
@@ -96,6 +98,7 @@ CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_TIMEZONE = "UTC"
 CELERY_BEAT_SCHEDULE = {
     "auto-lock-events": {"task": "safe.apps.rescue.auto_lock_events", "schedule": 900.0},
+    "cleanup-expired-jobs": {"task": "safe.apps.jobs.cleanup_expired", "schedule": 86400.0},
 }
 CHANNEL_LAYERS = {
     "default": {"BACKEND": "channels_redis.core.RedisChannelLayer", "CONFIG": {"hosts": [REDIS_URL]}}
@@ -127,6 +130,7 @@ SPECTACULAR_SETTINGS = {
 }
 
 CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGINS")
+CORS_EXPOSE_HEADERS = ["Content-Disposition"]
 CORS_ALLOW_CREDENTIALS = False
 
 # --- OIDC ----------------------------------------------------------------------
@@ -141,7 +145,16 @@ MAP_STYLES = {
     "summer": env("MAPBOX_STYLE_SUMMER", default="mapbox://styles/mapbox/outdoors-v12"),
     "satellite": env("MAPBOX_STYLE_SATELLITE", default="mapbox://styles/mapbox/satellite-streets-v12"),
 }
-MAPBOX_SECRET_TOKEN = env("MAPBOX_SECRET_TOKEN", default="")  # solo server (immagini statiche per i PDF, M5)
+MAPBOX_TOKEN = env("MAPBOX_SECRET_TOKEN", default="") or env(
+    "MAPBOX_TOKEN", default=""
+)  # immagini statiche per i PDF
+
+# --- Object storage (MinIO / S3) ---------------------------------------------------------------
+S3_ENDPOINT_URL = env("S3_ENDPOINT_URL", default="http://minio:9000")
+S3_ACCESS_KEY = env("S3_ACCESS_KEY", default="safe")
+S3_SECRET_KEY = env("S3_SECRET_KEY", default="safe-secret")
+S3_BUCKET = env("S3_BUCKET", default="safe-files")
+S3_REGION = env("S3_REGION", default="eu-central-1")
 
 # --- Internazionalizzazione ----------------------------------------------------
 LANGUAGE_CODE = "it"

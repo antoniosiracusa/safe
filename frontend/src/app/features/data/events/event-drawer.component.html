@@ -41,7 +41,7 @@
             <p-button [label]="t('common.delete')" icon="pi pi-trash" severity="danger" [text]="true" size="small" (onClick)="remove()" />
           </ng-container>
         }
-        <p-button icon="pi pi-file-pdf" [label]="t('fields.pdf')" [text]="true" size="small" [disabled]="true" [pTooltip]="t('placeholder.pdf_m5')" tooltipPosition="bottom" />
+        <safe-pdf-button [eventId]="ev.id" [withLabel]="true" size="small" tooltipPosition="bottom" />
       </div>
 
       @if (ev.validation_errors.length) {

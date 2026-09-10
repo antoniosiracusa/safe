@@ -39,3 +39,6 @@ infra/tiles/data/*.mbtiles
 
 # Generated
 *.log
+
+# Celery beat (schedule locale del container)
+backend/celerybeat-schedule*

@@ -98,7 +98,7 @@
             <td><safe-state-tag kind="valid" [value]="row.fully_valid" /></td>
             <td><safe-state-tag kind="locked" [value]="!!row.locked_at" /></td>
             <td>
-              <p-button icon="pi pi-file-pdf" [text]="true" [disabled]="true" [pTooltip]="t('placeholder.pdf_m5')" tooltipPosition="left" [attr.aria-label]="t('fields.pdf')" />
+              <safe-pdf-button [eventId]="row.id" />
             </td>
           </tr>
         </ng-template>

@@ -2,6 +2,8 @@ import { HttpParams } from '@angular/common/http';
 import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, computed, effect, inject, isDevMode, signal, untracked, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+
+import { JobsService } from '../../core/api/jobs.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import type { FeatureCollection, MultiPolygon, Point } from 'geojson';
@@ -43,6 +45,7 @@ export class MapPageComponent implements AfterViewInit {
   private readonly filterStore = inject(FilterStore);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly jobs = inject(JobsService);
   private readonly transloco = inject(TranslocoService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly container = viewChild<ElementRef<HTMLDivElement>>('map');
@@ -238,13 +241,14 @@ export class MapPageComponent implements AfterViewInit {
     const id = String(f.properties?.['id']);
     const when = new Date(String(f.properties?.['dateandtime']));
     const t = (k: string) => this.transloco.translate(k);
+    const canPdf = this.session.can('reports.pdf');
     const html = `
       <div class="safe-popup">
         <strong>${t('events.event')} <code>${id.slice(-8).toUpperCase()}</code></strong>
         <div>${when.toLocaleString(this.lang(), { dateStyle: 'short', timeStyle: 'short' })}</div>
         <div class="actions">
           <button type="button" class="p-button p-button-sm p-button-text" data-open="${id}">${t('map.open_event')}</button>
-          <button type="button" class="p-button p-button-sm p-button-text" disabled title="${t('placeholder.pdf_m5')}">PDF</button>
+          <button type="button" class="p-button p-button-sm p-button-text" data-pdf="${id}" ${canPdf ? '' : 'disabled'} title="${canPdf ? t('pdf.download') : t('pdf.no_permission')}">PDF</button>
         </div>
       </div>`;
     this.popup?.remove();
@@ -252,7 +256,21 @@ export class MapPageComponent implements AfterViewInit {
       .setLngLat((f.geometry as Point).coordinates as [number, number])
       .setHTML(html)
       .addTo(map);
-    this.popup.getElement()?.querySelector<HTMLButtonElement>('button[data-open]')?.addEventListener('click', () => this.openEvent(id));
+    const el = this.popup.getElement();
+    el?.querySelector<HTMLButtonElement>('button[data-open]')?.addEventListener('click', () => this.openEvent(id));
+    const pdfBtn = el?.querySelector<HTMLButtonElement>('button[data-pdf]');
+    pdfBtn?.addEventListener('click', async () => {
+      pdfBtn.disabled = true;
+      pdfBtn.textContent = '…';
+      try {
+        await this.jobs.eventReportPdf(id);
+        pdfBtn.textContent = 'PDF';
+      } catch {
+        pdfBtn.textContent = t('pdf.error');
+      } finally {
+        pdfBtn.disabled = false;
+      }
+    });
   }
 
   openEvent(id: string): void {

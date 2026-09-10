@@ -18,6 +18,7 @@ import { RescueService } from '../../../core/api/rescue.service';
 import { CanDirective } from '../../../core/authz/can.directive';
 import { LookupLabelPipe } from '../../../core/lookups/lookup-label.pipe';
 import { SessionService } from '../../../core/session/session.service';
+import { PdfButtonComponent } from '../../../shared/ui/pdf-button.component';
 import { StateTagComponent } from '../../../shared/ui/state-tag.component';
 import { PersonFormComponent } from '../persons/person-form.component';
 import { EventFormComponent } from './event-form.component';
@@ -29,8 +30,8 @@ import { EventFormComponent } from './event-form.component';
   imports: [
     DatePipe, DecimalPipe, JsonPipe,
     FormsModule, TranslocoDirective, DrawerModule, TabsModule, ButtonModule, DialogModule, ConfirmDialogModule,
-    SkeletonModule, TextareaModule, TooltipModule, CanDirective, LookupLabelPipe, StateTagComponent, EventFormComponent,
-    PersonFormComponent,
+    SkeletonModule, TextareaModule, TooltipModule, CanDirective, LookupLabelPipe, StateTagComponent, PdfButtonComponent,
+    EventFormComponent, PersonFormComponent,
   ],
   providers: [ConfirmationService],
   changeDetection: ChangeDetectionStrategy.OnPush,

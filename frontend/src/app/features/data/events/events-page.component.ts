@@ -21,6 +21,7 @@ import { LookupLabelPipe } from '../../../core/lookups/lookup-label.pipe';
 import { LookupsService } from '../../../core/lookups/lookups.service';
 import { SessionService } from '../../../core/session/session.service';
 import { TerritoryService } from '../../../core/territory/territory.service';
+import { PdfButtonComponent } from '../../../shared/ui/pdf-button.component';
 import { StateTagComponent } from '../../../shared/ui/state-tag.component';
 import { EventDrawerComponent } from './event-drawer.component';
 
@@ -30,7 +31,7 @@ const PAGE_SIZE = 50;
   selector: 'safe-events-page',
   imports: [
     DatePipe, FormsModule, TranslocoDirective, TableModule, ButtonModule, SelectModule, MultiSelectModule, InputTextModule,
-    ToastModule, TooltipModule, CanDirective, LookupLabelPipe, StateTagComponent, EventDrawerComponent,
+    ToastModule, TooltipModule, CanDirective, LookupLabelPipe, StateTagComponent, PdfButtonComponent, EventDrawerComponent,
   ],
   providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush,

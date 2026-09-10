@@ -19,6 +19,7 @@ import { FilterStore } from '../../../core/filters/filter.store';
 import { LookupLabelPipe } from '../../../core/lookups/lookup-label.pipe';
 import { LookupsService } from '../../../core/lookups/lookups.service';
 import { SessionService } from '../../../core/session/session.service';
+import { PdfButtonComponent } from '../../../shared/ui/pdf-button.component';
 import { StateTagComponent } from '../../../shared/ui/state-tag.component';
 import { EventDrawerComponent } from '../events/event-drawer.component';
 
@@ -26,7 +27,7 @@ const PAGE_SIZE = 50;
 
 @Component({
   selector: 'safe-persons-page',
-  imports: [DatePipe, FormsModule, TranslocoDirective, TableModule, ButtonModule, SelectModule, InputNumberModule, ToastModule, TooltipModule, CanDirective, LookupLabelPipe, StateTagComponent, EventDrawerComponent],
+  imports: [DatePipe, FormsModule, TranslocoDirective, TableModule, ButtonModule, SelectModule, InputNumberModule, ToastModule, TooltipModule, CanDirective, LookupLabelPipe, StateTagComponent, PdfButtonComponent, EventDrawerComponent],
   providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './persons-page.component.html',
