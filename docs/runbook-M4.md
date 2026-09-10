@@ -46,5 +46,9 @@ docker compose run --rm api sh -c "ruff check . && mypy safe && pytest"   # 82 t
 cd frontend && npm run build -- --configuration=production && npm test -- --watch=false --browsers=ChromeHeadless
 ```
 
-Senza token Mapbox in questa sessione è stato verificato nel browser lo stato "mappa non configurata"
-e il selettore posizione nel form; il rendering con tile va verificato dopo aver inserito il token.
+Verificato nel browser con il token pubblico fornito il 10/09/2026: stile Inverno con rilievo, confine del
+comprensorio, piste e impianti, 24.998 eventi in cluster con conteggi, cambio stile. Il token sta in
+`frontend/public/config/app-config.local.json` (fuso a runtime con `app-config.json`, escluso da git).
+
+Nota tecnica: il worker di Mapbox GL è servito come asset separato (`assets/mapbox-gl-csp-worker.js`,
+`mapboxgl.workerUrl`) perché il bundler Angular riscrive gli `async` per zone.js e il worker inline falliva.
