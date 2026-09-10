@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "safe.apps.jobs",
     "safe.apps.audit",
     "safe.apps.stats",
+    "safe.apps.maps",
 ]
 
 AUTH_USER_MODEL = "org.AppUser"
@@ -133,6 +134,14 @@ OIDC_ISSUER = env("OIDC_ISSUER")
 OIDC_AUDIENCE = env("OIDC_AUDIENCE", default="safe-api")
 OIDC_JWKS_URL = env("OIDC_JWKS_URL", default=f"{OIDC_ISSUER}/protocol/openid-connect/certs")
 OIDC_JWKS_CACHE_SECONDS = 3600
+
+# --- Cartografia (Mapbox): stili per ambiente; il token pubblico sta nella config del client -----
+MAP_STYLES = {
+    "winter": env("MAPBOX_STYLE_WINTER", default="mapbox://styles/mapbox/light-v11"),
+    "summer": env("MAPBOX_STYLE_SUMMER", default="mapbox://styles/mapbox/outdoors-v12"),
+    "satellite": env("MAPBOX_STYLE_SATELLITE", default="mapbox://styles/mapbox/satellite-streets-v12"),
+}
+MAPBOX_SECRET_TOKEN = env("MAPBOX_SECRET_TOKEN", default="")  # solo server (immagini statiche per i PDF, M5)
 
 # --- Internazionalizzazione ----------------------------------------------------
 LANGUAGE_CODE = "it"

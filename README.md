@@ -34,6 +34,7 @@ Utenti demo (Keycloak): `admin.demo` / `admin.demo`, `rescuer.demo` / `rescuer.d
 - Keycloak: http://localhost:8080 (realm `safe`, admin `admin`/`admin` in sviluppo)
 - Mailpit (email di invito): http://localhost:8025
 - MinIO (PDF ed export): http://localhost:9001
+- Mappa: inserire il token pubblico Mapbox in `frontend/public/config/app-config.json` (`map.mapboxToken`)
 
 Front-end in modalità sviluppo (hot reload):
 
@@ -60,7 +61,7 @@ La CI (GitHub Actions) esegue lint, test con PostGIS e Redis di servizio, e il b
 | M1 | autenticazione OIDC, multi-tenancy, modello dati, migrazioni, shell web | fatto ([runbook](docs/runbook-M1.md)) |
 | M2 | CRUD eventi e persone, sezione Dati (import storico escluso su richiesta) | fatto ([runbook](docs/runbook-M2.md)) |
 | M3 | statistiche (22 rotte aggregate, 6 pagine, benchmark 100k) | fatto ([runbook](docs/runbook-M3.md)) |
-| M4 | mappa | |
+| M4 | mappa (Mapbox GL JS, stili, layer, cluster, heatmap, selettore posizione) | fatto ([runbook](docs/runbook-M4.md)) |
 | M5 | esportazioni, PDF, anteprima qualità | |
 | M6 | utenti, squadre, dispositivi | |
 | M7 | cifratura, audit, hardening | |

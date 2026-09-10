@@ -278,5 +278,35 @@
     "col_unlocked": "Sbloccati",
     "col_invalid": "Non validi",
     "col_helicopter": "Con elicottero"
+  },
+  "map": {
+    "style": {
+      "winter": "Inverno",
+      "summer": "Estate",
+      "satellite": "Satellite"
+    },
+    "style_label": "Stile mappa",
+    "layers": "Layer",
+    "layer_boundaries": "Confini comprensorio",
+    "layer_slopes": "Piste e impianti",
+    "layer_events": "Eventi",
+    "layer_heatmap": "Heatmap",
+    "events_shown": "{{count}} eventi sulla mappa",
+    "recenter": "Centra sul comprensorio",
+    "open_event": "Apri evento",
+    "legend_ski_school": "Campo scuola",
+    "legend_blue": "Azzurra",
+    "legend_red": "Rossa",
+    "legend_black": "Nera",
+    "legend_lift": "Impianto",
+    "legend_event": "Evento",
+    "token_missing_title": "Mappa non configurata",
+    "token_missing": "Manca il token pubblico Mapbox nella configurazione dell'applicazione.",
+    "error_token": "Il token Mapbox non è valido o non è autorizzato per questo dominio.",
+    "error_styles": "Impossibile caricare gli stili della mappa.",
+    "error_events": "Impossibile caricare gli eventi.",
+    "picker_label": "Selettore posizione",
+    "picker_hint": "Clicca sulla mappa o trascina il marker per impostare la posizione.",
+    "picker_clear": "Rimuovi posizione"
   }
 }

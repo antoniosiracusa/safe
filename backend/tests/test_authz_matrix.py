@@ -32,6 +32,9 @@ ROUTES = [
     ("get", "/api/v1/stats/demographics/age-gender", ("stats.view",)),
     ("get", "/api/v1/stats/geography/slopes", ("stats.view",)),
     ("get", "/api/v1/stats/season-summary/teams", ("stats.view", "stats.advanced")),
+    ("get", "/api/v1/map/events.geojson", ("map.view",)),
+    ("get", "/api/v1/map/ski-areas.geojson", ("map.view",)),
+    ("get", "/api/v1/map/styles", ("map.view",)),
 ]
 
 

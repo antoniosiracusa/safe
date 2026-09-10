@@ -6,8 +6,7 @@ export interface AppConfig {
   oidc: { issuer: string; clientId: string };
   apiBaseUrl: string;
   wsBaseUrl: string;
-  tilesBaseUrl: string;
-  satelliteKey: string;
+  map: { provider: 'mapbox'; mapboxToken: string; defaultCenter: [number, number]; defaultZoom: number };
   defaultLocale: string;
   supportedLocales: string[];
 }

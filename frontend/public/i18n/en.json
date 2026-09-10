@@ -278,5 +278,35 @@
     "col_unlocked": "Unlocked",
     "col_invalid": "Invalid",
     "col_helicopter": "With helicopter"
+  },
+  "map": {
+    "style": {
+      "winter": "Winter",
+      "summer": "Summer",
+      "satellite": "Satellite"
+    },
+    "style_label": "Map style",
+    "layers": "Layers",
+    "layer_boundaries": "Ski area boundaries",
+    "layer_slopes": "Slopes and lifts",
+    "layer_events": "Events",
+    "layer_heatmap": "Heatmap",
+    "events_shown": "{{count}} events on the map",
+    "recenter": "Center on ski area",
+    "open_event": "Open event",
+    "legend_ski_school": "Ski school",
+    "legend_blue": "Blue",
+    "legend_red": "Red",
+    "legend_black": "Black",
+    "legend_lift": "Lift",
+    "legend_event": "Event",
+    "token_missing_title": "Map not configured",
+    "token_missing": "The Mapbox public token is missing from the application configuration.",
+    "error_token": "The Mapbox token is invalid or not allowed for this domain.",
+    "error_styles": "Map styles could not be loaded.",
+    "error_events": "Events could not be loaded.",
+    "picker_label": "Position picker",
+    "picker_hint": "Click the map or drag the marker to set the position.",
+    "picker_clear": "Clear position"
   }
 }

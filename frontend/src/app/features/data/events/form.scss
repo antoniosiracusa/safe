@@ -81,3 +81,5 @@ fieldset {
 
 .w-full { width: 100%; }
 :host ::ng-deep .w-full { width: 100%; }
+
+.map-placeholder { height: 260px; border-radius: 6px; background: var(--p-surface-100); }

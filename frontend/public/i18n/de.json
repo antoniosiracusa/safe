@@ -278,5 +278,35 @@
     "col_unlocked": "Entsperrt",
     "col_invalid": "Ungültig",
     "col_helicopter": "Mit Hubschrauber"
+  },
+  "map": {
+    "style": {
+      "winter": "Winter",
+      "summer": "Sommer",
+      "satellite": "Satellit"
+    },
+    "style_label": "Kartenstil",
+    "layers": "Ebenen",
+    "layer_boundaries": "Skigebietsgrenzen",
+    "layer_slopes": "Pisten und Lifte",
+    "layer_events": "Ereignisse",
+    "layer_heatmap": "Heatmap",
+    "events_shown": "{{count}} Ereignisse auf der Karte",
+    "recenter": "Auf Skigebiet zentrieren",
+    "open_event": "Ereignis öffnen",
+    "legend_ski_school": "Übungshang",
+    "legend_blue": "Blau",
+    "legend_red": "Rot",
+    "legend_black": "Schwarz",
+    "legend_lift": "Lift",
+    "legend_event": "Ereignis",
+    "token_missing_title": "Karte nicht konfiguriert",
+    "token_missing": "Das öffentliche Mapbox-Token fehlt in der Anwendungskonfiguration.",
+    "error_token": "Das Mapbox-Token ist ungültig oder für diese Domain nicht zugelassen.",
+    "error_styles": "Kartenstile konnten nicht geladen werden.",
+    "error_events": "Ereignisse konnten nicht geladen werden.",
+    "picker_label": "Positionsauswahl",
+    "picker_hint": "Auf die Karte klicken oder den Marker ziehen, um die Position festzulegen.",
+    "picker_clear": "Position entfernen"
   }
 }

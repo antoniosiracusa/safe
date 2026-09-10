@@ -67,11 +67,17 @@
       <div class="field">
         <label for="f-lat">{{ t('fields.lat') }}</label>
         <p-inputNumber inputId="f-lat" formControlName="lat" mode="decimal" [minFractionDigits]="5" [maxFractionDigits]="6" [useGrouping]="false" styleClass="w-full" />
-        <small class="hint">{{ t('events.map_hint') }}</small>
       </div>
       <div class="field">
         <label for="f-lon">{{ t('fields.lon') }}</label>
         <p-inputNumber inputId="f-lon" formControlName="lon" mode="decimal" [minFractionDigits]="5" [maxFractionDigits]="6" [useGrouping]="false" styleClass="w-full" />
+      </div>
+      <div class="field span-2">
+        @defer (on viewport) {
+          <safe-map-picker [value]="position()" (changed)="setPosition($event)" />
+        } @placeholder {
+          <div class="map-placeholder" aria-hidden="true"></div>
+        }
       </div>
       <div class="field">
         <label for="f-alt">{{ t('fields.altitude_m') }}</label>

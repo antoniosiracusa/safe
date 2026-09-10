@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from django.contrib.gis.geos import LineString, MultiLineString, MultiPolygon, Polygon
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
@@ -11,7 +12,7 @@ from safe.apps.lookups.models import LookupValue
 from safe.apps.org.models import AppUser, Team, UserTeam
 from safe.apps.tenancy.context import bypass_tenant, tenant_context
 from safe.apps.tenancy.models import Company
-from safe.apps.territory.models import SkiArea, Slope, Zone
+from safe.apps.territory.models import Lift, SkiArea, Slope, Zone
 
 SLOPES = [
     (
@@ -80,4 +81,29 @@ class Command(BaseCommand):
                     )
             for team in (police, alpini):
                 team.save()
+            # geometrie di esempio (sintetiche) per la mappa: confine, piste, impianti
+            if area.boundary is None:
+                area.boundary = MultiPolygon(
+                    Polygon(((12.04, 46.39), (12.16, 46.39), (12.16, 46.51), (12.04, 46.51), (12.04, 46.39)))
+                )
+                area.save(update_fields=["boundary", "updated_at"])
+            for k, slope in enumerate(Slope.objects.filter(geom__isnull=True).order_by("name")):
+                lon = 12.055 + k * 0.01
+                slope.geom = MultiLineString(
+                    LineString((lon, 46.49), (lon + 0.004, 46.47), (lon + 0.002, 46.45), (lon + 0.006, 46.43))
+                )
+                slope.save(update_fields=["geom", "updated_at"])
+            if not Lift.objects.exists():
+                Lift.objects.create(
+                    ski_area=area,
+                    name="Seggiovia Fertazza",
+                    lift_type="chairlift",
+                    geom=LineString((12.07, 46.42), (12.09, 46.49)),
+                )
+                Lift.objects.create(
+                    ski_area=area,
+                    name="Sciovia Lastie",
+                    lift_type="skilift",
+                    geom=LineString((12.11, 46.43), (12.12, 46.47)),
+                )
         self.stdout.write(self.style.SUCCESS("Dati demo pronti (società 'demo')."))

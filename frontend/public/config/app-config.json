@@ -6,8 +6,12 @@
   },
   "apiBaseUrl": "http://localhost:8000/api/v1",
   "wsBaseUrl": "ws://localhost:8001/ws/v1",
-  "tilesBaseUrl": "http://localhost:8081",
-  "satelliteKey": "",
+  "map": {
+    "provider": "mapbox",
+    "mapboxToken": "",
+    "defaultCenter": [12.1, 46.45],
+    "defaultZoom": 11
+  },
   "defaultLocale": "it",
   "supportedLocales": ["it", "en", "de"]
 }

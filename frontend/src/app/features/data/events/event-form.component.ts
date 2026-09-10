@@ -16,6 +16,7 @@ import { FilterOptionsService } from '../../../core/filters/filter-options.servi
 import { LookupsService } from '../../../core/lookups/lookups.service';
 import { SessionService } from '../../../core/session/session.service';
 import { TerritoryService } from '../../../core/territory/territory.service';
+import { MapPickerComponent } from '../../../shared/map/map-picker.component';
 
 export const TRISTATE = (t: (k: string) => string) => [
   { value: true, label: t('common.yes') },
@@ -25,7 +26,7 @@ export const TRISTATE = (t: (k: string) => string) => [
 /** Form di creazione/modifica evento. Le liste arrivano dai vocabolari e dal territorio della società. */
 @Component({
   selector: 'safe-event-form',
-  imports: [ReactiveFormsModule, TranslocoDirective, ButtonModule, SelectModule, DatePickerModule, InputNumberModule, InputTextModule, TextareaModule, CheckboxModule],
+  imports: [ReactiveFormsModule, TranslocoDirective, ButtonModule, SelectModule, DatePickerModule, InputNumberModule, InputTextModule, TextareaModule, CheckboxModule, MapPickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './event-form.component.html',
   styleUrl: './form.scss',
@@ -202,6 +203,17 @@ export class EventFormComponent {
         else this.generalError.set(body?.code ?? 'save_error');
       },
     });
+  }
+
+  /** Posizione corrente del form come [lon, lat] per il selettore sulla mappa. */
+  position(): [number, number] | null {
+    const { lat, lon } = this.form.getRawValue();
+    return lat !== null && lon !== null ? [lon, lat] : null;
+  }
+
+  setPosition(p: [number, number] | null): void {
+    this.form.patchValue({ lon: p ? p[0] : null, lat: p ? p[1] : null });
+    this.form.markAsDirty();
   }
 
   errorOf(field: string): string | null {

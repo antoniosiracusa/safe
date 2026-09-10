@@ -7,15 +7,7 @@ import { detectLang, langGuard, langMatch } from './core/i18n/lang.guard';
 import { HomeComponent } from './features/home/home.component';
 import { NotProvisionedComponent } from './features/not-provisioned/not-provisioned.component';
 import { PlaceholderComponent } from './features/placeholder/placeholder.component';
-import { EventsPageComponent } from './features/data/events/events-page.component';
-import { PersonsPageComponent } from './features/data/persons/persons-page.component';
 import { ShellComponent } from './layout/shell/shell.component';
-import { ZonePageComponent } from './features/stats/zone-page.component';
-import { DemographicsPageComponent } from './features/stats/demographics-page.component';
-import { TypologyPageComponent } from './features/stats/typology-page.component';
-import { GeographyPageComponent } from './features/stats/geography-page.component';
-import { WeatherPageComponent } from './features/stats/weather-page.component';
-import { SeasonPageComponent } from './features/stats/season-page.component';
 
 /** Pagine delle milestone successive: già instradate (con permesso e filtri) come segnaposto. */
 const placeholder = (
@@ -47,15 +39,15 @@ export const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'home' },
       { path: 'home', component: HomeComponent },
-      { path: 'stats/zone', component: ZonePageComponent, data: { filters: true } },
-      { path: 'stats/demographics', component: DemographicsPageComponent, data: { filters: true } },
-      { path: 'stats/typology', component: TypologyPageComponent, data: { filters: true } },
-      { path: 'stats/geography', component: GeographyPageComponent, data: { filters: true } },
-      { path: 'stats/weather', component: WeatherPageComponent, data: { filters: true } },
-      { path: 'stats/season', component: SeasonPageComponent, data: { filters: true } },
-      { path: 'data/events', component: EventsPageComponent, data: { filters: true } },
-      { path: 'data/persons', component: PersonsPageComponent, data: { filters: true } },
-      placeholder('map', 'nav.map', 'map.view', 'M4'),
+      { path: 'stats/zone', loadComponent: () => import('./features/stats/zone-page.component').then((m) => m.ZonePageComponent), data: { filters: true } },
+      { path: 'stats/demographics', loadComponent: () => import('./features/stats/demographics-page.component').then((m) => m.DemographicsPageComponent), data: { filters: true } },
+      { path: 'stats/typology', loadComponent: () => import('./features/stats/typology-page.component').then((m) => m.TypologyPageComponent), data: { filters: true } },
+      { path: 'stats/geography', loadComponent: () => import('./features/stats/geography-page.component').then((m) => m.GeographyPageComponent), data: { filters: true } },
+      { path: 'stats/weather', loadComponent: () => import('./features/stats/weather-page.component').then((m) => m.WeatherPageComponent), data: { filters: true } },
+      { path: 'stats/season', loadComponent: () => import('./features/stats/season-page.component').then((m) => m.SeasonPageComponent), data: { filters: true } },
+      { path: 'data/events', loadComponent: () => import('./features/data/events/events-page.component').then((m) => m.EventsPageComponent), data: { filters: true } },
+      { path: 'data/persons', loadComponent: () => import('./features/data/persons/persons-page.component').then((m) => m.PersonsPageComponent), data: { filters: true } },
+      { path: 'map', loadComponent: () => import('./features/map/map-page.component').then((m) => m.MapPageComponent), data: { filters: true } },
       placeholder('exports/regional', 'nav.exports_regional', 'exports.regional', 'M5'),
       placeholder('exports/dataset', 'nav.exports_dataset', 'exports.dataset', 'M5'),
       placeholder('admin/users', 'nav.users', 'users.view', 'M6', false),

@@ -1,0 +1,46 @@
+<ng-container *transloco="let t">
+  <ng-container *safeCan="'map.view'">
+    @if (!mapbox.configured) {
+      <section class="notice" role="alert">
+        <i class="pi pi-map" aria-hidden="true"></i>
+        <h2>{{ t('map.token_missing_title') }}</h2>
+        <p>{{ t('map.token_missing') }}</p>
+        <code>frontend/public/config/app-config.json → map.mapboxToken</code>
+      </section>
+    } @else {
+      <div class="map-shell">
+        <div class="toolbar">
+          <p-selectButton [options]="styleOptions()" optionLabel="label" optionValue="value" [ngModel]="style()" (ngModelChange)="setStyle($event)" [allowEmpty]="false" size="small" [attr.aria-label]="t('map.style_label')" />
+          <div class="layers" role="group" [attr.aria-label]="t('map.layers')">
+            @for (l of allLayers; track l) {
+              <span class="layer">
+                <p-checkbox [inputId]="'layer-' + l" [binary]="true" [ngModel]="has(l)" (ngModelChange)="toggleLayer(l, $event)" />
+                <label [for]="'layer-' + l">{{ t('map.layer_' + l) }}</label>
+              </span>
+            }
+          </div>
+          <span class="spacer"></span>
+          @if (count() !== null) {
+            <span class="count" aria-live="polite">{{ t('map.events_shown', { count: count() }) }}</span>
+          }
+          <p-button icon="pi pi-home" [text]="true" size="small" severity="secondary" [pTooltip]="t('map.recenter')" [attr.aria-label]="t('map.recenter')" (onClick)="recenter()" />
+        </div>
+        @if (error(); as err) {
+          <p class="error-box" role="alert">{{ t('map.error_' + err) }}</p>
+        }
+        <div #map class="map" [class.loading]="loading()" role="application" [attr.aria-label]="t('nav.map')"></div>
+        <div class="legend">
+          <span><i class="sw" style="background: #2f9e44"></i>{{ t('map.legend_ski_school') }}</span>
+          <span><i class="sw" style="background: #1c7ed6"></i>{{ t('map.legend_blue') }}</span>
+          <span><i class="sw" style="background: #e03131"></i>{{ t('map.legend_red') }}</span>
+          <span><i class="sw" style="background: #212529"></i>{{ t('map.legend_black') }}</span>
+          <span><i class="sw dashed"></i>{{ t('map.legend_lift') }}</span>
+          <span><i class="sw dot"></i>{{ t('map.legend_event') }}</span>
+        </div>
+      </div>
+    }
+  </ng-container>
+  @if (selectedEvent()) {
+    <safe-event-drawer [eventId]="selectedEvent()" (closed)="closeDrawer($event)" />
+  }
+</ng-container>
