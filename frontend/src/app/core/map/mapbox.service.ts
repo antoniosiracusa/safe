@@ -3,6 +3,10 @@ import mapboxgl from 'mapbox-gl';
 
 import { AppConfigService } from '../config/app-config';
 
+// Worker servito come asset separato: il bundler Angular (zone.js) riscrive gli async del bundle principale
+// con helper che il worker inline di Mapbox non conosce.
+mapboxgl.workerUrl = 'assets/mapbox-gl-csp-worker.js';
+
 export interface MapStyle {
   code: 'winter' | 'summer' | 'satellite';
   label_key: string;

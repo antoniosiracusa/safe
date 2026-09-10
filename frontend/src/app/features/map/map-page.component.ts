@@ -1,5 +1,5 @@
 import { HttpParams } from '@angular/common/http';
-import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, computed, effect, inject, isDevMode, signal, untracked, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -102,6 +102,7 @@ export class MapPageComponent implements AfterViewInit {
     const el = this.container()?.nativeElement;
     if (!el) return;
     this.map = this.mapbox.create(el, this.styleUrl());
+    if (isDevMode()) (window as unknown as { __safeMap?: mapboxgl.Map }).__safeMap = this.map; // diagnostica in sviluppo
     this.map.addControl(new mapboxgl.NavigationControl({ visualizePitch: false }), 'top-left');
     this.map.addControl(new mapboxgl.ScaleControl({ unit: 'metric' }), 'bottom-left');
     this.map.on('error', (e) => {

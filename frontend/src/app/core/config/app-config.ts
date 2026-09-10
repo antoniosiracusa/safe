@@ -27,7 +27,16 @@ export class AppConfigService {
     if (!res.ok) {
       throw new Error(`Impossibile caricare la configurazione (${res.status})`);
     }
-    this.cfg = (await res.json()) as AppConfig;
+    const base = (await res.json()) as AppConfig;
+    // Override locale opzionale (non versionato): token e valori specifici della postazione.
+    let local: Partial<AppConfig> = {};
+    try {
+      const l = await fetch('config/app-config.local.json', { cache: 'no-store' });
+      if (l.ok) local = (await l.json()) as Partial<AppConfig>;
+    } catch {
+      /* nessun override */
+    }
+    this.cfg = { ...base, ...local, map: { ...base.map, ...(local.map ?? {}) }, oidc: { ...base.oidc, ...(local.oidc ?? {}) } };
     return this.cfg;
   }
 }

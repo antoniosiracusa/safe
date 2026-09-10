@@ -30,6 +30,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "mapbox-gl-csp-worker.js",
+                "input": "node_modules/mapbox-gl/dist",
+                "output": "assets"
               }
             ],
             "styles": [
@@ -73,7 +78,14 @@
               "buildTarget": "safe-web:build:development"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "development",
+          "options": {
+            "prebundle": {
+              "exclude": [
+                "mapbox-gl"
+              ]
+            }
+          }
         },
         "extract-i18n": {
           "builder": "@angular/build:extract-i18n"
