@@ -1,0 +1,135 @@
+{
+  "realm": "safe",
+  "displayName": "SAFE",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "resetPasswordAllowed": true,
+  "verifyEmail": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "bruteForceProtected": true,
+  "defaultSignatureAlgorithm": "RS256",
+  "accessTokenLifespan": 900,
+  "ssoSessionIdleTimeout": 3600,
+  "ssoSessionMaxLifespan": 43200,
+  "internationalizationEnabled": true,
+  "supportedLocales": ["it", "en", "de"],
+  "defaultLocale": "it",
+  "smtpServer": {
+    "host": "mailpit",
+    "port": "1025",
+    "from": "safe@localhost",
+    "fromDisplayName": "SAFE",
+    "auth": "false",
+    "ssl": "false",
+    "starttls": "false"
+  },
+  "requiredActions": [
+    { "alias": "VERIFY_EMAIL", "name": "Verify Email", "providerId": "VERIFY_EMAIL", "enabled": true, "defaultAction": false, "priority": 10 },
+    { "alias": "UPDATE_PASSWORD", "name": "Update Password", "providerId": "UPDATE_PASSWORD", "enabled": true, "defaultAction": false, "priority": 20 },
+    { "alias": "CONFIGURE_TOTP", "name": "Configure OTP", "providerId": "CONFIGURE_TOTP", "enabled": true, "defaultAction": false, "priority": 30 }
+  ],
+  "clientScopes": [
+    {
+      "name": "safe-api",
+      "description": "Audience per l'API SAFE",
+      "protocol": "openid-connect",
+      "attributes": { "include.in.token.scope": "false", "display.on.consent.screen": "false" },
+      "protocolMappers": [
+        {
+          "name": "safe-api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "safe-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "safe-web",
+      "name": "SAFE back-office",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "rootUrl": "http://localhost:4200",
+      "baseUrl": "/",
+      "redirectUris": ["http://localhost:4200/*"],
+      "webOrigins": ["http://localhost:4200"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:4200/*"
+      },
+      "defaultClientScopes": ["openid", "profile", "email", "safe-api"],
+      "optionalClientScopes": []
+    },
+    {
+      "clientId": "safe-mobile",
+      "name": "SAFE app mobile",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["safe://auth/callback", "http://localhost:*/callback"],
+      "attributes": { "pkce.code.challenge.method": "S256" },
+      "defaultClientScopes": ["openid", "profile", "email", "safe-api", "offline_access"]
+    },
+    {
+      "clientId": "safe-api",
+      "name": "SAFE API (audience)",
+      "enabled": true,
+      "bearerOnly": true,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "safe-admin",
+      "name": "SAFE provisioning (inviti utenti)",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "dev-admin-secret",
+      "protocol": "openid-connect",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "defaultClientScopes": ["openid"]
+    }
+  ],
+  "users": [
+    {
+      "username": "service-account-safe-admin",
+      "enabled": true,
+      "serviceAccountClientId": "safe-admin",
+      "clientRoles": { "realm-management": ["manage-users", "view-users", "query-users"] }
+    },
+    {
+      "username": "admin.demo",
+      "email": "admin.demo@safe.local",
+      "emailVerified": true,
+      "firstName": "Admin",
+      "lastName": "Demo",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "admin.demo", "temporary": false }]
+    },
+    {
+      "username": "rescuer.demo",
+      "email": "rescuer.demo@safe.local",
+      "emailVerified": true,
+      "firstName": "Soccorritore",
+      "lastName": "Demo",
+      "enabled": true,
+      "credentials": [{ "type": "password", "value": "rescuer.demo", "temporary": false }]
+    }
+  ]
+}

@@ -1,0 +1,1201 @@
+openapi: 3.1.0
+info:
+  title: SAFE API
+  version: 1.0.0
+  description: |
+    API REST della piattaforma SAFE (incidenti su piste da sci).
+
+    Convenzioni
+    - Base path `/api/v1`. Autenticazione Bearer JWT (OIDC, Keycloak). Il tenant è derivato
+      dall'utente autenticato: **nessuna rotta accetta un parametro company**.
+    - Ogni operazione dichiara `x-permissions` (tutti richiesti). Senza permesso: `403` con
+      `{"code":"permission_denied","missing":[...]}` e nessun dato.
+    - Oggetti di altre società: sempre `404`.
+    - Liste paginate: `{count, next, previous, results}`; `page`, `page_size` (default 50, max 200), `ordering`.
+    - Filtri globali uniformi (`team`, `season`, `date_from`, `date_to`, `ski_area`, `zone`, `valid_only`)
+      su statistiche, dati, mappa ed export.
+    - Grafici: `{labels, datasets:[{label, data, backgroundColor}]}`, aggregati lato server, con
+      la categoria "Non classificato" sempre presente.
+    - Nessun dato personale in URL o query string. I nomi esistono solo cifrati
+      (`/persons/{id}/identity`).
+    - Errori: `{"code": "...", "detail": "...", "fields": {...}}`.
+servers:
+  - url: https://api.safe.example/api/v1
+security:
+  - bearerAuth: []
+
+tags:
+  - { name: me, description: Utente corrente e permessi }
+  - { name: filters, description: Opzioni della barra filtri globale }
+  - { name: events, description: Eventi (interventi) }
+  - { name: persons, description: Persone coinvolte (pseudonimizzate) }
+  - { name: stats, description: Statistiche aggregate (payload Chart.js) }
+  - { name: map, description: GeoJSON e stili mappa }
+  - { name: exports, description: Export regionali e dataset }
+  - { name: jobs, description: Job asincroni }
+  - { name: org, description: Società, squadre, utenti, ruoli }
+  - { name: territory, description: Comprensori, zone, piste, aree amministrative }
+  - { name: lookups, description: Vocabolari controllati }
+  - { name: devices, description: Dispositivi mobili }
+  - { name: crypto, description: Chiavi di cifratura }
+  - { name: audit, description: Audit log }
+
+paths:
+  # ---------------------------------------------------------------- me
+  /me:
+    get:
+      tags: [me]
+      summary: Utente corrente, società, squadre e mappa permessi
+      x-permissions: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Me" }
+              example:
+                user: { id: "0192b1c4-…", email: "m.rossi@example.it", first_name: "Mario", last_name: "Rossi", locale: "it", mfa_enabled: true }
+                company: { id: "0192b000-…", name: "Val Fiorentina S.p.A.", slug: "valfiorentina", tenant_type: company, timezone: Europe/Rome }
+                teams: [ { id: "0192b100-…", name: "Polizia Selva di Cadore", is_default: true } ]
+                permissions: { "stats.view": true, "stats.advanced": false, "events.view": true, "persons.reveal_identity": true, "crypto.holder": true, "users.invite": false }
+                key_status: { user_key: present, company_key_version: 2, grant: active }
+        "403":
+          description: Utente autenticato ma non provisionato
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" }, example: { code: user_not_provisioned, detail: "L'utente non è stato invitato in alcuna società." } } }
+    patch:
+      tags: [me]
+      summary: Aggiorna preferenze (lingua)
+      x-permissions: []
+      requestBody: { content: { application/json: { schema: { type: object, properties: { locale: { type: string, enum: [it, en, de] } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Me" } } } } }
+
+  /filters/options:
+    get:
+      tags: [filters]
+      summary: Opzioni per la barra filtri globale (squadre, stagioni, comprensori, zone)
+      x-permissions: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              example:
+                teams: [ { value: "0192b100-…", label: "Polizia Selva di Cadore" } ]
+                seasons: [ { value: "2025/2026", label: "2025/2026", start_date: "2025-06-01", end_date: "2026-05-31", is_current: true } ]
+                ski_areas: [ { value: "0192c000-…", label: "Civetta" } ]
+                zones: [ { value: "0192c100-…", label: "Val Fiorentina", ski_area: "0192c000-…" } ]
+
+  # ---------------------------------------------------------------- events
+  /events:
+    get:
+      tags: [events]
+      summary: Lista eventi (paginata, filtri globali + specifici)
+      x-permissions: [events.view]
+      parameters:
+        - $ref: "#/components/parameters/team"
+        - $ref: "#/components/parameters/season"
+        - $ref: "#/components/parameters/date_from"
+        - $ref: "#/components/parameters/date_to"
+        - $ref: "#/components/parameters/ski_area"
+        - $ref: "#/components/parameters/zone"
+        - $ref: "#/components/parameters/valid_only"
+        - { name: slope, in: query, schema: { type: string, format: uuid } }
+        - { name: cause, in: query, schema: { type: string }, description: codice lookup, ripetibile }
+        - { name: locked, in: query, schema: { type: boolean } }
+        - { name: updated_since, in: query, schema: { type: string, format: date-time }, description: sync mobile }
+        - { name: search, in: query, schema: { type: string }, description: cerca in descrizione luogo e note (mai dati personali) }
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/page_size"
+        - { name: ordering, in: query, schema: { type: string, default: "-dateandtime" } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Paginated"
+                  - properties: { results: { type: array, items: { $ref: "#/components/schemas/Event" } } }
+              example:
+                count: 266
+                next: "https://api.safe.example/api/v1/events?page=2&season=2025%2F2026"
+                previous: null
+                results:
+                  - id: "0192d000-…"
+                    season: "2025/2026"
+                    dateandtime: "2026-01-18T10:05:00Z"
+                    team: { id: "0192b100-…", name: "Polizia Selva di Cadore" }
+                    ski_area: { id: "0192c000-…", name: "Civetta" }
+                    zone: { id: "0192c100-…", name: "Val Fiorentina" }
+                    slope: { id: "0192c200-…", name: "LE CIAUNE", regional_code: "C.1.24" }
+                    difficulty: blue
+                    location_type: open_slope
+                    location_description: "TRATTO INTERMEDIO"
+                    cause: collision_person
+                    cause_note: null
+                    weather: clear
+                    snow_condition: packed
+                    wind: none
+                    visibility: good
+                    service_report: true
+                    witnesses: true
+                    persons_count: 2
+                    valid: true
+                    fully_valid: true
+                    locked_at: "2026-01-20T10:05:00Z"
+                    has_geometry: true
+                    created_at: "2026-01-18T11:30:00Z"
+                    updated_at: "2026-01-18T12:02:00Z"
+        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [events]
+      summary: Crea evento (web o mobile, idempotente con client_uuid)
+      x-permissions: [events.create]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EventWrite" }
+            example:
+              client_uuid: "5f1c3a9e-…"
+              dateandtime: "2026-01-18T10:05:00Z"
+              team: "0192b100-…"
+              zone: "0192c100-…"
+              slope: "0192c200-…"
+              location_type: open_slope
+              location_description: "TRATTO INTERMEDIO"
+              geometry: { type: Point, coordinates: [12.0912, 46.4581] }
+              altitude_m: 1904
+              cause: collision_person
+              weather: clear
+              snow_condition: packed
+              wind: none
+              visibility: good
+              service_report: true
+              witnesses: true
+              extended: { caller: "MAESTRO DI SCI", call_received_at: "11:02:00", time_since_incident: "PT3M" }
+      responses:
+        "201": { description: Creato, content: { application/json: { schema: { $ref: "#/components/schemas/EventDetail" } } } }
+        "200": { description: Già esistente (stesso client_uuid), restituisce l'oggetto esistente, content: { application/json: { schema: { $ref: "#/components/schemas/EventDetail" } } } }
+        "422": { $ref: "#/components/responses/ValidationError" }
+  /events/{id}:
+    parameters: [ { $ref: "#/components/parameters/id" } ]
+    get:
+      tags: [events]
+      summary: Dettaglio evento con persone pseudonimizzate
+      x-permissions: [events.view]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/EventDetail" } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      tags: [events]
+      summary: Modifica evento (rifiutata se bloccato)
+      x-permissions: [events.edit]
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/EventWrite" } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/EventDetail" } } } }
+        "409": { description: Evento bloccato, content: { application/json: { schema: { $ref: "#/components/schemas/Error" }, example: { code: event_locked, detail: "L'evento è bloccato: richiedere lo sblocco." } } } }
+    delete:
+      tags: [events]
+      summary: Elimina evento (soft delete)
+      x-permissions: [events.delete]
+      responses: { "204": { description: Eliminato } }
+  /events/{id}/lock:
+    post:
+      tags: [events]
+      summary: Blocca l'evento (chiusura rapporto)
+      x-permissions: [events.edit]
+      parameters: [ { $ref: "#/components/parameters/id" } ]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/EventDetail" } } } } }
+  /events/{id}/unlock:
+    post:
+      tags: [events]
+      summary: Sblocca l'evento (tracciato in audit)
+      x-permissions: [events.unlock]
+      parameters: [ { $ref: "#/components/parameters/id" } ]
+      requestBody: { content: { application/json: { schema: { type: object, required: [reason], properties: { reason: { type: string, maxLength: 500 } } } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/EventDetail" } } } } }
+  /events/{id}/report.pdf:
+    get:
+      tags: [events]
+      summary: PDF del rapporto (pseudonimizzato). 200 se in cache, altrimenti 202 con job
+      x-permissions: [reports.pdf]
+      parameters: [ { $ref: "#/components/parameters/id" } ]
+      responses:
+        "200": { description: PDF, content: { application/pdf: { schema: { type: string, format: binary } } } }
+        "202": { description: Generazione avviata, content: { application/json: { schema: { $ref: "#/components/schemas/Job" } } } }
+  /events/{id}/persons:
+    parameters: [ { $ref: "#/components/parameters/id" } ]
+    get:
+      tags: [persons]
+      summary: Persone dell'evento
+      x-permissions: [events.view, persons.view]
+      responses: { "200": { description: OK, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Person" } } } } } }
+    post:
+      tags: [persons]
+      summary: Aggiunge una persona (dati identificativi già cifrati dal client)
+      x-permissions: [persons.edit]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PersonWrite" }
+            example:
+              client_uuid: "9a7b…"
+              age: 26
+              gender: female
+              country_code: IT
+              initials_firstname: "S"
+              initials_surname: "C"
+              pii:
+                ciphertext: "base64…"
+                key_wrapped: "base64…"
+                key_version: 2
+                fields: [firstname, surname, city, insurance_code]
+              helmet: true
+              equipment: ski
+              equipment_owner: own
+              insurance: other
+              insurance_note: "scuola sci ALLEGHE-CIVETTA"
+              accommodation: tourist_facility
+              destination: er
+              diagnosis: closed_fracture
+              gravest_injury: lower_leg_left
+              evacuation_means: [ { mean: akja, order: 1 }, { mean: ambulance, order: 2 } ]
+              responsibility: third_party
+              administrative_violations: false
+      responses:
+        "201": { description: Creata, content: { application/json: { schema: { $ref: "#/components/schemas/Person" } } } }
+        "422": { $ref: "#/components/responses/ValidationError" }
+
+  # ---------------------------------------------------------------- persons
+  /persons:
+    get:
+      tags: [persons]
+      summary: Lista persone (pseudonimizzate, con campi evento denormalizzati)
+      x-permissions: [persons.view]
+      parameters:
+        - $ref: "#/components/parameters/team"
+        - $ref: "#/components/parameters/season"
+        - $ref: "#/components/parameters/date_from"
+        - $ref: "#/components/parameters/date_to"
+        - $ref: "#/components/parameters/ski_area"
+        - $ref: "#/components/parameters/zone"
+        - $ref: "#/components/parameters/valid_only"
+        - { name: gender, in: query, schema: { type: string } }
+        - { name: country_code, in: query, schema: { type: string } }
+        - { name: diagnosis, in: query, schema: { type: string } }
+        - { name: equipment, in: query, schema: { type: string } }
+        - { name: evacuation_mean, in: query, schema: { type: string } }
+        - { name: age_min, in: query, schema: { type: integer } }
+        - { name: age_max, in: query, schema: { type: integer } }
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/page_size"
+        - { name: ordering, in: query, schema: { type: string, default: "-event__dateandtime" } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Paginated"
+                  - properties: { results: { type: array, items: { $ref: "#/components/schemas/Person" } } }
+  /persons/{id}:
+    parameters: [ { $ref: "#/components/parameters/id" } ]
+    get:
+      tags: [persons]
+      summary: Dettaglio persona (pseudonimizzato)
+      x-permissions: [persons.view]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Person" } } } } }
+    patch:
+      tags: [persons]
+      summary: Modifica persona
+      x-permissions: [persons.edit]
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/PersonWrite" } } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Person" } } } }
+        "409": { description: Evento bloccato }
+    delete:
+      tags: [persons]
+      summary: Elimina persona
+      x-permissions: [persons.edit]
+      responses: { "204": { description: Eliminata } }
+  /persons/{id}/identity:
+    get:
+      tags: [persons, crypto]
+      summary: Dati identificativi cifrati + chiave avvolta (decifrabili solo dal browser di un custode). Ogni lettura è in audit.
+      x-permissions: [persons.reveal_identity]
+      parameters: [ { $ref: "#/components/parameters/id" } ]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PersonIdentity" }
+              example:
+                person_id: "0192e000-…"
+                algorithm: xchacha20poly1305-x25519sealedbox-v1
+                ciphertext: "base64…"
+                key_wrapped: "base64…"
+                key_version: 2
+                fields: [firstname, surname, city, insurance_code]
+                grant: { company_key_id: "0192f000-…", wrapped_private_key: "base64…" }
+        "404": { description: Persona inesistente, anonimizzata o senza dati cifrati }
+        "409": { description: Nessuna grant attiva per l'utente, content: { application/json: { example: { code: no_key_grant, detail: "Non disponi della chiave di decifratura." } } } }
+
+  # ---------------------------------------------------------------- stats
+  /stats/zone-summary/annual-distribution:
+    get:
+      tags: [stats]
+      summary: Distribuzione annuale incidenti per zona (serie = stagioni)
+      x-permissions: [stats.view]
+      parameters:
+        - $ref: "#/components/parameters/StatsFilters"
+        - { name: incremental, in: query, schema: { type: boolean, default: false }, description: valori cumulativi }
+      responses: { "200": { $ref: "#/components/responses/Chart" } }
+  /stats/zone-summary/table:
+    get:
+      tags: [stats]
+      summary: Tabella zona × stagione con totale incidenti e persone
+      x-permissions: [stats.view]
+      parameters: [ { $ref: "#/components/parameters/StatsFilters" } ]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              example:
+                columns: [ "2023/2024", "2024/2025", "2025/2026" ]
+                rows:
+                  - { zone: { id: "…", name: "Val Fiorentina" }, cells: [ { events: 210, persons: 231 }, { events: 244, persons: 260 }, { events: 266, persons: 291 } ], total: { events: 720, persons: 782 } }
+                totals: [ { events: 210, persons: 231 }, { events: 244, persons: 260 }, { events: 266, persons: 291 } ]
+  /stats/demographics/age-gender:
+    get: { tags: [stats], summary: Classe di età × genere, x-permissions: [stats.view], parameters: [ { $ref: "#/components/parameters/StatsFilters" }, { $ref: "#/components/parameters/age_cluster" } ], responses: { "200": { $ref: "#/components/responses/Chart" } } }
+  /stats/demographics/country:
+    get: { tags: [stats], summary: Distribuzione per paese (top N + altri + non classificato), x-permissions: [stats.view], parameters: [ { $ref: "#/components/parameters/StatsFilters" }, { $ref: "#/components/parameters/limit" } ], responses: { "200": { $ref: "#/components/responses/Chart" } } }
+  /stats/demographics/nationality-weekday:
+    get: { tags: [stats], summary: Connazionali vs stranieri per giorno della settimana, x-permissions: [stats.view], parameters: [ { $ref: "#/components/parameters/StatsFilters" } ], responses: { "200": { $ref: "#/components/responses/Chart" } } }
+  /stats/demographics/age-diagnosis:
+    get: { tags: [stats], summary: Classe di età × diagnosi presunta, x-permissions: [stats.view], parameters: [ { $ref: "#/components/parameters/StatsFilters" }, { $ref: "#/components/parameters/age_cluster" } ], responses: { "200": { $ref: "#/components/responses/Chart" } } }
+  /stats/demographics/age-injury-place:
+    get: { tags: [stats], summary: Classe di età × sede lesione, x-permissions: [stats.view], parameters: [ { $ref: "#/components/parameters/StatsFilters" }, { $ref: "#/components/parameters/age_cluster" } ], responses: { "200": { $ref: "#/components/responses/Chart" } } }
+  /stats/typology/age-cause:
+    get: { tags: [stats], summary: Classe di età × causa, x-permissions: [stats.view], parameters: [ { $ref: "#/components/parameters/StatsFilters" }, { $ref: "#/components/parameters/age_cluster" } ], responses: { "200": { $ref: "#/components/responses/Chart" } } }
+  /stats/typology/cause:
+    get: { tags: [stats], summary: Distribuzione cause, x-permissions: [stats.view], parameters: [ { $ref: "#/components/parameters/StatsFilters" } ], responses: { "200": { $ref: "#/components/responses/Chart" } } }
+  /stats/typology/age-equipment:
+    get: { tags: [stats], summary: Classe di età × attrezzatura, x-permissions: [stats.view], parameters: [ { $ref: "#/components/parameters/StatsFilters" }, { $ref: "#/components/parameters/age_cluster" } ], responses: { "200": { $ref: "#/components/responses/Chart" } } }
+  /stats/typology/age-insurance:
+    get: { tags: [stats], summary: Classe di età × assicurazione, x-permissions: [stats.view], parameters: [ { $ref: "#/components/parameters/StatsFilters" }, { $ref: "#/components/parameters/age_cluster" } ], responses: { "200": { $ref: "#/components/responses/Chart" } } }
+  /stats/typology/age-evacuation-mean:
+    get: { tags: [stats], summary: Classe di età × mezzo di evacuazione (primo mezzo), x-permissions: [stats.view], parameters: [ { $ref: "#/components/parameters/StatsFilters" }, { $ref: "#/components/parameters/age_cluster" } ], responses: { "200": { $ref: "#/components/responses/Chart" } } }
+  /stats/typology/evacuation-means-total:
+    get: { tags: [stats], summary: Totale mezzi di evacuazione utilizzati (tutti gli ordini), x-permissions: [stats.view], parameters: [ { $ref: "#/components/parameters/StatsFilters" } ], responses: { "200": { $ref: "#/components/responses/Chart" } } }
+  /stats/geography/ski-areas:
+    get: { tags: [stats], summary: Eventi per comprensorio, x-permissions: [stats.view], parameters: [ { $ref: "#/components/parameters/StatsFilters" } ], responses: { "200": { $ref: "#/components/responses/Chart" } } }
+  /stats/geography/slope-difficulty:
+    get: { tags: [stats], summary: Eventi per difficoltà pista, x-permissions: [stats.view], parameters: [ { $ref: "#/components/parameters/StatsFilters" } ], responses: { "200": { $ref: "#/components/responses/Chart" } } }
+  /stats/geography/slopes:
+    get:
+      tags: [stats]
+      summary: Eventi per singola pista (ordinati, limitati dallo slider)
+      x-permissions: [stats.view]
+      parameters:
+        - $ref: "#/components/parameters/StatsFilters"
+        - { name: limit, in: query, schema: { type: integer, default: 20, minimum: 1, maximum: 200 } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChartPayload" }
+              example:
+                labels: [ "Lendina", "Cristelin", "Della Grava", "Non classificato" ]
+                datasets: [ { label: "Eventi", data: [ 61, 40, 22, 14 ], backgroundColor: [ "#3b82f6", "#3b82f6", "#3b82f6", "#9ca3af" ] } ]
+                meta: { total_labels: 27, limit: 20 }
+  /stats/weather/weather:
+    get: { tags: [stats], summary: Eventi per condizione meteo, x-permissions: [stats.view], parameters: [ { $ref: "#/components/parameters/StatsFilters" } ], responses: { "200": { $ref: "#/components/responses/Chart" } } }
+  /stats/weather/snow:
+    get: { tags: [stats], summary: Eventi per tipologia neve, x-permissions: [stats.view], parameters: [ { $ref: "#/components/parameters/StatsFilters" } ], responses: { "200": { $ref: "#/components/responses/Chart" } } }
+  /stats/weather/wind:
+    get: { tags: [stats], summary: Eventi per vento, x-permissions: [stats.view], parameters: [ { $ref: "#/components/parameters/StatsFilters" } ], responses: { "200": { $ref: "#/components/responses/Chart" } } }
+  /stats/weather/visibility:
+    get: { tags: [stats], summary: Eventi per visibilità, x-permissions: [stats.view], parameters: [ { $ref: "#/components/parameters/StatsFilters" } ], responses: { "200": { $ref: "#/components/responses/Chart" } } }
+  /stats/season-summary/teams:
+    get:
+      tags: [stats]
+      summary: Tabella per squadra - stagione attuale, settimana scorsa, sbloccati, non validi, elicottero
+      x-permissions: [stats.view, stats.advanced]
+      parameters: [ { $ref: "#/components/parameters/StatsFilters" } ]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              example:
+                season: "2025/2026"
+                last_week: { from: "2026-08-31", to: "2026-09-06" }
+                rows:
+                  - { team: { id: "…", name: "Polizia Selva di Cadore" }, season_events: 266, last_week_events: 0, unlocked_events: 3, invalid_events: 7, helicopter_rescues: 12 }
+                totals: { season_events: 266, last_week_events: 0, unlocked_events: 3, invalid_events: 7, helicopter_rescues: 12 }
+  /stats/general:
+    get:
+      tags: [stats]
+      summary: KPI per la home (eventi, persone, stagioni)
+      x-permissions: []
+      responses: { "200": { description: OK, content: { application/json: { example: { total_events: 720, total_persons: 782, total_seasons: 3, current_season: "2025/2026" } } } } }
+
+  # ---------------------------------------------------------------- map
+  /map/events.geojson:
+    get:
+      tags: [map]
+      summary: FeatureCollection degli eventi - SOLO id e data/ora
+      x-permissions: [map.view]
+      parameters: [ { $ref: "#/components/parameters/StatsFilters" } ]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/geo+json:
+              example:
+                type: FeatureCollection
+                features:
+                  - { type: Feature, id: "0192d000-…", geometry: { type: Point, coordinates: [12.0912, 46.4581] }, properties: { id: "0192d000-…", dateandtime: "2026-01-18T10:05:00Z" } }
+  /map/ski-areas.geojson:
+    get:
+      tags: [map]
+      summary: Confini dei comprensori della società
+      x-permissions: [map.view]
+      responses: { "200": { description: FeatureCollection di MultiPolygon con id e nome } }
+  /map/styles:
+    get:
+      tags: [map]
+      summary: Stili MapLibre disponibili (URL su tile server)
+      x-permissions: [map.view]
+      responses: { "200": { description: OK, content: { application/json: { example: [ { code: winter, label_key: "map.style.winter", url: "https://tiles.safe.example/styles/winter/style.json" }, { code: summer, url: "…" }, { code: satellite, url: "…" } ] } } } }
+
+  # ---------------------------------------------------------------- exports
+  /exports/regional/preview:
+    post:
+      tags: [exports]
+      summary: Anteprima qualità del dato PRIMA della generazione
+      x-permissions: [exports.regional]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RegionalExportRequest" }
+            example: { template: veneto_a01, season: "2025/2026", administrative_area: { level: province, code: "025" }, team: null }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ExportPreview" }
+              example:
+                persons_total: 291
+                excluded_in_buildings: { count: 6, event_ids: [ "0192d1…", "0192d2…" ] }
+                excluded_outside_area: { count: 2, event_ids: [ "0192d3…" ] }
+                duplicate_groups: { count: 41, persons_merged: 43, groups: [ { kept_person_id: "…", merged_person_ids: [ "…" ], teams: [ "Carabinieri", "Truppe Alpine" ] } ] }
+                exportable_persons: 240
+                warnings: [ { code: slope_missing_regional_code, count: 14, slope_ids: [ "…" ] } ]
+  /exports/regional:
+    post:
+      tags: [exports]
+      summary: Avvia la generazione dell'export regionale (job)
+      x-permissions: [exports.regional]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/RegionalExportRequest" } } } }
+      responses: { "202": { description: Job avviato, content: { application/json: { schema: { $ref: "#/components/schemas/Job" } } } } }
+  /exports/dataset:
+    post:
+      tags: [exports]
+      summary: Export CSV/XLSX del dataset filtrato (eventi o persone, pseudonimizzato)
+      x-permissions: [exports.dataset]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: { dataset: persons, format: xlsx, filters: { season: "2025/2026", zone: "0192c100-…" }, columns: null }
+      responses: { "202": { description: Job avviato, content: { application/json: { schema: { $ref: "#/components/schemas/Job" } } } } }
+  /exports:
+    get:
+      tags: [exports]
+      summary: Storico export della società
+      x-permissions: [exports.dataset]
+      parameters: [ { $ref: "#/components/parameters/page" }, { $ref: "#/components/parameters/page_size" } ]
+      responses: { "200": { description: OK } }
+  /exports/administrative-areas:
+    get:
+      tags: [exports, territory]
+      summary: Aree amministrative ISTAT che intersecano i comprensori della società
+      x-permissions: [exports.regional]
+      responses: { "200": { description: OK, content: { application/json: { example: [ { level: region, code: "05", name: "Veneto" }, { level: province, code: "025", name: "Belluno" } ] } } } }
+
+  # ---------------------------------------------------------------- jobs
+  /jobs/{id}:
+    get:
+      tags: [jobs]
+      summary: Stato job
+      x-permissions: []
+      parameters: [ { $ref: "#/components/parameters/id" } ]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Job" }
+              example: { id: "0193a000-…", kind: export_regional, status: done, progress: 100, created_at: "2026-09-10T10:00:00Z", finished_at: "2026-09-10T10:00:07Z", download_url: "/api/v1/jobs/0193a000-…/download", result_filename: "A01_2025-2026_BL.xlsx" }
+  /jobs/{id}/download:
+    get:
+      tags: [jobs]
+      summary: Scarica il risultato (redirect a URL firmato a breve scadenza)
+      x-permissions: []
+      parameters: [ { $ref: "#/components/parameters/id" } ]
+      responses: { "302": { description: Redirect }, "409": { description: Job non completato } }
+
+  # ---------------------------------------------------------------- org
+  /company:
+    get: { tags: [org], summary: Società corrente e impostazioni, x-permissions: [], responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Company" } } } } } }
+    patch: { tags: [org], summary: Aggiorna impostazioni società, x-permissions: [company.settings], requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/CompanySettings" } } } }, responses: { "200": { description: OK } } }
+  /company/retention:
+    get: { tags: [org], summary: Politiche di retention e prossime scadenze, x-permissions: [company.retention], responses: { "200": { description: OK, content: { application/json: { example: { retention_identity_years: 10, retention_audit_years: 10, persons_due_for_anonymization: 12, next_run_at: "2026-09-11T03:00:00Z" } } } } } }
+    patch: { tags: [org], summary: Aggiorna retention, x-permissions: [company.retention], responses: { "200": { description: OK } } }
+  /company/retention/run:
+    post: { tags: [org], summary: Esegue subito l'anonimizzazione delle persone scadute (job), x-permissions: [company.retention], responses: { "202": { description: Job } } }
+  /teams:
+    get:
+      tags: [org]
+      summary: Lista squadre
+      x-permissions: [teams.view]
+      parameters: [ { name: is_active, in: query, schema: { type: boolean } } ]
+      responses: { "200": { description: OK, content: { application/json: { schema: { allOf: [ { $ref: "#/components/schemas/Paginated" }, { properties: { results: { type: array, items: { $ref: "#/components/schemas/Team" } } } } ] } } } } }
+    post: { tags: [org], summary: Crea squadra, x-permissions: [teams.manage], requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/TeamWrite" }, example: { name: "Carabinieri Zoldo", body: carabinieri } } } }, responses: { "201": { description: Creata } } }
+  /teams/{id}:
+    parameters: [ { $ref: "#/components/parameters/id" } ]
+    get: { tags: [org], summary: Dettaglio squadra, x-permissions: [teams.view], responses: { "200": { description: OK } } }
+    patch: { tags: [org], summary: Modifica squadra, x-permissions: [teams.manage], responses: { "200": { description: OK } } }
+    delete: { tags: [org], summary: Disattiva squadra (non elimina se ha eventi), x-permissions: [teams.manage], responses: { "204": { description: OK }, "409": { description: Ha eventi associati } } }
+  /users:
+    get:
+      tags: [org]
+      summary: Lista utenti (attivi, invitati, disattivati)
+      x-permissions: [users.view]
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [active, invited, disabled] } }
+        - { name: team, in: query, schema: { type: string, format: uuid } }
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/page_size"
+      responses: { "200": { description: OK, content: { application/json: { schema: { allOf: [ { $ref: "#/components/schemas/Paginated" }, { properties: { results: { type: array, items: { $ref: "#/components/schemas/User" } } } } ] } } } } }
+  /users/invite:
+    post:
+      tags: [org]
+      summary: Invita un utente via email (Keycloak invia il link; nessuna password gestita da SAFE)
+      x-permissions: [users.invite]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: { email: "l.bianchi@example.it", first_name: "Luca", last_name: "Bianchi", locale: it, teams: [ "0192b100-…" ], roles: [ "rescuer" ] }
+      responses:
+        "201": { description: Invito creato, content: { application/json: { schema: { $ref: "#/components/schemas/User" } } } }
+        "409": { description: Email già presente nella società }
+  /users/{id}:
+    parameters: [ { $ref: "#/components/parameters/id" } ]
+    get: { tags: [org], summary: Dettaglio utente con ruoli e permessi effettivi, x-permissions: [users.view], responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/User" } } } } } }
+    patch: { tags: [org], summary: Modifica anagrafica e squadre, x-permissions: [users.manage], responses: { "200": { description: OK } } }
+  /users/{id}/resend-invite:
+    post: { tags: [org], summary: Reinvia email di invito, x-permissions: [users.invite], parameters: [ { $ref: "#/components/parameters/id" } ], responses: { "202": { description: Inviato } } }
+  /users/{id}/disable:
+    post: { tags: [org], summary: Disattiva (revoca sessioni Keycloak, grant chiavi, dispositivi), x-permissions: [users.manage], parameters: [ { $ref: "#/components/parameters/id" } ], responses: { "200": { description: OK } } }
+  /users/{id}/enable:
+    post: { tags: [org], summary: Riattiva, x-permissions: [users.manage], parameters: [ { $ref: "#/components/parameters/id" } ], responses: { "200": { description: OK } } }
+  /users/{id}/permissions:
+    put:
+      tags: [org]
+      summary: Imposta ruoli e grant/deny diretti
+      x-permissions: [users.assign_permissions]
+      parameters: [ { $ref: "#/components/parameters/id" } ]
+      requestBody: { content: { application/json: { example: { roles: [ "rescue_manager" ], grants: [ "exports.regional" ], denies: [ "events.delete" ] } } } }
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/User" } } } } }
+  /roles:
+    get: { tags: [org], summary: Ruoli disponibili (globali + società) con permessi, x-permissions: [users.view], responses: { "200": { description: OK } } }
+    post: { tags: [org], summary: Crea ruolo di società, x-permissions: [users.assign_permissions], responses: { "201": { description: OK } } }
+  /permissions:
+    get: { tags: [org], summary: Catalogo permessi con descrizioni localizzate, x-permissions: [], responses: { "200": { description: OK } } }
+
+  # ---------------------------------------------------------------- territory
+  /ski-areas:
+    get: { tags: [territory], summary: Comprensori, x-permissions: [territory.view], responses: { "200": { description: OK } } }
+    post: { tags: [territory], summary: Crea comprensorio (con confine GeoJSON opzionale), x-permissions: [territory.manage], responses: { "201": { description: OK } } }
+  /ski-areas/{id}:
+    parameters: [ { $ref: "#/components/parameters/id" } ]
+    get: { tags: [territory], summary: Dettaglio, x-permissions: [territory.view], responses: { "200": { description: OK } } }
+    patch: { tags: [territory], summary: Modifica, x-permissions: [territory.manage], responses: { "200": { description: OK } } }
+    delete: { tags: [territory], summary: Disattiva, x-permissions: [territory.manage], responses: { "204": { description: OK } } }
+  /zones:
+    get: { tags: [territory], summary: Zone (filtro ski_area), x-permissions: [territory.view], parameters: [ { $ref: "#/components/parameters/ski_area" } ], responses: { "200": { description: OK } } }
+    post: { tags: [territory], summary: Crea zona, x-permissions: [territory.manage], responses: { "201": { description: OK } } }
+  /zones/{id}:
+    parameters: [ { $ref: "#/components/parameters/id" } ]
+    patch: { tags: [territory], summary: Modifica zona, x-permissions: [territory.manage], responses: { "200": { description: OK } } }
+    delete: { tags: [territory], summary: Disattiva zona, x-permissions: [territory.manage], responses: { "204": { description: OK } } }
+  /slopes:
+    get:
+      tags: [territory]
+      summary: Piste (filtro zone, ski_area, search)
+      x-permissions: [territory.view]
+      parameters: [ { $ref: "#/components/parameters/zone" }, { $ref: "#/components/parameters/ski_area" }, { name: search, in: query, schema: { type: string } } ]
+      responses: { "200": { description: OK, content: { application/json: { example: { count: 27, next: null, previous: null, results: [ { id: "…", name: "Lendina", regional_code: "C.1.24", difficulty: red, zone: { id: "…", name: "Val di Zoldo" }, has_geometry: true } ] } } } } }
+    post: { tags: [territory], summary: Crea pista, x-permissions: [territory.manage], responses: { "201": { description: OK } } }
+  /slopes/{id}:
+    parameters: [ { $ref: "#/components/parameters/id" } ]
+    patch: { tags: [territory], summary: Modifica pista (nome, codice regionale, difficoltà, geometria), x-permissions: [territory.manage], responses: { "200": { description: OK } } }
+    delete: { tags: [territory], summary: Disattiva pista, x-permissions: [territory.manage], responses: { "204": { description: OK } } }
+  /territory/rebuild-tiles:
+    post: { tags: [territory], summary: Rigenera il layer piste/impianti sul tile server (job), x-permissions: [territory.manage], responses: { "202": { description: Job } } }
+
+  # ---------------------------------------------------------------- lookups
+  /lookups:
+    get:
+      tags: [lookups]
+      summary: Tutti i vocabolari attivi per la società, in tutte le lingue (per form e grafici)
+      x-permissions: []
+      parameters: [ { name: dimension, in: query, schema: { type: string }, description: filtra una dimensione } ]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              example:
+                cause:
+                  - { id: "…", code: accidental_fall, labels: { it: "Caduta accidentale", en: "Accidental fall", de: "Sturz" }, sort_order: 10, is_custom: false }
+                evacuation_mean: [ ]
+  /lookups/{dimension}:
+    post: { tags: [lookups], summary: Aggiunge un valore di società, x-permissions: [lookups.manage], parameters: [ { name: dimension, in: path, required: true, schema: { type: string } } ], responses: { "201": { description: OK } } }
+  /lookups/{dimension}/{id}:
+    parameters: [ { name: dimension, in: path, required: true, schema: { type: string } }, { $ref: "#/components/parameters/id" } ]
+    patch: { tags: [lookups], summary: Modifica etichette/ordine (valore di società) o disattiva per la società (valore globale), x-permissions: [lookups.manage], responses: { "200": { description: OK } } }
+
+  # ---------------------------------------------------------------- devices
+  /devices:
+    get:
+      tags: [devices]
+      summary: Dispositivi collegati (nome, OS, versione app, ultimo accesso, stato)
+      x-permissions: [devices.view]
+      parameters: [ { name: status, in: query, schema: { type: string, enum: [pending, authorized, revoked] } } ]
+      responses: { "200": { description: OK, content: { application/json: { schema: { allOf: [ { $ref: "#/components/schemas/Paginated" }, { properties: { results: { type: array, items: { $ref: "#/components/schemas/Device" } } } } ] } } } } }
+  /devices/enrollment-code:
+    post:
+      tags: [devices]
+      summary: Genera codice di arruolamento e payload QR (link store + codice, scadenza 24h)
+      x-permissions: [devices.manage]
+      responses: { "201": { description: OK, content: { application/json: { example: { code: "K7Q4-9ZP2", expires_at: "2026-09-11T10:00:00Z", qr_payload: "safe://enroll?code=K7Q4-9ZP2", store_urls: { ios: "https://apps.apple.com/…", android: "https://play.google.com/…" } } } } } }
+  /devices/register:
+    post:
+      tags: [devices]
+      summary: Registrazione dal mobile (utente autenticato + codice di arruolamento)
+      x-permissions: []
+      requestBody: { content: { application/json: { example: { enrollment_code: "K7Q4-9ZP2", install_id: "…", name: "iPhone di Luca", platform: ios, os_version: "19.1", app_version: "1.0.0" } } } }
+      responses: { "201": { description: Registrato in stato pending o authorized secondo impostazione società } }
+  /devices/{id}:
+    parameters: [ { $ref: "#/components/parameters/id" } ]
+    patch: { tags: [devices], summary: Rinomina, x-permissions: [devices.manage], responses: { "200": { description: OK } } }
+    delete: { tags: [devices], summary: Revoca, x-permissions: [devices.manage], responses: { "204": { description: OK } } }
+  /devices/{id}/authorize:
+    post: { tags: [devices], summary: Autorizza dispositivo in attesa, x-permissions: [devices.authorize], parameters: [ { $ref: "#/components/parameters/id" } ], responses: { "200": { description: OK } } }
+  /devices/heartbeat:
+    post: { tags: [devices], summary: Aggiorna last_seen e versione app (dal mobile), x-permissions: [], responses: { "204": { description: OK } } }
+
+  # ---------------------------------------------------------------- crypto
+  /crypto/company-key:
+    get:
+      tags: [crypto]
+      summary: Chiave pubblica attiva della società (necessaria per cifrare)
+      x-permissions: [persons.edit]
+      responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/CompanyKey" }, example: { id: "0192f000-…", version: 2, algorithm: x25519-sealedbox-v1, public_key: "base64…", created_at: "2026-06-01T09:00:00Z" } } } }, "404": { description: "Nessuna chiave: la società deve inizializzare la cifratura" } }
+    post:
+      tags: [crypto]
+      summary: Inizializza (o ruota) la chiave società. Il browser genera la coppia, carica la pubblica, la grant per sé e il kit di recupero.
+      x-permissions: [crypto.manage_keys]
+      requestBody: { content: { application/json: { example: { public_key: "base64…", self_grant_wrapped_private_key: "base64…", recovery: { method: recovery_code, encrypted_private_key: "base64…", kdf_params: { alg: argon2id, salt: "…", ops: 3, mem: 268435456 } }, previous_version_rewrapped: false } } } }
+      responses: { "201": { description: Creata }, "409": { description: Chiave attiva già presente (usare rotate) } }
+  /crypto/company-key/rotate:
+    post: { tags: [crypto], summary: Avvia rotazione (nuova chiave, la precedente resta 'retired' finché tutte le data key sono ri-sigillate), x-permissions: [crypto.manage_keys], responses: { "201": { description: OK } } }
+  /crypto/company-key/rewrap:
+    post:
+      tags: [crypto]
+      summary: Carica in blocco le data key ri-sigillate con la nuova chiave (rotazione, client-side)
+      x-permissions: [crypto.manage_keys]
+      requestBody: { content: { application/json: { example: { key_version: 3, items: [ { person_id: "…", key_wrapped: "base64…" } ] } } } }
+      responses: { "200": { description: OK, content: { application/json: { example: { updated: 500, remaining: 12000 } } } } }
+  /crypto/my-key:
+    get: { tags: [crypto], summary: La propria coppia (pubblica + privata cifrata + kdf), x-permissions: [], responses: { "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/UserKey" } } } }, "404": { description: Non ancora generata } } }
+    put: { tags: [crypto], summary: Crea o sostituisce la propria coppia (generata nel browser, privata cifrata con passphrase), x-permissions: [], requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/UserKey" } } } }, responses: { "200": { description: OK } } }
+  /crypto/grants:
+    get: { tags: [crypto], summary: Utenti con grant attiva sulla chiave società, x-permissions: [crypto.manage_keys], responses: { "200": { description: OK } } }
+    post:
+      tags: [crypto]
+      summary: Concede la chiave società a un utente (il custode la ri-sigilla nel browser con la pubblica del destinatario)
+      x-permissions: [crypto.manage_keys]
+      requestBody: { content: { application/json: { example: { user_id: "…", wrapped_private_key: "base64…" } } } }
+      responses: { "201": { description: OK }, "409": { description: Utente senza chiave personale } }
+  /crypto/grants/{user_id}:
+    delete: { tags: [crypto], summary: Revoca grant, x-permissions: [crypto.manage_keys], parameters: [ { name: user_id, in: path, required: true, schema: { type: string, format: uuid } } ], responses: { "204": { description: OK } } }
+  /crypto/recovery:
+    get: { tags: [crypto], summary: Blob di recupero (privata società cifrata con codice) per la procedura di recupero, x-permissions: [crypto.recovery], responses: { "200": { description: OK } } }
+    post: { tags: [crypto], summary: Registra un nuovo kit di recupero (dopo recupero o rotazione), x-permissions: [crypto.recovery], responses: { "201": { description: OK } } }
+  /crypto/users/{user_id}/public-key:
+    get: { tags: [crypto], summary: Chiave pubblica di un utente (per concedergli la grant), x-permissions: [crypto.manage_keys], parameters: [ { name: user_id, in: path, required: true, schema: { type: string, format: uuid } } ], responses: { "200": { description: OK } } }
+
+  # ---------------------------------------------------------------- import
+  /import/historical:
+    post:
+      tags: [events]
+      summary: Import storico eventi/persone da CSV/XLSX (multipart, job). I dati identificativi devono arrivare già cifrati.
+      x-permissions: [import.historical]
+      requestBody: { content: { multipart/form-data: { schema: { type: object, properties: { file: { type: string, format: binary }, dataset: { type: string, enum: [events, persons] }, mapping: { type: string, description: JSON mapping colonne } } } } } }
+      responses: { "202": { description: Job avviato, content: { application/json: { schema: { $ref: "#/components/schemas/Job" } } } } }
+  /import/batches/{id}:
+    get: { tags: [events], summary: Esito import con report per riga, x-permissions: [import.historical], parameters: [ { $ref: "#/components/parameters/id" } ], responses: { "200": { description: OK } } }
+
+  # ---------------------------------------------------------------- audit
+  /audit-logs:
+    get:
+      tags: [audit]
+      summary: Audit log (accessi a dati personali e modifiche)
+      x-permissions: [audit.view]
+      parameters:
+        - { name: action, in: query, schema: { type: string } }
+        - { name: actor, in: query, schema: { type: string, format: uuid } }
+        - { name: object_type, in: query, schema: { type: string } }
+        - { name: object_id, in: query, schema: { type: string, format: uuid } }
+        - $ref: "#/components/parameters/date_from"
+        - $ref: "#/components/parameters/date_to"
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/page_size"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              example:
+                count: 1
+                results:
+                  - { id: 88213, action: "person.identity_read", actor: { id: "…", email: "m.rossi@example.it" }, object_type: person, object_id: "0192e000-…", event_id: "0192d000-…", changed_fields: [], ip: "10.0.0.5", created_at: "2026-09-10T09:12:44Z" }
+
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+
+  parameters:
+    id: { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    page: { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+    page_size: { name: page_size, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+    team: { name: team, in: query, schema: { type: array, items: { type: string, format: uuid } }, style: form, explode: true, description: una o più squadre }
+    season: { name: season, in: query, schema: { type: string, pattern: "^\\d{4}/\\d{4}$" }, description: "codice stagione, es. 2025/2026; alternativo a date_from/date_to" }
+    date_from: { name: date_from, in: query, schema: { type: string, format: date } }
+    date_to: { name: date_to, in: query, schema: { type: string, format: date } }
+    ski_area: { name: ski_area, in: query, schema: { type: string, format: uuid } }
+    zone: { name: zone, in: query, schema: { type: string, format: uuid } }
+    valid_only: { name: valid_only, in: query, schema: { type: boolean, default: false } }
+    age_cluster: { name: age_cluster, in: query, schema: { type: string, enum: [standard, veneto_a01], default: standard } }
+    limit: { name: limit, in: query, schema: { type: integer, default: 10, minimum: 1, maximum: 100 } }
+    StatsFilters:
+      name: filters
+      in: query
+      description: |
+        Gruppo di filtri globali, identico su tutte le rotte statistiche, mappa ed export:
+        `team` (multi), `season` oppure `date_from`/`date_to`, `ski_area`, `zone`, `valid_only`.
+        (Rappresentato come un unico parametro per brevità; drf-spectacular li espande.)
+      schema:
+        type: object
+        properties:
+          team: { type: array, items: { type: string, format: uuid } }
+          season: { type: string }
+          date_from: { type: string, format: date }
+          date_to: { type: string, format: date }
+          ski_area: { type: string, format: uuid }
+          zone: { type: string, format: uuid }
+          valid_only: { type: boolean }
+      style: form
+      explode: true
+
+  responses:
+    Forbidden:
+      description: Permesso mancante
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" }, example: { code: permission_denied, detail: "Funzione non abilitata per il tuo profilo.", missing: [ "events.view" ] } } }
+    NotFound:
+      description: Non trovato (anche se appartiene a un'altra società)
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" }, example: { code: not_found, detail: "Risorsa non trovata." } } }
+    ValidationError:
+      description: Errore di validazione
+      content: { application/json: { schema: { $ref: "#/components/schemas/Error" }, example: { code: validation_error, detail: "Dati non validi.", fields: { dateandtime: [ "Data futura non ammessa." ], zone: [ "La zona non appartiene al comprensorio." ] } } } }
+    Chart:
+      description: Payload Chart.js aggregato lato server
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ChartPayload" }
+          example:
+            labels: [ "0-17", "18-24", "25-34", "35-44", "45-54", "55-64", "65+", "Non classificato" ]
+            datasets:
+              - { label: "Maschile", data: [ 31, 22, 40, 38, 29, 14, 6, 3 ], backgroundColor: "#2563eb" }
+              - { label: "Femminile", data: [ 24, 18, 25, 20, 17, 9, 4, 2 ], backgroundColor: "#db2777" }
+              - { label: "Non classificato", data: [ 1, 0, 2, 0, 1, 0, 0, 5 ], backgroundColor: "#9ca3af" }
+            meta: { total: 311, unit: persons, filters_applied: { season: "2025/2026" }, generated_at: "2026-09-10T09:00:00Z", cached: true }
+
+  schemas:
+    Error:
+      type: object
+      required: [code, detail]
+      properties:
+        code: { type: string }
+        detail: { type: string }
+        missing: { type: array, items: { type: string } }
+        fields: { type: object, additionalProperties: { type: array, items: { type: string } } }
+    Paginated:
+      type: object
+      required: [count, next, previous, results]
+      properties:
+        count: { type: integer }
+        next: { type: [string, "null"], format: uri }
+        previous: { type: [string, "null"], format: uri }
+        results: { type: array, items: {} }
+    Ref:
+      type: object
+      properties: { id: { type: string, format: uuid }, name: { type: string } }
+    ChartPayload:
+      type: object
+      required: [labels, datasets]
+      properties:
+        labels: { type: array, items: { type: string } }
+        datasets:
+          type: array
+          items:
+            type: object
+            required: [label, data, backgroundColor]
+            properties:
+              label: { type: string }
+              data: { type: array, items: { type: number } }
+              backgroundColor: { oneOf: [ { type: string }, { type: array, items: { type: string } } ] }
+        meta:
+          type: object
+          properties:
+            total: { type: integer }
+            unit: { type: string, enum: [events, persons, means] }
+            filters_applied: { type: object }
+            generated_at: { type: string, format: date-time }
+            cached: { type: boolean }
+    Me:
+      type: object
+      properties:
+        user: { $ref: "#/components/schemas/UserBrief" }
+        company: { $ref: "#/components/schemas/CompanyBrief" }
+        teams: { type: array, items: { allOf: [ { $ref: "#/components/schemas/Ref" }, { properties: { is_default: { type: boolean } } } ] } }
+        permissions: { type: object, additionalProperties: { type: boolean } }
+        key_status:
+          type: object
+          properties:
+            user_key: { type: string, enum: [missing, present] }
+            company_key_version: { type: [integer, "null"] }
+            grant: { type: string, enum: [none, active] }
+    UserBrief:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        first_name: { type: string }
+        last_name: { type: string }
+        locale: { type: string }
+        mfa_enabled: { type: boolean }
+    User:
+      allOf:
+        - $ref: "#/components/schemas/UserBrief"
+        - type: object
+          properties:
+            status: { type: string, enum: [invited, active, disabled] }
+            teams: { type: array, items: { $ref: "#/components/schemas/Ref" } }
+            roles: { type: array, items: { type: string } }
+            grants: { type: array, items: { type: string } }
+            denies: { type: array, items: { type: string } }
+            effective_permissions: { type: array, items: { type: string } }
+            has_key_grant: { type: boolean }
+            invited_at: { type: [string, "null"], format: date-time }
+            last_login_at: { type: [string, "null"], format: date-time }
+    CompanyBrief:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        slug: { type: string }
+        tenant_type: { type: string, enum: [company, authority] }
+        timezone: { type: string }
+    Company:
+      allOf:
+        - $ref: "#/components/schemas/CompanyBrief"
+        - type: object
+          properties:
+            settings: { $ref: "#/components/schemas/CompanySettings" }
+            retention_identity_years: { type: integer }
+    CompanySettings:
+      type: object
+      properties:
+        auto_lock_hours: { type: integer, default: 48 }
+        devices_need_authorization: { type: boolean, default: true }
+        validity_rules:
+          type: object
+          properties:
+            event_required: { type: array, items: { type: string }, default: [dateandtime, zone, location, cause, geometry] }
+            person_required: { type: array, items: { type: string }, default: [age, gender, diagnosis, evacuation_means] }
+        duplicate_rule:
+          type: object
+          properties:
+            minutes: { type: integer, default: 30 }
+            fields: { type: array, items: { type: string }, default: [date, slope, gender, age_class_a01, equipment] }
+        export_templates: { type: object }
+    Team:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        body: { type: [string, "null"], description: codice team_body }
+        is_active: { type: boolean }
+        users_count: { type: integer }
+    TeamWrite:
+      type: object
+      required: [name]
+      properties: { name: { type: string }, body: { type: string }, is_active: { type: boolean } }
+    Event:
+      type: object
+      description: Rappresentazione in lista. I codici lookup sono stringhe; le etichette si risolvono client-side da /lookups.
+      properties:
+        id: { type: string, format: uuid }
+        season: { type: string }
+        dateandtime: { type: string, format: date-time }
+        team: { $ref: "#/components/schemas/Ref" }
+        ski_area: { $ref: "#/components/schemas/Ref" }
+        zone: { $ref: "#/components/schemas/Ref" }
+        slope: { allOf: [ { $ref: "#/components/schemas/Ref" }, { properties: { regional_code: { type: [string, "null"] } } } ] }
+        difficulty: { type: [string, "null"] }
+        location_type: { type: [string, "null"] }
+        location_description: { type: [string, "null"] }
+        cause: { type: [string, "null"] }
+        cause_note: { type: [string, "null"] }
+        weather: { type: [string, "null"] }
+        snow_condition: { type: [string, "null"] }
+        wind: { type: [string, "null"] }
+        visibility: { type: [string, "null"] }
+        service_report: { type: boolean }
+        witnesses: { type: [boolean, "null"] }
+        persons_count: { type: integer }
+        valid: { type: boolean }
+        fully_valid: { type: boolean }
+        locked_at: { type: [string, "null"], format: date-time }
+        has_geometry: { type: boolean }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    EventDetail:
+      allOf:
+        - $ref: "#/components/schemas/Event"
+        - type: object
+          properties:
+            geometry: { type: [object, "null"], description: GeoJSON Point }
+            altitude_m: { type: [number, "null"] }
+            extended: { type: object, description: campi estesi opzionali (caller, call_received_at, time_since_incident, location_feature, traffic, snow_making, event_type, operators) }
+            note: { type: [string, "null"] }
+            validation_errors: { type: array, items: { type: object, properties: { field: { type: string }, code: { type: string } } } }
+            unlock_count: { type: integer }
+            persons: { type: array, items: { $ref: "#/components/schemas/Person" } }
+            created_by: { $ref: "#/components/schemas/Ref" }
+    EventWrite:
+      type: object
+      required: [dateandtime, team]
+      properties:
+        client_uuid: { type: string, format: uuid }
+        dateandtime: { type: string, format: date-time }
+        team: { type: string, format: uuid }
+        ski_area: { type: string, format: uuid }
+        zone: { type: string, format: uuid }
+        slope: { type: [string, "null"], format: uuid }
+        difficulty: { type: [string, "null"] }
+        location_type: { type: [string, "null"] }
+        location_description: { type: [string, "null"], maxLength: 500 }
+        geometry: { type: [object, "null"] }
+        altitude_m: { type: [number, "null"] }
+        cause: { type: [string, "null"] }
+        cause_note: { type: [string, "null"], maxLength: 2000 }
+        weather: { type: [string, "null"] }
+        snow_condition: { type: [string, "null"] }
+        wind: { type: [string, "null"] }
+        visibility: { type: [string, "null"] }
+        service_report: { type: boolean }
+        witnesses: { type: [boolean, "null"] }
+        note: { type: [string, "null"] }
+        extended: { type: object }
+    Person:
+      type: object
+      description: Sempre pseudonimizzata. Contiene campi evento denormalizzati per la tabella Persone.
+      properties:
+        id: { type: string, format: uuid }
+        event_id: { type: string, format: uuid }
+        sequence: { type: integer }
+        age: { type: [integer, "null"] }
+        age_class: { type: string }
+        gender: { type: [string, "null"] }
+        country_code: { type: [string, "null"] }
+        initials_firstname: { type: [string, "null"] }
+        initials_surname: { type: [string, "null"] }
+        has_identity: { type: boolean, description: esistono dati cifrati }
+        helmet: { type: [boolean, "null"] }
+        equipment: { type: [string, "null"] }
+        equipment_note: { type: [string, "null"] }
+        equipment_owner: { type: [string, "null"] }
+        insurance: { type: [string, "null"] }
+        insurance_note: { type: [string, "null"] }
+        accommodation: { type: [string, "null"] }
+        accommodation_note: { type: [string, "null"] }
+        destination: { type: [string, "null"] }
+        destination_note: { type: [string, "null"] }
+        diagnosis: { type: [string, "null"] }
+        diagnosis_note: { type: [string, "null"] }
+        secondary_diagnoses: { type: array, items: { type: string } }
+        gravest_injury: { type: [string, "null"] }
+        injury_place: { type: [string, "null"] }
+        evacuation_means: { type: array, items: { $ref: "#/components/schemas/EvacuationMean" } }
+        evacuation_means_note: { type: [string, "null"] }
+        responsibility: { type: [string, "null"] }
+        administrative_violations: { type: [boolean, "null"] }
+        note: { type: [string, "null"] }
+        valid: { type: boolean }
+        validation_errors: { type: array, items: { type: object } }
+        anonymized_at: { type: [string, "null"], format: date-time }
+        extended: { type: object }
+        event: { type: object, description: "denormalizzato: dateandtime, season, zone_name, slope_name, team_name" }
+    PersonWrite:
+      type: object
+      properties:
+        client_uuid: { type: string, format: uuid }
+        age: { type: [integer, "null"], minimum: 0, maximum: 120 }
+        gender: { type: [string, "null"] }
+        country_code: { type: [string, "null"] }
+        initials_firstname: { type: [string, "null"], maxLength: 3 }
+        initials_surname: { type: [string, "null"], maxLength: 3 }
+        pii:
+          type: [object, "null"]
+          description: prodotto dal client con la chiave pubblica società; il server lo conserva opaco
+          required: [ciphertext, key_wrapped, key_version, fields]
+          properties:
+            ciphertext: { type: string, format: byte }
+            key_wrapped: { type: string, format: byte }
+            key_version: { type: integer }
+            fields: { type: array, items: { type: string } }
+        helmet: { type: [boolean, "null"] }
+        equipment: { type: [string, "null"] }
+        equipment_note: { type: [string, "null"] }
+        equipment_owner: { type: [string, "null"] }
+        insurance: { type: [string, "null"] }
+        insurance_note: { type: [string, "null"] }
+        accommodation: { type: [string, "null"] }
+        accommodation_note: { type: [string, "null"] }
+        destination: { type: [string, "null"] }
+        destination_note: { type: [string, "null"] }
+        diagnosis: { type: [string, "null"] }
+        diagnosis_note: { type: [string, "null"] }
+        secondary_diagnoses: { type: array, items: { type: string } }
+        gravest_injury: { type: [string, "null"] }
+        injury_place: { type: [string, "null"] }
+        evacuation_means: { type: array, items: { $ref: "#/components/schemas/EvacuationMean" } }
+        evacuation_means_note: { type: [string, "null"] }
+        responsibility: { type: [string, "null"] }
+        administrative_violations: { type: [boolean, "null"] }
+        note: { type: [string, "null"] }
+        extended: { type: object }
+    EvacuationMean:
+      type: object
+      required: [mean, order]
+      properties: { mean: { type: string }, order: { type: integer, minimum: 1 } }
+    PersonIdentity:
+      type: object
+      properties:
+        person_id: { type: string, format: uuid }
+        algorithm: { type: string }
+        ciphertext: { type: string, format: byte }
+        key_wrapped: { type: string, format: byte }
+        key_version: { type: integer }
+        fields: { type: array, items: { type: string } }
+        grant:
+          type: object
+          properties: { company_key_id: { type: string, format: uuid }, wrapped_private_key: { type: string, format: byte } }
+    RegionalExportRequest:
+      type: object
+      required: [template, season, administrative_area]
+      properties:
+        template: { type: string, enum: [veneto_a01] }
+        season: { type: string }
+        administrative_area: { type: object, required: [level, code], properties: { level: { type: string, enum: [region, province, municipality] }, code: { type: string } } }
+        team: { type: [array, "null"], items: { type: string, format: uuid } }
+        format: { type: string, enum: [xlsx, xls, pdf], default: xlsx }
+        merge_duplicates: { type: boolean, default: true }
+        exclude_in_buildings: { type: boolean, default: true }
+    ExportPreview:
+      type: object
+      properties:
+        persons_total: { type: integer }
+        excluded_in_buildings: { type: object, properties: { count: { type: integer }, event_ids: { type: array, items: { type: string } } } }
+        excluded_outside_area: { type: object, properties: { count: { type: integer }, event_ids: { type: array, items: { type: string } } } }
+        duplicate_groups: { type: object, properties: { count: { type: integer }, persons_merged: { type: integer }, groups: { type: array, items: { type: object } } } }
+        exportable_persons: { type: integer }
+        warnings: { type: array, items: { type: object } }
+    Job:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        kind: { type: string }
+        status: { type: string, enum: [queued, running, done, failed, cancelled] }
+        progress: { type: integer }
+        created_at: { type: string, format: date-time }
+        finished_at: { type: [string, "null"], format: date-time }
+        download_url: { type: [string, "null"] }
+        result_filename: { type: [string, "null"] }
+        error_code: { type: [string, "null"] }
+    Device:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        user: { $ref: "#/components/schemas/Ref" }
+        platform: { type: string, enum: [ios, android] }
+        os_version: { type: string }
+        app_version: { type: string }
+        status: { type: string, enum: [pending, authorized, revoked] }
+        enrolled_at: { type: string, format: date-time }
+        last_seen_at: { type: [string, "null"], format: date-time }
+    CompanyKey:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        version: { type: integer }
+        algorithm: { type: string }
+        public_key: { type: string, format: byte }
+        created_at: { type: string, format: date-time }
+    UserKey:
+      type: object
+      required: [public_key, private_key_encrypted, kdf_params]
+      properties:
+        algorithm: { type: string, default: x25519-v1 }
+        public_key: { type: string, format: byte }
+        private_key_encrypted: { type: string, format: byte }
+        kdf_params: { type: object }
+        created_at: { type: string, format: date-time }
+
+x-websocket:
+  url: wss://api.safe.example/ws/v1/realtime/
+  auth: primo messaggio {"type":"auth","token":"<JWT>"} entro 5 s, altrimenti chiusura 4401
+  messages:
+    server_to_client:
+      - { type: job.completed, payload: { job_id: uuid, kind: string, status: string } }
+      - { type: event.created, payload: { event_id: uuid, dateandtime: date-time } }
+      - { type: vehicle.position, payload: { device_id: uuid, lon: number, lat: number, ts: date-time }, note: futuro }
+    client_to_server:
+      - { type: auth, payload: { token: string } }
+      - { type: subscribe, payload: { topics: [jobs, events, vehicles] } }

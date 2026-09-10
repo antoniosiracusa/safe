@@ -1,0 +1,13 @@
+{
+  "version": "0.1.0",
+  "oidc": {
+    "issuer": "http://localhost:8080/realms/safe",
+    "clientId": "safe-web"
+  },
+  "apiBaseUrl": "http://localhost:8000/api/v1",
+  "wsBaseUrl": "ws://localhost:8001/ws/v1",
+  "tilesBaseUrl": "http://localhost:8081",
+  "satelliteKey": "",
+  "defaultLocale": "it",
+  "supportedLocales": ["it", "en", "de"]
+}

@@ -1,0 +1,113 @@
+name: safe
+
+x-api-base: &api-base
+  build:
+    context: ./backend
+  env_file: .env
+  volumes:
+    - ./backend:/app
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-safe}
+      POSTGRES_USER: ${POSTGRES_USER:-safe_owner}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-safe}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./infra/db/init.sql:/docker-entrypoint-initdb.d/10-roles.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-safe_owner} -d ${POSTGRES_DB:-safe}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3
+    command: ["start-dev", "--import-realm", "--http-port=8080"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KC_HOSTNAME: http://localhost:8080
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      KC_HEALTH_ENABLED: "true"
+    volumes:
+      - ./infra/keycloak/realm-safe.json:/opt/keycloak/data/import/realm-safe.json:ro
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    <<: *api-base
+    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+    ports:
+      - "8000:8000"
+
+  worker:
+    <<: *api-base
+    command: ["celery", "-A", "safe", "worker", "-l", "INFO", "-Q", "default,exports,pdf"]
+
+  beat:
+    <<: *api-base
+    command: ["celery", "-A", "safe", "beat", "-l", "INFO"]
+
+  ws:
+    <<: *api-base
+    command: ["daphne", "-b", "0.0.0.0", "-p", "8001", "safe.asgi:application"]
+    ports:
+      - "8001:8001"
+
+  tiles:
+    image: maptiler/tileserver-gl:v5.3.1
+    command: ["--config", "/data/config.json", "--port", "8080"]
+    volumes:
+      - ./infra/tiles:/data
+    ports:
+      - "8081:8080"
+
+  minio:
+    image: minio/minio:RELEASE.2025-07-23T15-54-02Z
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-safe}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-safe-secret}
+    volumes:
+      - minio-data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
+volumes:
+  db-data:
+  minio-data:

@@ -1,0 +1,40 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+~$*
+.vscode/
+.idea/
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+backend/staticfiles/
+backend/media/
+
+# Node / Angular
+node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/coverage/
+npm-debug.log*
+
+# Docker volumes / data
+infra/data/
+infra/tiles/data/*.pmtiles
+infra/tiles/data/*.mbtiles
+
+# Generated
+*.log
