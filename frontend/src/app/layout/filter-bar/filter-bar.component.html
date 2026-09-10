@@ -1,0 +1,126 @@
+<form class="filter-bar" *transloco="let t" role="search" [attr.aria-label]="t('filters.title')" (submit)="$event.preventDefault()">
+  <div class="field">
+    <label for="f-team">{{ t('filters.team') }}</label>
+    <p-multiSelect
+      inputId="f-team"
+      [options]="options().teams"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="filters().team"
+      (ngModelChange)="setTeams($event)"
+      name="team"
+      [placeholder]="t('filters.all')"
+      [maxSelectedLabels]="1"
+      [selectedItemsLabel]="t('filters.selected')"
+      display="chip"
+      appendTo="body"
+      styleClass="w-full"
+    />
+  </div>
+
+  <div class="field">
+    <label for="f-season">{{ t('filters.season') }}</label>
+    <p-select
+      inputId="f-season"
+      [options]="options().seasons"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="filters().season"
+      (ngModelChange)="setSeason($event)"
+      name="season"
+      [placeholder]="periodMode() === 'dates' ? t('filters.custom_period') : t('filters.season')"
+      [showClear]="periodMode() === 'season'"
+      appendTo="body"
+      styleClass="w-full"
+    />
+  </div>
+
+  <div class="field field-dates">
+    <label for="f-from">{{ t('filters.period') }}</label>
+    <div class="dates">
+      <p-datePicker
+        inputId="f-from"
+        [ngModel]="dateFrom()"
+        (ngModelChange)="setDateFrom($event)"
+        name="date_from"
+        dateFormat="dd/mm/yy"
+        [showIcon]="true"
+        [showClear]="true"
+        [placeholder]="t('filters.from')"
+        appendTo="body"
+      />
+      <p-datePicker
+        inputId="f-to"
+        [ngModel]="dateTo()"
+        (ngModelChange)="setDateTo($event)"
+        name="date_to"
+        dateFormat="dd/mm/yy"
+        [showIcon]="true"
+        [showClear]="true"
+        [placeholder]="t('filters.to')"
+        appendTo="body"
+      />
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="f-area">{{ t('filters.ski_area') }}</label>
+    <p-select
+      inputId="f-area"
+      [options]="options().ski_areas"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="filters().ski_area"
+      (ngModelChange)="setSkiArea($event)"
+      name="ski_area"
+      [placeholder]="t('filters.all')"
+      [showClear]="true"
+      appendTo="body"
+      styleClass="w-full"
+    />
+  </div>
+
+  <div class="field">
+    <label for="f-zone">{{ t('filters.zone') }}</label>
+    <p-select
+      inputId="f-zone"
+      [options]="zonesForArea()"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="filters().zone"
+      (ngModelChange)="setZone($event)"
+      name="zone"
+      [placeholder]="t('filters.all')"
+      [showClear]="true"
+      appendTo="body"
+      styleClass="w-full"
+    />
+  </div>
+
+  <div class="field field-check">
+    <p-checkbox
+      inputId="f-valid"
+      [binary]="true"
+      [ngModel]="filters().valid_only"
+      (ngModelChange)="setValidOnly($event)"
+      name="valid_only"
+    />
+    <label for="f-valid">{{ t('filters.valid_only') }}</label>
+  </div>
+
+  <div class="field field-actions">
+    <p-button
+      type="button"
+      [label]="t('filters.reset')"
+      icon="pi pi-filter-slash"
+      severity="secondary"
+      [text]="true"
+      [disabled]="store.activeCount() === 0 && periodMode() === 'season'"
+      (onClick)="reset()"
+    />
+  </div>
+
+  @if (optionsService.error()) {
+    <p class="error" role="alert">{{ t('filters.load_error') }}</p>
+  }
+</form>

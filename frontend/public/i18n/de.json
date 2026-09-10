@@ -1,0 +1,80 @@
+{
+  "shell": {
+    "toggle_menu": "Menü öffnen oder schließen",
+    "main_nav": "Hauptnavigation",
+    "language": "Sprache",
+    "account": "Konto",
+    "logout": "Abmelden",
+    "key_none": "Schlüsselstatus nicht verfügbar",
+    "key_nokey": "Persönlicher Schlüssel nicht erstellt",
+    "key_nogrant": "Persönlicher Schlüssel vorhanden, keine Freigabe für Identitätsdaten",
+    "key_granted": "Freigabe für Identitätsdaten erteilt"
+  },
+  "nav": {
+    "home": "Startseite",
+    "stats": "Statistiken",
+    "stats_zone": "Zonenübersicht",
+    "stats_demographics": "Demografie",
+    "stats_typology": "Typologie",
+    "stats_geography": "Geografie",
+    "stats_weather": "Wetter",
+    "stats_season": "Saisonübersicht",
+    "data": "Daten",
+    "events": "Ereignisse",
+    "persons": "Personen",
+    "map": "Karte",
+    "exports": "Exporte",
+    "exports_regional": "Regionale Behörden",
+    "exports_dataset": "CSV/XLSX-Datensatz",
+    "admin": "Verwaltung",
+    "users": "Benutzer",
+    "teams": "Teams",
+    "devices": "Geräte",
+    "territory": "Gebiet",
+    "keys": "Verschlüsselungsschlüssel",
+    "audit": "Audit-Protokoll"
+  },
+  "filters": {
+    "title": "Globale Filter",
+    "team": "Team",
+    "season": "Saison",
+    "period": "Zeitraum",
+    "custom_period": "Benutzerdefinierter Zeitraum",
+    "from": "von",
+    "to": "bis",
+    "ski_area": "Skigebiet",
+    "zone": "Zone",
+    "valid_only": "Nur gültige",
+    "all": "Alle",
+    "selected": "{0} ausgewählt",
+    "reset": "Filter zurücksetzen",
+    "load_error": "Die Filteroptionen konnten nicht geladen werden. Bitte später erneut versuchen."
+  },
+  "locked": {
+    "title": "Funktion für Ihr Profil nicht freigeschaltet",
+    "message": "Dieser Bereich existiert, ist aber für Ihren Benutzer nicht aktiv.",
+    "contact": "Wenden Sie sich an den Administrator Ihres Unternehmens, um die Freischaltung anzufordern.",
+    "required": "Erforderliche Berechtigung:"
+  },
+  "home": {
+    "welcome": "Hallo, {{name}}",
+    "session": "Sitzungsübersicht",
+    "teams": "Teams",
+    "permissions": "Freigeschaltete Funktionen",
+    "key": "Identitätsdaten",
+    "modules": "Module",
+    "stats_desc": "Diagramme und Tabellen zu Unfällen nach Zone, Demografie, Typologie, Geografie und Wetter.",
+    "data_desc": "Ereignis- und Personentabellen mit Filtern, Sortierung und PDF-Bericht.",
+    "map_desc": "Ereigniskarte mit Winter-, Sommer- und Satellitenansicht.",
+    "exports_desc": "Exporte an regionale Behörden und CSV/XLSX-Datensätze.",
+    "admin_desc": "Benutzer, Teams, Geräte, Gebiet und Einstellungen."
+  },
+  "placeholder": {
+    "coming": "Dieser Bereich wird im Meilenstein {{milestone}} umgesetzt.",
+    "active_filters": "Aktive Filter (API-Abfrage):"
+  },
+  "not_provisioned": {
+    "title": "Benutzer nicht freigeschaltet",
+    "message": "Die Anmeldung war erfolgreich, aber dieser Benutzer wurde in kein Unternehmen eingeladen oder wurde deaktiviert. Wenden Sie sich an den Administrator Ihres Unternehmens."
+  }
+}

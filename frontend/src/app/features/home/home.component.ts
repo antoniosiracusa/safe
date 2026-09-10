@@ -1,0 +1,98 @@
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { toSignal } from '@angular/core/rxjs-interop';
+
+import { SessionService } from '../../core/session/session.service';
+
+interface ModuleCard {
+  path: string;
+  labelKey: string;
+  descKey: string;
+  icon: string;
+  permission: string;
+}
+
+const MODULES: ModuleCard[] = [
+  { path: 'stats/zone', labelKey: 'nav.stats', descKey: 'home.stats_desc', icon: 'pi pi-chart-bar', permission: 'stats.view' },
+  { path: 'data/events', labelKey: 'nav.data', descKey: 'home.data_desc', icon: 'pi pi-list', permission: 'events.view' },
+  { path: 'map', labelKey: 'nav.map', descKey: 'home.map_desc', icon: 'pi pi-map', permission: 'map.view' },
+  { path: 'exports/regional', labelKey: 'nav.exports', descKey: 'home.exports_desc', icon: 'pi pi-building', permission: 'exports.regional' },
+  { path: 'admin/users', labelKey: 'nav.admin', descKey: 'home.admin_desc', icon: 'pi pi-cog', permission: 'users.view' },
+];
+
+@Component({
+  selector: 'safe-home',
+  imports: [RouterLink, TranslocoDirective],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <ng-container *transloco="let t">
+      <h1>{{ t('home.welcome', { name: session.displayName() }) }}</h1>
+      <p class="sub">{{ session.company()?.name }}</p>
+
+      <section class="facts" [attr.aria-label]="t('home.session')">
+        <div><span class="k">{{ t('home.teams') }}</span><span class="v">{{ session.teams().length }}</span></div>
+        <div><span class="k">{{ t('home.permissions') }}</span><span class="v">{{ activePermissions() }}</span></div>
+        <div>
+          <span class="k">{{ t('home.key') }}</span>
+          <span class="v small">{{ t('shell.key_' + keyState()) }}</span>
+        </div>
+      </section>
+
+      <h2>{{ t('home.modules') }}</h2>
+      <div class="cards">
+        @for (m of modules; track m.path) {
+          @let allowed = session.can(m.permission);
+          <a class="card" [class.locked]="!allowed" [routerLink]="link(m.path)" queryParamsHandling="preserve">
+            <i [class]="m.icon" aria-hidden="true"></i>
+            <h3>{{ t(m.labelKey) }} @if (!allowed) { <i class="pi pi-lock" aria-hidden="true"></i> }</h3>
+            <p>{{ allowed ? t(m.descKey) : t('locked.title') }}</p>
+            @if (!allowed) { <p class="hint">{{ t('locked.contact') }}</p> }
+          </a>
+        }
+      </div>
+    </ng-container>
+  `,
+  styles: `
+    h1 { margin: 0; font-size: 1.6rem; }
+    .sub { margin: 0.2rem 0 1.25rem; color: var(--p-text-muted-color); }
+    .facts { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .facts div { background: var(--p-surface-0); border: 1px solid var(--p-surface-200); border-radius: 6px; padding: 0.75rem 1rem; min-width: 10rem; display: flex; flex-direction: column; gap: 0.2rem; }
+    .k { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--p-text-muted-color); }
+    .v { font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .v.small { font-size: 1rem; }
+    h2 { font-size: 1.1rem; margin: 0 0 0.75rem; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+    .card { display: block; background: var(--p-surface-0); border: 1px solid var(--p-surface-200); border-radius: 6px; padding: 1rem; text-decoration: none; color: var(--p-text-color); }
+    .card:hover { border-color: var(--p-primary-color); }
+    .card:focus-visible { outline: 2px solid var(--p-primary-color); }
+    .card i { font-size: 1.4rem; color: #c8102e; }
+    .card h3 { margin: 0.5rem 0 0.25rem; font-size: 1rem; display: flex; gap: 0.4rem; align-items: center; }
+    .card h3 i { font-size: 0.8rem; color: var(--p-text-muted-color); }
+    .card p { margin: 0; font-size: 0.9rem; color: var(--p-text-muted-color); }
+    .card.locked { opacity: 0.75; border-style: dashed; }
+    .card.locked i:first-child { color: var(--p-text-muted-color); }
+    .hint { font-size: 0.8rem !important; margin-top: 0.25rem !important; }
+  `,
+})
+export class HomeComponent {
+  readonly session = inject(SessionService);
+  private readonly transloco = inject(TranslocoService);
+  readonly lang = toSignal(this.transloco.langChanges$, { initialValue: this.transloco.getActiveLang() });
+  readonly modules = MODULES;
+
+  link(path: string): string[] {
+    return ['/', this.lang(), ...path.split('/')];
+  }
+
+  activePermissions(): number {
+    return Object.values(this.session.permissions()).filter(Boolean).length;
+  }
+
+  keyState(): string {
+    const ks = this.session.keyStatus();
+    if (!ks) return 'none';
+    if (ks.grant === 'active') return 'granted';
+    return ks.user_key === 'present' ? 'nogrant' : 'nokey';
+  }
+}

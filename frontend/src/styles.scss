@@ -1,1 +1,34 @@
-/* You can add global styles to this file, and also import other style files */
+@use 'primeicons/primeicons.css';
+
+:root {
+  --safe-accent: #c8102e;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  color: var(--p-text-color);
+  background: var(--p-surface-100);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+a {
+  color: var(--p-primary-color);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

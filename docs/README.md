@@ -16,5 +16,5 @@ Piattaforma multi-tenant per la raccolta, gestione e analisi statistica degli in
 Materiale di dominio usato come riferimento: `../reference/testo base.odt`, `../reference/report-evento-*.pdf`,
 `../reference/export.xlsx`, `../reference/A01_*.xls`, `../reference/Lista soccorsi *.pdf`, `../reference/comunicazione elenco infortuni.docx`.
 
-**Prossimo passo**: risposta alle domande del documento 00 e approvazione esplicita della Fase 1;
-poi si parte con M0/M1 (repository, Compose, Keycloak, modello dati, autenticazione).
+Fase 1 approvata il 10/09/2026 (assunzioni confermate). Runbook delle milestone:
+[M0](runbook-M0.md) · [M1](runbook-M1.md).

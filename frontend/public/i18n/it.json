@@ -1,0 +1,80 @@
+{
+  "shell": {
+    "toggle_menu": "Apri o chiudi il menu",
+    "main_nav": "Navigazione principale",
+    "language": "Lingua",
+    "account": "Account",
+    "logout": "Esci",
+    "key_none": "Stato chiave non disponibile",
+    "key_nokey": "Chiave personale non creata",
+    "key_nogrant": "Chiave personale presente, nessuna abilitazione ai dati identificativi",
+    "key_granted": "Abilitato ai dati identificativi"
+  },
+  "nav": {
+    "home": "Home",
+    "stats": "Statistiche",
+    "stats_zone": "Riepilogo zona",
+    "stats_demographics": "Demografia",
+    "stats_typology": "Tipologia",
+    "stats_geography": "Geografia",
+    "stats_weather": "Meteo",
+    "stats_season": "Riepilogo stagione",
+    "data": "Dati",
+    "events": "Eventi",
+    "persons": "Persone",
+    "map": "Mappa",
+    "exports": "Esportazioni",
+    "exports_regional": "Enti regionali",
+    "exports_dataset": "Dataset CSV/XLSX",
+    "admin": "Gestione",
+    "users": "Utenti",
+    "teams": "Squadre",
+    "devices": "Dispositivi",
+    "territory": "Territorio",
+    "keys": "Chiavi di cifratura",
+    "audit": "Audit log"
+  },
+  "filters": {
+    "title": "Filtri globali",
+    "team": "Squadra",
+    "season": "Stagione",
+    "period": "Periodo",
+    "custom_period": "Periodo personalizzato",
+    "from": "dal",
+    "to": "al",
+    "ski_area": "Comprensorio",
+    "zone": "Zona",
+    "valid_only": "Solo validi",
+    "all": "Tutte",
+    "selected": "{0} selezionate",
+    "reset": "Reimposta filtri",
+    "load_error": "Impossibile caricare le opzioni dei filtri. Riprova più tardi."
+  },
+  "locked": {
+    "title": "Funzione non abilitata per il tuo profilo",
+    "message": "Questa sezione è disponibile ma non è attiva per il tuo utente.",
+    "contact": "Contatta l'amministratore della tua società per richiederne l'abilitazione.",
+    "required": "Permesso richiesto:"
+  },
+  "home": {
+    "welcome": "Ciao, {{name}}",
+    "session": "Riepilogo sessione",
+    "teams": "Squadre",
+    "permissions": "Funzioni abilitate",
+    "key": "Dati identificativi",
+    "modules": "Moduli",
+    "stats_desc": "Grafici e tabelle sugli incidenti per zona, demografia, tipologia, geografia e meteo.",
+    "data_desc": "Tabelle eventi e persone con filtri, ordinamento e PDF del rapporto.",
+    "map_desc": "Mappa degli eventi con stili inverno, estate e satellite.",
+    "exports_desc": "Export verso gli enti regionali e dataset CSV/XLSX.",
+    "admin_desc": "Utenti, squadre, dispositivi, territorio e impostazioni."
+  },
+  "placeholder": {
+    "coming": "Questa sezione viene realizzata nella milestone {{milestone}}.",
+    "active_filters": "Filtri attivi (query API):"
+  },
+  "not_provisioned": {
+    "title": "Utente non abilitato",
+    "message": "L'accesso è stato verificato, ma questo utente non è stato invitato in alcuna società o è stato disattivato. Rivolgiti all'amministratore della tua società."
+  }
+}

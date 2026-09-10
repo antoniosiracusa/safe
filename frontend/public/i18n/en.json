@@ -1,0 +1,80 @@
+{
+  "shell": {
+    "toggle_menu": "Open or close the menu",
+    "main_nav": "Main navigation",
+    "language": "Language",
+    "account": "Account",
+    "logout": "Sign out",
+    "key_none": "Key status unavailable",
+    "key_nokey": "Personal key not created",
+    "key_nogrant": "Personal key present, not granted access to identity data",
+    "key_granted": "Granted access to identity data"
+  },
+  "nav": {
+    "home": "Home",
+    "stats": "Statistics",
+    "stats_zone": "Zone summary",
+    "stats_demographics": "Demographics",
+    "stats_typology": "Typology",
+    "stats_geography": "Geography",
+    "stats_weather": "Weather",
+    "stats_season": "Season summary",
+    "data": "Data",
+    "events": "Events",
+    "persons": "Persons",
+    "map": "Map",
+    "exports": "Exports",
+    "exports_regional": "Regional authorities",
+    "exports_dataset": "CSV/XLSX dataset",
+    "admin": "Administration",
+    "users": "Users",
+    "teams": "Teams",
+    "devices": "Devices",
+    "territory": "Territory",
+    "keys": "Encryption keys",
+    "audit": "Audit log"
+  },
+  "filters": {
+    "title": "Global filters",
+    "team": "Team",
+    "season": "Season",
+    "period": "Period",
+    "custom_period": "Custom period",
+    "from": "from",
+    "to": "to",
+    "ski_area": "Ski area",
+    "zone": "Zone",
+    "valid_only": "Valid only",
+    "all": "All",
+    "selected": "{0} selected",
+    "reset": "Reset filters",
+    "load_error": "Filter options could not be loaded. Please try again later."
+  },
+  "locked": {
+    "title": "Feature not enabled for your profile",
+    "message": "This section exists but is not active for your user.",
+    "contact": "Contact your company administrator to request access.",
+    "required": "Required permission:"
+  },
+  "home": {
+    "welcome": "Hello, {{name}}",
+    "session": "Session summary",
+    "teams": "Teams",
+    "permissions": "Enabled features",
+    "key": "Identity data",
+    "modules": "Modules",
+    "stats_desc": "Charts and tables on accidents by zone, demographics, typology, geography and weather.",
+    "data_desc": "Event and person tables with filters, sorting and report PDF.",
+    "map_desc": "Event map with winter, summer and satellite styles.",
+    "exports_desc": "Exports to regional authorities and CSV/XLSX datasets.",
+    "admin_desc": "Users, teams, devices, territory and settings."
+  },
+  "placeholder": {
+    "coming": "This section is delivered in milestone {{milestone}}.",
+    "active_filters": "Active filters (API query):"
+  },
+  "not_provisioned": {
+    "title": "User not enabled",
+    "message": "Sign-in succeeded, but this user has not been invited to any company or has been disabled. Contact your company administrator."
+  }
+}

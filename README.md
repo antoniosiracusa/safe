@@ -23,8 +23,12 @@ Prerequisiti: Docker Desktop (con WSL2 su Windows), Node 24, Python 3.13.
 ```bash
 cp .env.example .env
 docker compose up -d db redis keycloak minio mailpit
-docker compose up api worker ws
+docker compose run --rm api python manage.py migrate
+docker compose run --rm api python manage.py seed_demo
+docker compose up -d api worker ws
 ```
+
+Utenti demo (Keycloak): `admin.demo` / `admin.demo`, `rescuer.demo` / `rescuer.demo`.
 
 - API: http://localhost:8000/api/v1/ (schema OpenAPI: http://localhost:8000/api/schema/, Swagger: http://localhost:8000/api/docs/)
 - Keycloak: http://localhost:8080 (realm `safe`, admin `admin`/`admin` in sviluppo)
@@ -52,8 +56,8 @@ La CI (GitHub Actions) esegue lint, test con PostGIS e Redis di servizio, e il b
 
 | M | Contenuto | Stato |
 |---|---|---|
-| M0 | repository, Compose, Keycloak, CI | in corso |
-| M1 | autenticazione OIDC, multi-tenancy, modello dati, migrazioni | |
+| M0 | repository, Compose, Keycloak, CI | fatto ([runbook](docs/runbook-M0.md)) |
+| M1 | autenticazione OIDC, multi-tenancy, modello dati, migrazioni, shell web | fatto ([runbook](docs/runbook-M1.md)) |
 | M2 | CRUD eventi e persone, import storico | |
 | M3 | statistiche | |
 | M4 | mappa | |

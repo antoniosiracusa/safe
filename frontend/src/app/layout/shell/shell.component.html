@@ -1,0 +1,85 @@
+<div class="shell" [class.collapsed]="!sidebarOpen()" *transloco="let t">
+  <header class="topbar">
+    <p-button
+      type="button"
+      icon="pi pi-bars"
+      [text]="true"
+      severity="secondary"
+      [attr.aria-label]="t('shell.toggle_menu')"
+      [attr.aria-expanded]="sidebarOpen()"
+      (onClick)="toggleSidebar()"
+    />
+    <a class="brand" [routerLink]="['/', lang(), 'home']" queryParamsHandling="preserve">
+      <span class="mark" aria-hidden="true">S</span>
+      <span class="name">SAFE</span>
+      <span class="company">{{ session.company()?.name }}</span>
+    </a>
+
+    <div class="spacer"></div>
+
+    <span
+      class="key-state"
+      [class.granted]="keyState() === 'granted'"
+      [pTooltip]="t('shell.key_' + keyState())"
+      tooltipPosition="bottom"
+      tabindex="0"
+      role="status"
+    >
+      <i [class]="keyState() === 'granted' ? 'pi pi-lock-open' : 'pi pi-lock'" aria-hidden="true"></i>
+      <span class="sr-only">{{ t('shell.key_' + keyState()) }}</span>
+    </span>
+
+    <p-select
+      class="lang"
+      [options]="langOptions"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="lang()"
+      (ngModelChange)="changeLang($event)"
+      [attr.aria-label]="t('shell.language')"
+      appendTo="body"
+    />
+
+    <div class="user">
+      <span class="user-name">{{ session.displayName() }}</span>
+      <a class="account" [href]="auth.accountUrl()" target="_blank" rel="noopener">{{ t('shell.account') }}</a>
+      <p-button type="button" [label]="t('shell.logout')" icon="pi pi-sign-out" [text]="true" severity="secondary" (onClick)="logout()" />
+    </div>
+  </header>
+
+  <nav class="sidenav" [attr.aria-label]="t('shell.main_nav')">
+    @for (section of nav; track section.labelKey) {
+      <div class="section">
+        @if (section.items.length > 1) {
+          <p class="section-title">{{ t(section.labelKey) }}</p>
+        }
+        @for (item of section.items; track item.path) {
+          <a
+            [routerLink]="link(item.path)"
+            queryParamsHandling="preserve"
+            routerLinkActive="active"
+            [class.locked]="item.permission && !session.can(item.permission)"
+            [pTooltip]="item.permission && !session.can(item.permission) ? t('locked.title') : undefined"
+            tooltipPosition="right"
+          >
+            <i [class]="item.icon" aria-hidden="true"></i>
+            <span class="label">{{ t(item.labelKey) }}</span>
+            @if (item.permission && !session.can(item.permission)) {
+              <i class="pi pi-lock lock" aria-hidden="true"></i>
+            }
+          </a>
+        }
+      </div>
+    }
+    <p class="version">v{{ version }}</p>
+  </nav>
+
+  <main class="content">
+    @if (showFilters()) {
+      <safe-filter-bar />
+    }
+    <div class="page">
+      <router-outlet />
+    </div>
+  </main>
+</div>
