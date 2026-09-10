@@ -28,6 +28,10 @@ ROUTES = [
     ("get", "/api/v1/ski-areas", ("territory.view",)),
     ("get", "/api/v1/zones", ("territory.view",)),
     ("get", "/api/v1/slopes", ("territory.view",)),
+    ("get", "/api/v1/stats/typology/cause", ("stats.view",)),
+    ("get", "/api/v1/stats/demographics/age-gender", ("stats.view",)),
+    ("get", "/api/v1/stats/geography/slopes", ("stats.view",)),
+    ("get", "/api/v1/stats/season-summary/teams", ("stats.view", "stats.advanced")),
 ]
 
 

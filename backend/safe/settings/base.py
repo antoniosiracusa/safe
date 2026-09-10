@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "safe.apps.crypto",
     "safe.apps.jobs",
     "safe.apps.audit",
+    "safe.apps.stats",
 ]
 
 AUTH_USER_MODEL = "org.AppUser"
