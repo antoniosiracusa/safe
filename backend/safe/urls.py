@@ -7,6 +7,7 @@ urlpatterns = [
     path("api/v1/", include("safe.apps.authz.urls")),
     path("api/v1/", include("safe.apps.lookups.urls")),
     path("api/v1/", include("safe.apps.rescue.urls")),
+    path("api/v1/", include("safe.apps.territory.urls")),
     path(
         "api/schema/",
         SpectacularAPIView.as_view(permission_classes=[AllowAny], authentication_classes=[]),

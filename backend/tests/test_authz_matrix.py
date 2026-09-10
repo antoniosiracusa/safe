@@ -25,6 +25,9 @@ ROUTES = [
     ("patch", "/api/v1/persons/{person}", ("persons.edit",)),
     ("delete", "/api/v1/persons/{person}", ("persons.edit",)),
     ("get", "/api/v1/persons/{person}/identity", ("persons.reveal_identity",)),
+    ("get", "/api/v1/ski-areas", ("territory.view",)),
+    ("get", "/api/v1/zones", ("territory.view",)),
+    ("get", "/api/v1/slopes", ("territory.view",)),
 ]
 
 

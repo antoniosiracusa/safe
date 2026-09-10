@@ -58,7 +58,7 @@ La CI (GitHub Actions) esegue lint, test con PostGIS e Redis di servizio, e il b
 |---|---|---|
 | M0 | repository, Compose, Keycloak, CI | fatto ([runbook](docs/runbook-M0.md)) |
 | M1 | autenticazione OIDC, multi-tenancy, modello dati, migrazioni, shell web | fatto ([runbook](docs/runbook-M1.md)) |
-| M2 | CRUD eventi e persone, import storico | |
+| M2 | CRUD eventi e persone, sezione Dati (import storico escluso su richiesta) | fatto ([runbook](docs/runbook-M2.md)) |
 | M3 | statistiche | |
 | M4 | mappa | |
 | M5 | esportazioni, PDF, anteprima qualità | |

@@ -7,6 +7,8 @@ import { detectLang, langGuard, langMatch } from './core/i18n/lang.guard';
 import { HomeComponent } from './features/home/home.component';
 import { NotProvisionedComponent } from './features/not-provisioned/not-provisioned.component';
 import { PlaceholderComponent } from './features/placeholder/placeholder.component';
+import { EventsPageComponent } from './features/data/events/events-page.component';
+import { PersonsPageComponent } from './features/data/persons/persons-page.component';
 import { ShellComponent } from './layout/shell/shell.component';
 
 /** Pagine delle milestone successive: già instradate (con permesso e filtri) come segnaposto. */
@@ -45,8 +47,8 @@ export const routes: Routes = [
       placeholder('stats/geography', 'nav.stats_geography', 'stats.view', 'M3'),
       placeholder('stats/weather', 'nav.stats_weather', 'stats.view', 'M3'),
       placeholder('stats/season', 'nav.stats_season', 'stats.advanced', 'M3'),
-      placeholder('data/events', 'nav.events', 'events.view', 'M2'),
-      placeholder('data/persons', 'nav.persons', 'persons.view', 'M2'),
+      { path: 'data/events', component: EventsPageComponent, data: { filters: true } },
+      { path: 'data/persons', component: PersonsPageComponent, data: { filters: true } },
       placeholder('map', 'nav.map', 'map.view', 'M4'),
       placeholder('exports/regional', 'nav.exports_regional', 'exports.regional', 'M5'),
       placeholder('exports/dataset', 'nav.exports_dataset', 'exports.dataset', 'M5'),

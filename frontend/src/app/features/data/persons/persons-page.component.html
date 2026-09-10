@@ -1,0 +1,113 @@
+<ng-container *transloco="let t">
+  <p-toast />
+  <div class="page-head">
+    <h1>{{ t('nav.persons') }}</h1>
+  </div>
+
+  <ng-container *safeCan="'persons.view'">
+    <form class="local-filters" (submit)="$event.preventDefault(); applyLocalFilters()">
+      <div class="field">
+        <label for="pf-gender">{{ t('fields.gender') }}</label>
+        <p-select inputId="pf-gender" [options]="lookups.options('gender')" optionLabel="label" optionValue="value" [ngModel]="gender()" (ngModelChange)="gender.set($event); applyLocalFilters()" name="gender" [placeholder]="t('filters.all')" [showClear]="true" appendTo="body" styleClass="w-full" />
+      </div>
+      <div class="field">
+        <label for="pf-country">{{ t('fields.country') }}</label>
+        <p-select inputId="pf-country" [options]="lookups.countryOptions()" optionLabel="label" optionValue="value" [ngModel]="country()" (ngModelChange)="country.set($event); applyLocalFilters()" name="country" [placeholder]="t('filters.all')" [showClear]="true" [filter]="true" appendTo="body" styleClass="w-full" />
+      </div>
+      <div class="field">
+        <label for="pf-diagnosis">{{ t('fields.diagnosis') }}</label>
+        <p-select inputId="pf-diagnosis" [options]="lookups.options('diagnosis')" optionLabel="label" optionValue="value" [ngModel]="diagnosis()" (ngModelChange)="diagnosis.set($event); applyLocalFilters()" name="diagnosis" [placeholder]="t('filters.all')" [showClear]="true" [filter]="true" appendTo="body" styleClass="w-full" />
+      </div>
+      <div class="field">
+        <label for="pf-equipment">{{ t('fields.equipment') }}</label>
+        <p-select inputId="pf-equipment" [options]="lookups.options('equipment')" optionLabel="label" optionValue="value" [ngModel]="equipment()" (ngModelChange)="equipment.set($event); applyLocalFilters()" name="equipment" [placeholder]="t('filters.all')" [showClear]="true" appendTo="body" styleClass="w-full" />
+      </div>
+      <div class="field">
+        <label for="pf-evac">{{ t('fields.evacuation_means') }}</label>
+        <p-select inputId="pf-evac" [options]="lookups.options('evacuation_mean')" optionLabel="label" optionValue="value" [ngModel]="evacuation()" (ngModelChange)="evacuation.set($event); applyLocalFilters()" name="evacuation" [placeholder]="t('filters.all')" [showClear]="true" appendTo="body" styleClass="w-full" />
+      </div>
+      <div class="field field-age">
+        <label for="pf-age-min">{{ t('fields.age') }}</label>
+        <div class="dates">
+          <p-inputNumber inputId="pf-age-min" [ngModel]="ageMin()" (ngModelChange)="ageMin.set($event)" name="age_min" [min]="0" [max]="120" [useGrouping]="false" [placeholder]="t('filters.from')" />
+          <p-inputNumber inputId="pf-age-max" [ngModel]="ageMax()" (ngModelChange)="ageMax.set($event)" name="age_max" [min]="0" [max]="120" [useGrouping]="false" [placeholder]="t('filters.to')" />
+        </div>
+      </div>
+      <p-button type="submit" icon="pi pi-search" [text]="true" [attr.aria-label]="t('common.search')" />
+      <p-button type="button" icon="pi pi-filter-slash" [text]="true" severity="secondary" [label]="t('common.clear')" (onClick)="clearLocalFilters()" />
+    </form>
+
+    @if (error()) {
+      <p class="error-box" role="alert">
+        {{ t('common.load_error') }}
+        <p-button [label]="t('common.retry')" [text]="true" (onClick)="reload(false)" />
+      </p>
+    }
+
+    <div class="table-wrap">
+      <p-table [value]="rows()" [lazy]="true" (onLazyLoad)="onLazyLoad($event)" [paginator]="true" [rows]="pageSize" [totalRecords]="total()" [first]="first()" [loading]="loading()" [sortField]="sortField()" [sortOrder]="sortOrder()" [scrollable]="true" scrollHeight="flex" [rowHover]="true" selectionMode="single" dataKey="id" [showCurrentPageReport]="true" [currentPageReportTemplate]="t('common.page_report')" [tableStyle]="{ 'min-width': '1700px' }" styleClass="p-datatable-sm" (onRowSelect)="open($any($event).data)">
+        <ng-template #caption>
+          <span class="count">{{ t('persons.count', { count: total() }) }}</span>
+        </ng-template>
+        <ng-template #header>
+          <tr>
+            <th pFrozenColumn>{{ t('fields.event') }}</th>
+            <th pFrozenColumn pSortableColumn="event.dateandtime">{{ t('fields.dateandtime') }} <p-sortIcon field="event.dateandtime" /></th>
+            <th>{{ t('fields.team') }}</th>
+            <th>{{ t('fields.zone') }}</th>
+            <th>{{ t('fields.slope') }}</th>
+            <th>{{ t('fields.initials') }}</th>
+            <th pSortableColumn="age" class="num">{{ t('fields.age') }} <p-sortIcon field="age" /></th>
+            <th>{{ t('fields.gender') }}</th>
+            <th>{{ t('fields.country') }}</th>
+            <th>{{ t('fields.helmet') }}</th>
+            <th>{{ t('fields.equipment') }}</th>
+            <th>{{ t('fields.diagnosis') }}</th>
+            <th>{{ t('fields.injury_place') }}</th>
+            <th>{{ t('fields.evacuation_means') }}</th>
+            <th>{{ t('fields.destination') }}</th>
+            <th>{{ t('fields.identity') }}</th>
+            <th pSortableColumn="valid">{{ t('fields.valid') }} <p-sortIcon field="valid" /></th>
+            <th>{{ t('fields.pdf') }}</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-row>
+          <tr [pSelectableRow]="row" class="clickable">
+            <td pFrozenColumn><code>{{ shortId(row.event_id) }}</code> <small>#{{ row.sequence }}</small></td>
+            <td pFrozenColumn>{{ row.event.dateandtime | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ row.event.team_name }}</td>
+            <td>{{ row.event.zone_name || '—' }}</td>
+            <td>{{ row.event.slope_name || '—' }}</td>
+            <td><code>{{ row.initials_surname || '·' }} {{ row.initials_firstname || '·' }}</code></td>
+            <td class="num">{{ row.age ?? '—' }}</td>
+            <td>{{ row.gender | lookup: 'gender' }}</td>
+            <td>{{ row.country_code | lookup: 'country' }}</td>
+            <td><safe-state-tag kind="bool" [value]="row.helmet" /></td>
+            <td>{{ row.equipment | lookup: 'equipment' }}</td>
+            <td>{{ row.diagnosis | lookup: 'diagnosis' }}</td>
+            <td>{{ row.injury_place | lookup: 'injury_place' }}</td>
+            <td>@for (m of means(row); track m; let last = $last) { {{ m | lookup: 'evacuation_mean' }}@if (!last) { → } } @if (!means(row).length) { — }</td>
+            <td>{{ row.destination | lookup: 'destination' }}</td>
+            <td>@if (row.has_identity) { <i class="pi pi-lock" [pTooltip]="t('persons.identity_encrypted')" tooltipPosition="left"></i> } @else { — }</td>
+            <td><safe-state-tag kind="valid" [value]="row.valid" /></td>
+            <td><p-button icon="pi pi-file-pdf" [text]="true" [disabled]="true" [pTooltip]="t('placeholder.pdf_m5')" tooltipPosition="left" [attr.aria-label]="t('fields.pdf')" /></td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr>
+            <td colspan="18" class="empty">
+              @if (!loading()) {
+                <i class="pi pi-inbox" aria-hidden="true"></i>
+                <p>{{ t('persons.empty') }}</p>
+              }
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </ng-container>
+
+  @if (selectedEvent()) {
+    <safe-event-drawer [eventId]="selectedEvent()" (closed)="closeDrawer($event)" />
+  }
+</ng-container>

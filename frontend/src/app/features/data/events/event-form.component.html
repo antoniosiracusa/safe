@@ -1,0 +1,139 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="safe-form" *transloco="let t" novalidate>
+  @if (generalError(); as ge) {
+    <p class="error-box" role="alert">{{ t('errors.' + ge) }}</p>
+  }
+
+  <fieldset>
+    <legend>{{ t('events.section_when') }}</legend>
+    <div class="grid">
+      <div class="field">
+        <label for="f-dateandtime">{{ t('fields.dateandtime') }} *</label>
+        <p-datePicker inputId="f-dateandtime" formControlName="dateandtime" [showTime]="true" [showIcon]="true" dateFormat="dd/mm/yy" hourFormat="24" appendTo="body" styleClass="w-full" />
+        @if (errorOf('dateandtime'); as e) { <small class="err">{{ t('errors.' + e) }}</small> }
+      </div>
+      <div class="field">
+        <label for="f-team">{{ t('fields.team') }} *</label>
+        <p-select inputId="f-team" formControlName="team" [options]="teamOptions()" optionLabel="label" optionValue="value" appendTo="body" styleClass="w-full" />
+        @if (errorOf('team'); as e) { <small class="err">{{ t('errors.' + e) }}</small> }
+      </div>
+      <div class="field">
+        <label for="f-event_type">{{ t('fields.event_type') }}</label>
+        <p-select inputId="f-event_type" formControlName="event_type" [options]="lookups.options('event_type')" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+      </div>
+      <div class="field">
+        <label for="f-caller">{{ t('fields.caller') }}</label>
+        <input pInputText id="f-caller" formControlName="caller" maxlength="120" />
+      </div>
+      <div class="field">
+        <label for="f-call">{{ t('fields.call_received_at') }}</label>
+        <p-datePicker inputId="f-call" formControlName="call_received_at" [timeOnly]="true" hourFormat="24" [showSeconds]="true" appendTo="body" styleClass="w-full" />
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>{{ t('events.section_where') }}</legend>
+    <div class="grid">
+      <div class="field">
+        <label for="f-ski_area">{{ t('fields.ski_area') }}</label>
+        <p-select inputId="f-ski_area" formControlName="ski_area" [options]="territory.skiAreaOptions()" optionLabel="label" optionValue="value" [showClear]="true" appendTo="body" styleClass="w-full" />
+      </div>
+      <div class="field">
+        <label for="f-zone">{{ t('fields.zone') }}</label>
+        <p-select inputId="f-zone" formControlName="zone" [options]="zoneOptions()" optionLabel="label" optionValue="value" [showClear]="true" appendTo="body" styleClass="w-full" />
+        @if (errorOf('zone'); as e) { <small class="err">{{ e }}</small> }
+      </div>
+      <div class="field">
+        <label for="f-slope">{{ t('fields.slope') }}</label>
+        <p-select inputId="f-slope" formControlName="slope" [options]="slopeOptions()" optionLabel="label" optionValue="value" [showClear]="true" [filter]="true" appendTo="body" styleClass="w-full" />
+        @if (errorOf('slope'); as e) { <small class="err">{{ e }}</small> }
+      </div>
+      <div class="field">
+        <label for="f-difficulty">{{ t('fields.difficulty') }}</label>
+        <p-select inputId="f-difficulty" formControlName="difficulty" [options]="lookups.options('slope_difficulty')" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+      </div>
+      <div class="field">
+        <label for="f-location_type">{{ t('fields.location_type') }}</label>
+        <p-select inputId="f-location_type" formControlName="location_type" [options]="lookups.options('location_type')" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+      </div>
+      <div class="field">
+        <label for="f-location_feature">{{ t('fields.location_feature') }}</label>
+        <p-select inputId="f-location_feature" formControlName="location_feature" [options]="lookups.options('location_feature')" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+      </div>
+      <div class="field span-2">
+        <label for="f-location_description">{{ t('fields.location_description') }}</label>
+        <input pInputText id="f-location_description" formControlName="location_description" maxlength="500" />
+      </div>
+      <div class="field">
+        <label for="f-lat">{{ t('fields.lat') }}</label>
+        <p-inputNumber inputId="f-lat" formControlName="lat" mode="decimal" [minFractionDigits]="5" [maxFractionDigits]="6" [useGrouping]="false" styleClass="w-full" />
+        <small class="hint">{{ t('events.map_hint') }}</small>
+      </div>
+      <div class="field">
+        <label for="f-lon">{{ t('fields.lon') }}</label>
+        <p-inputNumber inputId="f-lon" formControlName="lon" mode="decimal" [minFractionDigits]="5" [maxFractionDigits]="6" [useGrouping]="false" styleClass="w-full" />
+      </div>
+      <div class="field">
+        <label for="f-alt">{{ t('fields.altitude_m') }}</label>
+        <p-inputNumber inputId="f-alt" formControlName="altitude_m" [useGrouping]="false" suffix=" m" styleClass="w-full" />
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>{{ t('events.section_conditions') }}</legend>
+    <div class="grid">
+      <div class="field">
+        <label for="f-cause">{{ t('fields.cause') }}</label>
+        <p-select inputId="f-cause" formControlName="cause" [options]="lookups.options('cause')" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+      </div>
+      <div class="field span-2">
+        <label for="f-cause_note">{{ t('fields.cause_note') }}</label>
+        <input pInputText id="f-cause_note" formControlName="cause_note" maxlength="2000" />
+      </div>
+      <div class="field">
+        <label for="f-weather">{{ t('fields.weather') }}</label>
+        <p-select inputId="f-weather" formControlName="weather" [options]="lookups.options('weather')" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+      </div>
+      <div class="field">
+        <label for="f-snow">{{ t('fields.snow_condition') }}</label>
+        <p-select inputId="f-snow" formControlName="snow_condition" [options]="lookups.options('snow_condition')" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+      </div>
+      <div class="field">
+        <label for="f-snow_making">{{ t('fields.snow_making') }}</label>
+        <p-select inputId="f-snow_making" formControlName="snow_making" [options]="lookups.options('snow_making')" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+      </div>
+      <div class="field">
+        <label for="f-wind">{{ t('fields.wind') }}</label>
+        <p-select inputId="f-wind" formControlName="wind" [options]="lookups.options('wind')" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+      </div>
+      <div class="field">
+        <label for="f-visibility">{{ t('fields.visibility') }}</label>
+        <p-select inputId="f-visibility" formControlName="visibility" [options]="lookups.options('visibility')" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+      </div>
+      <div class="field">
+        <label for="f-traffic">{{ t('fields.traffic') }}</label>
+        <p-select inputId="f-traffic" formControlName="traffic" [options]="lookups.options('traffic')" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+      </div>
+      <div class="field">
+        <label for="f-witnesses">{{ t('fields.witnesses') }}</label>
+        <p-select inputId="f-witnesses" formControlName="witnesses" [options]="[{ value: true, label: t('common.yes') }, { value: false, label: t('common.no') }]" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+      </div>
+      <div class="field field-check">
+        <p-checkbox inputId="f-service_report" formControlName="service_report" [binary]="true" />
+        <label for="f-service_report">{{ t('fields.service_report') }}</label>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>{{ t('fields.note') }}</legend>
+    <textarea pTextarea formControlName="note" rows="3" class="w-full" [attr.aria-label]="t('fields.note')"></textarea>
+    <small class="hint">{{ t('persons.note_privacy_hint') }}</small>
+  </fieldset>
+
+  <div class="actions">
+    <p-button type="button" [label]="t('common.cancel')" [text]="true" severity="secondary" (onClick)="cancelled.emit()" [disabled]="saving()" />
+    <p-button type="submit" [label]="event() ? t('common.save') : t('events.create')" icon="pi pi-check" [loading]="saving()" />
+  </div>
+</form>

@@ -1,0 +1,162 @@
+<ng-container *transloco="let t">
+  <p-drawer [visible]="visible()" (visibleChange)="visible.set($event)" position="right" styleClass="event-drawer" [style]="{ width: 'min(780px, 100vw)' }" [modal]="true" [dismissible]="!editing()" (onHide)="onHide()" [blockScroll]="true">
+    <ng-template #header>
+      @if (createMode()) {
+        <h2 class="drawer-title">{{ t('events.new') }}</h2>
+      } @else if (event(); as ev) {
+        <div class="drawer-title-block">
+          <h2 class="drawer-title">{{ t('events.event') }} <code>{{ shortId(ev.id) }}</code></h2>
+          <span class="subtitle">{{ ev.dateandtime | date: 'dd/MM/yyyy HH:mm' }} · {{ ev.team?.name }} · {{ ev.season }}</span>
+          <span class="tags">
+            <safe-state-tag kind="valid" [value]="ev.fully_valid" />
+            <safe-state-tag kind="locked" [value]="!!ev.locked_at" />
+          </span>
+        </div>
+      } @else {
+        <h2 class="drawer-title">{{ t('events.event') }}</h2>
+      }
+    </ng-template>
+
+    @if (createMode()) {
+      <safe-event-form [event]="null" (saved)="onCreatedEvent($event)" (cancelled)="visible.set(false)" />
+    } @else if (loading()) {
+      <div class="skeletons">
+        <p-skeleton height="2rem" /><p-skeleton height="8rem" /><p-skeleton height="8rem" />
+      </div>
+    } @else if (error()) {
+      <p class="error-box" role="alert">{{ t('common.' + error()) }}</p>
+    } @else if (event(); as ev) {
+      <div class="toolbar">
+        @if (ev.locked_at) {
+          <span class="lock-info"><i class="pi pi-lock" aria-hidden="true"></i> {{ t('events.locked_since', { date: (ev.locked_at | date: 'dd/MM/yyyy HH:mm') }) }}</span>
+          <ng-container *safeCan="'events.unlock'; mode: 'hide'">
+            <p-button [label]="t('events.unlock')" icon="pi pi-lock-open" severity="warn" [outlined]="true" size="small" (onClick)="unlockDialog.set(true)" />
+          </ng-container>
+        } @else {
+          @if (canEditThis()) {
+            <p-button [label]="editing() ? t('common.cancel') : t('common.edit')" [icon]="editing() ? 'pi pi-times' : 'pi pi-pencil'" [outlined]="true" size="small" (onClick)="editing.set(!editing())" />
+            <p-button [label]="t('events.lock')" icon="pi pi-lock" severity="secondary" [outlined]="true" size="small" (onClick)="lock()" [pTooltip]="t('events.lock_hint')" tooltipPosition="bottom" />
+          }
+          <ng-container *safeCan="'events.delete'; mode: 'hide'">
+            <p-button [label]="t('common.delete')" icon="pi pi-trash" severity="danger" [text]="true" size="small" (onClick)="remove()" />
+          </ng-container>
+        }
+        <p-button icon="pi pi-file-pdf" [label]="t('fields.pdf')" [text]="true" size="small" [disabled]="true" [pTooltip]="t('placeholder.pdf_m5')" tooltipPosition="bottom" />
+      </div>
+
+      @if (ev.validation_errors.length) {
+        <p class="validation" role="status">
+          <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+          {{ t('events.missing_fields') }}
+          @for (e of ev.validation_errors; track e.field) { <code>{{ t('fields.' + e.field) }}</code> }
+        </p>
+      }
+
+      <p-tabs [value]="tab()" (valueChange)="tab.set($any($event))">
+        <p-tablist>
+          <p-tab value="data">{{ t('events.tab_data') }}</p-tab>
+          <p-tab value="persons">{{ t('events.tab_persons') }} ({{ ev.persons.length }})</p-tab>
+          <p-tab value="history">{{ t('events.tab_history') }}</p-tab>
+        </p-tablist>
+        <p-tabpanels>
+          <p-tabpanel value="data">
+            @if (editing()) {
+              <safe-event-form [event]="ev" (saved)="onSaved($event)" (cancelled)="editing.set(false)" />
+            } @else {
+              <dl class="props">
+                <dt>{{ t('fields.dateandtime') }}</dt><dd>{{ ev.dateandtime | date: 'dd/MM/yyyy HH:mm' }}</dd>
+                <dt>{{ t('fields.team') }}</dt><dd>{{ ev.team?.name }}</dd>
+                <dt>{{ t('fields.ski_area') }}</dt><dd>{{ ev.ski_area?.name || '—' }}</dd>
+                <dt>{{ t('fields.zone') }}</dt><dd>{{ ev.zone?.name || '—' }}</dd>
+                <dt>{{ t('fields.slope') }}</dt><dd>{{ ev.slope?.name || '—' }} @if (ev.slope?.regional_code) { <small>({{ ev.slope?.regional_code }})</small> }</dd>
+                <dt>{{ t('fields.difficulty') }}</dt><dd>{{ ev.difficulty | lookup: 'slope_difficulty' }}</dd>
+                <dt>{{ t('fields.location_type') }}</dt><dd>{{ ev.location_type | lookup: 'location_type' }}</dd>
+                <dt>{{ t('fields.location_description') }}</dt><dd>{{ ev.location_description || '—' }}</dd>
+                <dt>{{ t('fields.geometry') }}</dt>
+                <dd>@if (ev.geometry) { {{ ev.geometry.coordinates[1] | number: '1.5-5' }}, {{ ev.geometry.coordinates[0] | number: '1.5-5' }} @if (ev.altitude_m) { · {{ ev.altitude_m }} m } } @else { — }</dd>
+                <dt>{{ t('fields.cause') }}</dt><dd>{{ ev.cause | lookup: 'cause' }} @if (ev.cause_note) { <small>— {{ ev.cause_note }}</small> }</dd>
+                <dt>{{ t('fields.weather') }}</dt><dd>{{ ev.weather | lookup: 'weather' }}</dd>
+                <dt>{{ t('fields.snow_condition') }}</dt><dd>{{ ev.snow_condition | lookup: 'snow_condition' }}</dd>
+                <dt>{{ t('fields.wind') }}</dt><dd>{{ ev.wind | lookup: 'wind' }}</dd>
+                <dt>{{ t('fields.visibility') }}</dt><dd>{{ ev.visibility | lookup: 'visibility' }}</dd>
+                <dt>{{ t('fields.service_report') }}</dt><dd><safe-state-tag kind="bool" [value]="ev.service_report" /></dd>
+                <dt>{{ t('fields.witnesses') }}</dt><dd><safe-state-tag kind="bool" [value]="ev.witnesses" /></dd>
+                <dt>{{ t('fields.event_type') }}</dt><dd>{{ ev.extended.event_type | lookup: 'event_type' }}</dd>
+                <dt>{{ t('fields.caller') }}</dt><dd>{{ ev.extended.caller || '—' }}</dd>
+                <dt>{{ t('fields.call_received_at') }}</dt><dd>{{ ev.extended.call_received_at || '—' }}</dd>
+                <dt>{{ t('fields.location_feature') }}</dt><dd>{{ ev.extended.location_feature | lookup: 'location_feature' }}</dd>
+                <dt>{{ t('fields.traffic') }}</dt><dd>{{ ev.extended.traffic | lookup: 'traffic' }}</dd>
+                <dt>{{ t('fields.snow_making') }}</dt><dd>{{ ev.extended.snow_making | lookup: 'snow_making' }}</dd>
+                <dt>{{ t('fields.operators') }}</dt><dd>@if (ev.extended.operators.length) { {{ ev.extended.operators | json }} } @else { — }</dd>
+                <dt>{{ t('fields.note') }}</dt><dd class="pre">{{ ev.note || '—' }}</dd>
+                <dt>{{ t('fields.created_by') }}</dt><dd>{{ ev.created_by?.name || '—' }} · {{ ev.created_at | date: 'dd/MM/yyyy HH:mm' }}</dd>
+              </dl>
+            }
+          </p-tabpanel>
+
+          <p-tabpanel value="persons">
+            @if (canEditThis()) {
+              <ng-container *safeCan="'persons.edit'; mode: 'hide'">
+                <p-button [label]="t('persons.add')" icon="pi pi-user-plus" size="small" [outlined]="true" (onClick)="addPerson()" />
+              </ng-container>
+            }
+            @if (!ev.persons.length) {
+              <p class="empty-inline">{{ t('persons.none') }}</p>
+            }
+            @for (p of ev.persons; track p.id) {
+              <article class="person-card">
+                <header>
+                  <strong>{{ t('persons.person_n', { n: p.sequence }) }}</strong>
+                  <span class="initials">{{ p.initials_surname || '·' }} {{ p.initials_firstname || '·' }}</span>
+                  <safe-state-tag kind="valid" [value]="p.valid" />
+                  @if (canEditThis()) {
+                    <span class="actions">
+                      <p-button icon="pi pi-pencil" [text]="true" size="small" [attr.aria-label]="t('common.edit')" (onClick)="editPerson(p)" />
+                      <p-button icon="pi pi-trash" [text]="true" size="small" severity="danger" [attr.aria-label]="t('common.delete')" (onClick)="removePerson(p)" />
+                    </span>
+                  }
+                </header>
+                <dl class="props compact">
+                  <dt>{{ t('fields.age') }}</dt><dd>{{ p.age ?? '—' }} <small>({{ p.age_class }})</small></dd>
+                  <dt>{{ t('fields.gender') }}</dt><dd>{{ p.gender | lookup: 'gender' }}</dd>
+                  <dt>{{ t('fields.country') }}</dt><dd>{{ p.country_code | lookup: 'country' }}</dd>
+                  <dt>{{ t('fields.helmet') }}</dt><dd><safe-state-tag kind="bool" [value]="p.helmet" /></dd>
+                  <dt>{{ t('fields.equipment') }}</dt><dd>{{ p.equipment | lookup: 'equipment' }}</dd>
+                  <dt>{{ t('fields.diagnosis') }}</dt><dd>{{ p.diagnosis | lookup: 'diagnosis' }}</dd>
+                  <dt>{{ t('fields.injury_place') }}</dt><dd>{{ p.injury_place | lookup: 'injury_place' }} @if (p.gravest_injury) { <small>({{ p.gravest_injury | lookup: 'body_part' }})</small> }</dd>
+                  <dt>{{ t('fields.evacuation_means') }}</dt>
+                  <dd>@for (m of means(p); track m; let last = $last) { {{ m | lookup: 'evacuation_mean' }}@if (!last) { → } } @if (!means(p).length) { — }</dd>
+                  <dt>{{ t('fields.destination') }}</dt><dd>{{ p.destination | lookup: 'destination' }}</dd>
+                  <dt>{{ t('fields.identity') }}</dt>
+                  <dd>@if (p.has_identity) { <i class="pi pi-lock" aria-hidden="true"></i> {{ t('persons.identity_encrypted') }} } @else { <span class="muted">{{ t('persons.identity_missing') }}</span> }</dd>
+                </dl>
+              </article>
+            }
+          </p-tabpanel>
+
+          <p-tabpanel value="history">
+            <p class="empty-inline">{{ t('placeholder.coming', { milestone: 'M7' }) }}</p>
+            @if (ev.unlock_count) {
+              <p class="muted">{{ t('events.unlock_count', { n: ev.unlock_count }) }}</p>
+            }
+          </p-tabpanel>
+        </p-tabpanels>
+      </p-tabs>
+    }
+  </p-drawer>
+
+  <p-dialog [visible]="unlockDialog()" (visibleChange)="unlockDialog.set($event)" [modal]="true" [header]="t('events.unlock')" [style]="{ width: '28rem' }" appendTo="body">
+    <p>{{ t('events.unlock_reason_hint') }}</p>
+    <textarea pTextarea rows="3" class="w-full" [ngModel]="unlockReason()" (ngModelChange)="unlockReason.set($event)" [attr.aria-label]="t('events.unlock_reason')" maxlength="500"></textarea>
+    <ng-template #footer>
+      <p-button [label]="t('common.cancel')" [text]="true" severity="secondary" (onClick)="unlockDialog.set(false)" />
+      <p-button [label]="t('events.unlock')" icon="pi pi-lock-open" [disabled]="!unlockReason().trim()" (onClick)="unlock()" />
+    </ng-template>
+  </p-dialog>
+
+  @if (personDialog(); as pd) {
+    <safe-person-form [eventId]="event()!.id" [person]="pd.person" (saved)="onPersonSaved()" (cancelled)="personDialog.set(null)" />
+  }
+
+  <p-confirmDialog appendTo="body" />
+</ng-container>

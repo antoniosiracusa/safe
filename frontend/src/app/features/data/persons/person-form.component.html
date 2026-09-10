@@ -1,0 +1,173 @@
+<ng-container *transloco="let t">
+  <p-dialog [visible]="visible()" (visibleChange)="visible.set($event); onHide()" [modal]="true" [header]="person() ? t('persons.edit_n', { n: person()!.sequence }) : t('persons.add')" [style]="{ width: 'min(880px, 96vw)' }" [maximizable]="true" appendTo="body" [dismissableMask]="false">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="safe-form" novalidate>
+      @if (generalError(); as ge) {
+        <p class="error-box" role="alert">{{ t('errors.' + ge) }}</p>
+      }
+
+      <p-message severity="info" icon="pi pi-lock" [text]="t('persons.identity_m7')" styleClass="w-full" />
+
+      <fieldset>
+        <legend>{{ t('persons.section_person') }}</legend>
+        <div class="grid">
+          <div class="field">
+            <label for="p-initials_surname">{{ t('fields.initials_surname') }}</label>
+            <input pInputText id="p-initials_surname" formControlName="initials_surname" maxlength="3" style="text-transform: uppercase" />
+            @if (errorOf('initials_surname'); as e) { <small class="err">{{ e === 'invalid' ? t('errors.initials') : e }}</small> }
+          </div>
+          <div class="field">
+            <label for="p-initials_firstname">{{ t('fields.initials_firstname') }}</label>
+            <input pInputText id="p-initials_firstname" formControlName="initials_firstname" maxlength="3" style="text-transform: uppercase" />
+            @if (errorOf('initials_firstname'); as e) { <small class="err">{{ e === 'invalid' ? t('errors.initials') : e }}</small> }
+          </div>
+          <div class="field">
+            <label for="p-age">{{ t('fields.age') }}</label>
+            <p-inputNumber inputId="p-age" formControlName="age" [min]="0" [max]="120" [useGrouping]="false" styleClass="w-full" />
+            @if (errorOf('age'); as e) { <small class="err">{{ e === 'invalid' ? t('errors.age') : e }}</small> }
+          </div>
+          <div class="field">
+            <label for="p-gender">{{ t('fields.gender') }}</label>
+            <p-select inputId="p-gender" formControlName="gender" [options]="lookups.options('gender')" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+          </div>
+          <div class="field">
+            <label for="p-country">{{ t('fields.country') }}</label>
+            <p-select inputId="p-country" formControlName="country_code" [options]="lookups.countryOptions()" optionLabel="label" optionValue="value" [showClear]="true" [filter]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+          </div>
+          <div class="field">
+            <label for="p-role">{{ t('fields.role') }}</label>
+            <p-select inputId="p-role" formControlName="role" [options]="lookups.options('person_role')" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>{{ t('persons.section_equipment') }}</legend>
+        <div class="grid">
+          <div class="field">
+            <label for="p-equipment">{{ t('fields.equipment') }}</label>
+            <p-select inputId="p-equipment" formControlName="equipment" [options]="lookups.options('equipment')" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+          </div>
+          <div class="field">
+            <label for="p-equipment_owner">{{ t('fields.equipment_owner') }}</label>
+            <p-select inputId="p-equipment_owner" formControlName="equipment_owner" [options]="lookups.options('equipment_owner')" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+          </div>
+          <div class="field">
+            <label for="p-equipment_condition">{{ t('fields.equipment_condition') }}</label>
+            <p-select inputId="p-equipment_condition" formControlName="equipment_condition" [options]="lookups.options('equipment_condition')" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+          </div>
+          <div class="field">
+            <label for="p-helmet">{{ t('fields.helmet') }}</label>
+            <p-select inputId="p-helmet" formControlName="helmet" [options]="[{ value: true, label: t('common.yes') }, { value: false, label: t('common.no') }]" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+          </div>
+          <div class="field span-2">
+            <label for="p-protections">{{ t('fields.protections') }}</label>
+            <p-multiSelect inputId="p-protections" formControlName="protections" [options]="lookups.options('protection')" optionLabel="label" optionValue="value" display="chip" appendTo="body" styleClass="w-full" />
+          </div>
+          <div class="field span-2">
+            <label for="p-equipment_note">{{ t('fields.equipment_note') }}</label>
+            <input pInputText id="p-equipment_note" formControlName="equipment_note" />
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>{{ t('persons.section_clinical') }}</legend>
+        <div class="grid">
+          <div class="field">
+            <label for="p-diagnosis">{{ t('fields.diagnosis') }}</label>
+            <p-select inputId="p-diagnosis" formControlName="diagnosis" [options]="lookups.options('diagnosis')" optionLabel="label" optionValue="value" [showClear]="true" [filter]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+          </div>
+          <div class="field span-2">
+            <label for="p-secondary">{{ t('fields.secondary_diagnoses') }}</label>
+            <p-multiSelect inputId="p-secondary" formControlName="secondary_diagnoses" [options]="lookups.options('diagnosis')" optionLabel="label" optionValue="value" display="chip" [filter]="true" appendTo="body" styleClass="w-full" />
+          </div>
+          <div class="field">
+            <label for="p-gravest">{{ t('fields.gravest_injury') }}</label>
+            <p-select inputId="p-gravest" formControlName="gravest_injury" [options]="bodyPartOptions()" optionLabel="label" optionValue="value" [showClear]="true" [filter]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+          </div>
+          <div class="field">
+            <label for="p-injury_place">{{ t('fields.injury_place') }}</label>
+            <p-select inputId="p-injury_place" formControlName="injury_place" [options]="lookups.options('injury_place')" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+          </div>
+          <div class="field span-2">
+            <label for="p-diagnosis_note">{{ t('fields.diagnosis_note') }}</label>
+            <input pInputText id="p-diagnosis_note" formControlName="diagnosis_note" />
+          </div>
+          <div class="field">
+            <label for="p-destination">{{ t('fields.destination') }}</label>
+            <p-select inputId="p-destination" formControlName="destination" [options]="lookups.options('destination')" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+          </div>
+          <div class="field">
+            <label for="p-destination_note">{{ t('fields.destination_note') }}</label>
+            <input pInputText id="p-destination_note" formControlName="destination_note" />
+          </div>
+          <div class="field">
+            <label for="p-rescue_refusal">{{ t('fields.rescue_refusal') }}</label>
+            <p-select inputId="p-rescue_refusal" formControlName="rescue_refusal" [options]="lookups.options('rescue_refusal')" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>{{ t('fields.evacuation_means') }}</legend>
+        <div class="means-list">
+          @for (m of means(); track $index; let i = $index) {
+            <div class="row">
+              <span class="ord">{{ i + 1 }}.</span>
+              <p-select class="sel" [options]="meanOptions(i)" optionLabel="label" optionValue="value" [ngModel]="m" (ngModelChange)="setMean(i, $any($event))" [ngModelOptions]="{ standalone: true }" [showClear]="true" [placeholder]="t('persons.choose_mean')" appendTo="body" styleClass="w-full" [attr.aria-label]="t('fields.evacuation_means') + ' ' + (i + 1)" />
+              <p-button type="button" icon="pi pi-minus" [text]="true" severity="secondary" [attr.aria-label]="t('common.remove')" (onClick)="removeMean(i)" />
+            </div>
+          }
+          <div>
+            <p-button type="button" icon="pi pi-plus" [label]="t('persons.add_mean')" [text]="true" size="small" (onClick)="addMean()" />
+          </div>
+          <div class="field">
+            <label for="p-evac_note">{{ t('fields.evacuation_means_note') }}</label>
+            <input pInputText id="p-evac_note" formControlName="evacuation_means_note" />
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>{{ t('persons.section_admin') }}</legend>
+        <div class="grid">
+          <div class="field">
+            <label for="p-insurance">{{ t('fields.insurance') }}</label>
+            <p-select inputId="p-insurance" formControlName="insurance" [options]="lookups.options('insurance')" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+          </div>
+          <div class="field span-2">
+            <label for="p-insurance_note">{{ t('fields.insurance_note') }}</label>
+            <input pInputText id="p-insurance_note" formControlName="insurance_note" />
+          </div>
+          <div class="field">
+            <label for="p-accommodation">{{ t('fields.accommodation') }}</label>
+            <p-select inputId="p-accommodation" formControlName="accommodation" [options]="lookups.options('accommodation')" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+          </div>
+          <div class="field span-2">
+            <label for="p-accommodation_note">{{ t('fields.accommodation_note') }}</label>
+            <input pInputText id="p-accommodation_note" formControlName="accommodation_note" />
+          </div>
+          <div class="field">
+            <label for="p-responsibility">{{ t('fields.responsibility') }}</label>
+            <p-select inputId="p-responsibility" formControlName="responsibility" [options]="lookups.options('responsibility')" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+          </div>
+          <div class="field">
+            <label for="p-violations">{{ t('fields.administrative_violations') }}</label>
+            <p-select inputId="p-violations" formControlName="administrative_violations" [options]="[{ value: true, label: t('common.yes') }, { value: false, label: t('common.no') }]" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>{{ t('fields.note') }}</legend>
+        <textarea pTextarea formControlName="note" rows="3" class="w-full" [attr.aria-label]="t('fields.note')"></textarea>
+        <small class="hint">{{ t('persons.note_privacy_hint') }}</small>
+      </fieldset>
+
+      <div class="actions">
+        <p-button type="button" [label]="t('common.cancel')" [text]="true" severity="secondary" (onClick)="visible.set(false); onHide()" [disabled]="saving()" />
+        <p-button type="submit" [label]="t('common.save')" icon="pi pi-check" [loading]="saving()" />
+      </div>
+    </form>
+  </p-dialog>
+</ng-container>

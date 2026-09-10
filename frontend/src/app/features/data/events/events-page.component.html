@@ -1,0 +1,122 @@
+<ng-container *transloco="let t">
+  <p-toast />
+  <div class="page-head">
+    <h1>{{ t('nav.events') }}</h1>
+    <ng-container *safeCan="'events.create'; mode: 'hide'">
+      <p-button [label]="t('events.new')" icon="pi pi-plus" (onClick)="creating.set(true)" />
+    </ng-container>
+  </div>
+
+  <ng-container *safeCan="'events.view'">
+    <form class="local-filters" (submit)="$event.preventDefault(); applyLocalFilters()">
+      <div class="field">
+        <label for="ef-cause">{{ t('fields.cause') }}</label>
+        <p-multiSelect inputId="ef-cause" [options]="lookups.options('cause')" optionLabel="label" optionValue="value" [ngModel]="cause()" (ngModelChange)="cause.set($event); applyLocalFilters()" name="cause" [placeholder]="t('filters.all')" [maxSelectedLabels]="1" [selectedItemsLabel]="t('filters.selected')" appendTo="body" styleClass="w-full" />
+      </div>
+      <div class="field">
+        <label for="ef-slope">{{ t('fields.slope') }}</label>
+        <p-select inputId="ef-slope" [options]="slopeOptions()" optionLabel="label" optionValue="value" [ngModel]="slope()" (ngModelChange)="slope.set($event); applyLocalFilters()" name="slope" [placeholder]="t('filters.all')" [showClear]="true" [filter]="true" appendTo="body" styleClass="w-full" />
+      </div>
+      <div class="field">
+        <label for="ef-locked">{{ t('fields.lock_state') }}</label>
+        <p-select inputId="ef-locked" [options]="lockedOptions()" optionLabel="label" optionValue="value" [ngModel]="locked()" (ngModelChange)="locked.set($event); applyLocalFilters()" name="locked" [placeholder]="t('filters.all')" [showClear]="true" appendTo="body" styleClass="w-full" />
+      </div>
+      <div class="field field-search">
+        <label for="ef-search">{{ t('events.search') }}</label>
+        <input pInputText id="ef-search" type="search" [ngModel]="search()" (ngModelChange)="search.set($event)" name="search" [placeholder]="t('events.search_placeholder')" />
+      </div>
+      <p-button type="submit" icon="pi pi-search" [text]="true" [attr.aria-label]="t('common.search')" />
+      <p-button type="button" icon="pi pi-filter-slash" [text]="true" severity="secondary" [label]="t('common.clear')" (onClick)="clearLocalFilters()" />
+    </form>
+
+    @if (error()) {
+      <p class="error-box" role="alert">
+        {{ t('common.load_error') }}
+        <p-button [label]="t('common.retry')" [text]="true" (onClick)="reload(false)" />
+      </p>
+    }
+
+    <div class="table-wrap">
+      <p-table
+        [value]="rows()"
+        [lazy]="true"
+        (onLazyLoad)="onLazyLoad($event)"
+        [paginator]="true"
+        [rows]="pageSize"
+        [totalRecords]="total()"
+        [first]="first()"
+        [loading]="loading()"
+        [sortField]="sortField()"
+        [sortOrder]="sortOrder()"
+        [scrollable]="true"
+        scrollHeight="flex"
+        [rowHover]="true"
+        selectionMode="single"
+        dataKey="id"
+        [showCurrentPageReport]="true"
+        [currentPageReportTemplate]="t('common.page_report')"
+        [tableStyle]="{ 'min-width': '1500px' }"
+        styleClass="p-datatable-sm"
+        (onRowSelect)="open($any($event).data)"
+      >
+        <ng-template #caption>
+          <span class="count">{{ t('events.count', { count: total() }) }}</span>
+        </ng-template>
+        <ng-template #header>
+          <tr>
+            <th pFrozenColumn>{{ t('fields.id') }}</th>
+            <th pFrozenColumn pSortableColumn="dateandtime">{{ t('fields.dateandtime') }} <p-sortIcon field="dateandtime" /></th>
+            <th pSortableColumn="team.name">{{ t('fields.team') }} <p-sortIcon field="team.name" /></th>
+            <th pSortableColumn="zone.name">{{ t('fields.zone') }} <p-sortIcon field="zone.name" /></th>
+            <th pSortableColumn="slope.name">{{ t('fields.slope') }} <p-sortIcon field="slope.name" /></th>
+            <th>{{ t('fields.difficulty') }}</th>
+            <th>{{ t('fields.cause') }}</th>
+            <th>{{ t('fields.location_type') }}</th>
+            <th>{{ t('fields.weather') }}</th>
+            <th>{{ t('fields.snow_condition') }}</th>
+            <th>{{ t('fields.wind') }}</th>
+            <th class="num">{{ t('fields.persons') }}</th>
+            <th pSortableColumn="fully_valid">{{ t('fields.valid') }} <p-sortIcon field="fully_valid" /></th>
+            <th pSortableColumn="locked_at">{{ t('fields.lock_state') }} <p-sortIcon field="locked_at" /></th>
+            <th>{{ t('fields.pdf') }}</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-row>
+          <tr [pSelectableRow]="row" class="clickable">
+            <td pFrozenColumn><code>{{ shortId(row.id) }}</code></td>
+            <td pFrozenColumn>{{ row.dateandtime | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ row.team?.name }}</td>
+            <td>{{ row.zone?.name || '—' }}</td>
+            <td>{{ row.slope?.name || '—' }}</td>
+            <td>{{ row.difficulty | lookup: 'slope_difficulty' }}</td>
+            <td>{{ row.cause | lookup: 'cause' }}</td>
+            <td>{{ row.location_type | lookup: 'location_type' }}</td>
+            <td>{{ row.weather | lookup: 'weather' }}</td>
+            <td>{{ row.snow_condition | lookup: 'snow_condition' }}</td>
+            <td>{{ row.wind | lookup: 'wind' }}</td>
+            <td class="num">{{ row.persons_count }}</td>
+            <td><safe-state-tag kind="valid" [value]="row.fully_valid" /></td>
+            <td><safe-state-tag kind="locked" [value]="!!row.locked_at" /></td>
+            <td>
+              <p-button icon="pi pi-file-pdf" [text]="true" [disabled]="true" [pTooltip]="t('placeholder.pdf_m5')" tooltipPosition="left" [attr.aria-label]="t('fields.pdf')" />
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr>
+            <td colspan="15" class="empty">
+              @if (!loading()) {
+                <i class="pi pi-inbox" aria-hidden="true"></i>
+                <p>{{ t('events.empty') }}</p>
+              }
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </ng-container>
+
+  @if (selected() || creating()) {
+    <safe-event-drawer [eventId]="selected()" [createMode]="creating()" (closed)="closeDrawer($event)" (created)="onCreated($event)" />
+  }
+</ng-container>
