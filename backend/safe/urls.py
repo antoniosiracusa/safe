@@ -13,6 +13,9 @@ urlpatterns = [
     path("api/v1/", include("safe.apps.jobs.urls")),
     path("api/v1/", include("safe.apps.reports.urls")),
     path("api/v1/", include("safe.apps.exports.urls")),
+    path("api/v1/", include("safe.apps.org.urls")),
+    path("api/v1/", include("safe.apps.devices.urls")),
+    path("api/v1/", include("safe.apps.tenancy.urls")),
     path(
         "api/schema/",
         SpectacularAPIView.as_view(permission_classes=[AllowAny], authentication_classes=[]),

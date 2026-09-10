@@ -77,6 +77,13 @@ def decode_token(token: str) -> dict[str, Any]:
         raise AuthError("invalid_token", "Token non valido.") from exc
 
 
+def invalidate_user_cache(user) -> None:  # noqa: ANN001
+    """Dopo disattivazione/riattivazione: il prossimo token viene ri-risolto dal database."""
+    if user.oidc_subject:
+        cache.delete(f"authn:user:{user.oidc_subject}")
+    cache.delete(f"authz:perms:{user.id}")
+
+
 def resolve_user(claims: dict[str, Any]):  # noqa: ANN201 - evita import circolare del modello
     from safe.apps.org.models import AppUser
 

@@ -139,6 +139,15 @@ OIDC_AUDIENCE = env("OIDC_AUDIENCE", default="safe-api")
 OIDC_JWKS_URL = env("OIDC_JWKS_URL", default=f"{OIDC_ISSUER}/protocol/openid-connect/certs")
 OIDC_JWKS_CACHE_SECONDS = 3600
 
+# --- Keycloak Admin API (inviti, disattivazione) e URL pubblici ---------------------------------
+KEYCLOAK_ADMIN_URL = env("KEYCLOAK_ADMIN_URL", default="http://keycloak:8080")
+KEYCLOAK_REALM = env("KEYCLOAK_REALM", default="safe")
+KEYCLOAK_ADMIN_CLIENT_ID = env("KEYCLOAK_ADMIN_CLIENT_ID", default="safe-admin")
+KEYCLOAK_ADMIN_CLIENT_SECRET = env("KEYCLOAK_ADMIN_CLIENT_SECRET", default="")
+KEYCLOAK_WEB_CLIENT_ID = env("KEYCLOAK_WEB_CLIENT_ID", default="safe-web")
+WEB_BASE_URL = env("PUBLIC_WEB_URL", default="http://localhost:4200")
+PUBLIC_API_URL = env("PUBLIC_API_URL", default="http://localhost:8000/api/v1")
+
 # --- Cartografia (Mapbox): stili per ambiente; il token pubblico sta nella config del client -----
 MAP_STYLES = {
     "winter": env("MAPBOX_STYLE_WINTER", default="mapbox://styles/mapbox/light-v11"),

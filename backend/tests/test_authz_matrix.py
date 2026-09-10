@@ -41,6 +41,20 @@ ROUTES = [
     ("post", "/api/v1/exports/regional", ("exports.regional",)),
     ("get", "/api/v1/exports", ("exports.dataset",)),
     ("get", "/api/v1/exports/administrative-areas", ("exports.regional",)),
+    ("get", "/api/v1/users", ("users.view",)),
+    ("post", "/api/v1/users/invite", ("users.invite",)),
+    ("get", "/api/v1/roles", ("users.view",)),
+    ("post", "/api/v1/roles", ("users.assign_permissions",)),
+    ("get", "/api/v1/teams", ("teams.view",)),
+    ("post", "/api/v1/teams", ("teams.manage",)),
+    ("get", "/api/v1/devices", ("devices.view",)),
+    ("post", "/api/v1/devices/enrollment-code", ("devices.manage",)),
+    ("post", "/api/v1/ski-areas", ("territory.manage",)),
+    ("post", "/api/v1/zones", ("territory.manage",)),
+    ("post", "/api/v1/slopes", ("territory.manage",)),
+    ("get", "/api/v1/lifts", ("territory.view",)),
+    ("get", "/api/v1/lookups/cause", ("lookups.manage",)),
+    ("patch", "/api/v1/company", ("company.settings",)),
 ]
 
 

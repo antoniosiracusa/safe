@@ -1,0 +1,153 @@
+<ng-container *transloco="let t">
+  <p-toast />
+  <div class="page-head">
+    <h1>{{ t('nav.territory') }}</h1>
+    <div class="head-actions">
+      <p-button [label]="showLifts() ? t('admin.show_slopes') : t('admin.show_lifts')" icon="pi pi-arrows-h" [outlined]="true" size="small" (onClick)="showLifts.set(!showLifts())" />
+    </div>
+  </div>
+  <p class="intro">{{ t('admin.territory_intro') }}</p>
+
+  <ng-container *safeCan="'territory.view'">
+    @if (error()) { <p class="error-box" role="alert">{{ t('common.load_error') }}</p> }
+    <div class="columns">
+      <section class="col">
+        <div class="col-head">
+          <h2>{{ t('admin.ski_areas') }}</h2>
+          <ng-container *safeCan="'territory.manage'; mode: 'hide'">
+            <p-button icon="pi pi-plus" [text]="true" size="small" (onClick)="open('ski-areas', null)" [attr.aria-label]="t('admin.new_area')" />
+          </ng-container>
+        </div>
+        <ul>
+          @for (a of areas(); track a.id) {
+            <li [class.selected]="a.id === selectedArea()" [class.inactive]="!a.is_active" (click)="selectArea(a.id)">
+              <span class="name">{{ a.name }} @if (a.regional_code) { <span class="muted">({{ a.regional_code }})</span> }</span>
+              <span class="badge">{{ a.zones_count }} {{ t('admin.zones_short') }}</span>
+              @if (a.has_boundary) { <i class="pi pi-map" [pTooltip]="t('admin.has_boundary')"></i> }
+              <ng-container *safeCan="'territory.manage'; mode: 'hide'">
+                <p-button icon="pi pi-pencil" [text]="true" size="small" (onClick)="$event.stopPropagation(); open('ski-areas', a)" />
+                <p-button [icon]="a.is_active ? 'pi pi-ban' : 'pi pi-check-circle'" [text]="true" size="small" [severity]="a.is_active ? 'danger' : 'success'" (onClick)="$event.stopPropagation(); toggle('ski-areas', a)" />
+              </ng-container>
+            </li>
+          } @empty {
+            <li class="empty">@if (!loading()) { {{ t('admin.no_areas') }} }</li>
+          }
+        </ul>
+      </section>
+
+      @if (!showLifts()) {
+        <section class="col">
+          <div class="col-head">
+            <h2>{{ t('admin.zones') }} @if (area(); as a) { <span class="muted">· {{ a.name }}</span> }</h2>
+            <ng-container *safeCan="'territory.manage'; mode: 'hide'">
+              <p-button icon="pi pi-plus" [text]="true" size="small" [disabled]="!selectedArea()" (onClick)="open('zones', null)" [attr.aria-label]="t('admin.new_zone')" />
+            </ng-container>
+          </div>
+          <ul>
+            @for (z of areaZones(); track z.id) {
+              <li [class.selected]="z.id === selectedZone()" [class.inactive]="!z.is_active" (click)="selectedZone.set(z.id)">
+                <span class="name">{{ z.name }}</span>
+                <span class="badge">{{ z.slopes_count }} {{ t('admin.slopes_short') }}</span>
+                <ng-container *safeCan="'territory.manage'; mode: 'hide'">
+                  <p-button icon="pi pi-pencil" [text]="true" size="small" (onClick)="$event.stopPropagation(); open('zones', z)" />
+                  <p-button [icon]="z.is_active ? 'pi pi-ban' : 'pi pi-check-circle'" [text]="true" size="small" [severity]="z.is_active ? 'danger' : 'success'" (onClick)="$event.stopPropagation(); toggle('zones', z)" />
+                </ng-container>
+              </li>
+            } @empty {
+              <li class="empty">@if (!loading()) { {{ selectedArea() ? t('admin.no_zones') : t('admin.select_area') }} }</li>
+            }
+          </ul>
+        </section>
+
+        <section class="col">
+          <div class="col-head">
+            <h2>{{ t('admin.slopes') }} @if (zone(); as z) { <span class="muted">· {{ z.name }}</span> }</h2>
+            <ng-container *safeCan="'territory.manage'; mode: 'hide'">
+              <p-button icon="pi pi-plus" [text]="true" size="small" [disabled]="!selectedZone()" (onClick)="open('slopes', null)" [attr.aria-label]="t('admin.new_slope')" />
+            </ng-container>
+          </div>
+          <ul>
+            @for (s of zoneSlopes(); track s.id) {
+              <li [class.inactive]="!s.is_active">
+                <span class="name">{{ s.name }} @if (s.regional_code) { <code>{{ s.regional_code }}</code> } @else { <i class="pi pi-exclamation-triangle" style="color: var(--p-amber-500)" [pTooltip]="t('admin.no_regional_code')"></i> }</span>
+                <span class="badge">{{ difficultyLabel(s.difficulty) }}</span>
+                <span class="badge">{{ s.events_count }} {{ t('admin.events_short') }}</span>
+                @if (s.has_geometry) { <i class="pi pi-map" [pTooltip]="t('admin.has_geometry')"></i> }
+                <ng-container *safeCan="'territory.manage'; mode: 'hide'">
+                  <p-button icon="pi pi-pencil" [text]="true" size="small" (onClick)="open('slopes', s)" />
+                  <p-button [icon]="s.is_active ? 'pi pi-ban' : 'pi pi-check-circle'" [text]="true" size="small" [severity]="s.is_active ? 'danger' : 'success'" (onClick)="toggle('slopes', s)" />
+                </ng-container>
+              </li>
+            } @empty {
+              <li class="empty">@if (!loading()) { {{ selectedZone() ? t('admin.no_slopes') : t('admin.select_zone') }} }</li>
+            }
+          </ul>
+        </section>
+      } @else {
+        <section class="col" style="grid-column: span 2">
+          <div class="col-head">
+            <h2>{{ t('admin.lifts') }} @if (area(); as a) { <span class="muted">· {{ a.name }}</span> }</h2>
+            <ng-container *safeCan="'territory.manage'; mode: 'hide'">
+              <p-button icon="pi pi-plus" [text]="true" size="small" [disabled]="!selectedArea()" (onClick)="open('lifts', null)" [attr.aria-label]="t('admin.new_lift')" />
+            </ng-container>
+          </div>
+          <ul>
+            @for (l of areaLifts(); track l.id) {
+              <li [class.inactive]="!l.is_active">
+                <span class="name">{{ l.name }} <span class="muted">{{ l.lift_type }}</span></span>
+                @if (l.has_geometry) { <i class="pi pi-map" [pTooltip]="t('admin.has_geometry')"></i> }
+                <ng-container *safeCan="'territory.manage'; mode: 'hide'">
+                  <p-button icon="pi pi-pencil" [text]="true" size="small" (onClick)="open('lifts', l)" />
+                  <p-button [icon]="l.is_active ? 'pi pi-ban' : 'pi pi-check-circle'" [text]="true" size="small" [severity]="l.is_active ? 'danger' : 'success'" (onClick)="toggle('lifts', l)" />
+                </ng-container>
+              </li>
+            } @empty {
+              <li class="empty">@if (!loading()) { {{ t('admin.no_lifts') }} }</li>
+            }
+          </ul>
+        </section>
+      }
+    </div>
+  </ng-container>
+
+  @if (dialog(); as d) {
+    <p-dialog [visible]="true" (visibleChange)="dialog.set(null)" [modal]="true" [header]="t('admin.kind_' + d.kind) + (d.id ? '' : ' · ' + t('admin.new'))" [style]="{ width: 'min(640px, 96vw)' }">
+      @if (dialogError(); as e) { <p class="error-box" role="alert">{{ e }}</p> }
+      <div class="dialog-form">
+        <div class="field" [class.span-2]="d.kind === 'zones'">
+          <label for="tr-name">{{ t('admin.name') }} *</label>
+          <input pInputText id="tr-name" [ngModel]="d.name" (ngModelChange)="patch({ name: $event })" maxlength="120" />
+        </div>
+        @if (d.kind === 'ski-areas' || d.kind === 'slopes') {
+          <div class="field">
+            <label for="tr-code">{{ t('admin.regional_code') }}</label>
+            <input pInputText id="tr-code" [ngModel]="d.regional_code" (ngModelChange)="patch({ regional_code: $event })" maxlength="40" placeholder="C.1.24" />
+          </div>
+        }
+        @if (d.kind === 'slopes') {
+          <div class="field">
+            <label for="tr-diff">{{ t('fields.difficulty') }}</label>
+            <p-select inputId="tr-diff" [options]="lookups.options('slope_difficulty')" optionLabel="label" optionValue="value" [ngModel]="d.difficulty" (ngModelChange)="patch({ difficulty: $event })" [showClear]="true" appendTo="body" styleClass="w-full" />
+          </div>
+        }
+        @if (d.kind === 'lifts') {
+          <div class="field">
+            <label for="tr-lt">{{ t('admin.lift_type') }}</label>
+            <input pInputText id="tr-lt" [ngModel]="d.lift_type" (ngModelChange)="patch({ lift_type: $event })" maxlength="40" placeholder="chairlift, gondola, ski_lift…" />
+          </div>
+        }
+        @if (d.kind !== 'zones') {
+          <div class="field span-2">
+            <label for="tr-geo">{{ d.kind === 'ski-areas' ? t('admin.boundary_geojson') : t('admin.geometry_geojson') }}</label>
+            <textarea pTextarea id="tr-geo" [ngModel]="d.geojson" (ngModelChange)="patch({ geojson: $event })" rows="5" [placeholder]="d.kind === 'ski-areas' ? '{ &quot;type&quot;: &quot;Polygon&quot;, &quot;coordinates&quot;: [[[lon, lat], …]] }' : '{ &quot;type&quot;: &quot;LineString&quot;, &quot;coordinates&quot;: [[lon, lat], …] }'"></textarea>
+            <small class="muted">{{ t('admin.geojson_hint') }}</small>
+          </div>
+        }
+      </div>
+      <div class="dialog-actions">
+        <p-button [label]="t('common.cancel')" severity="secondary" [text]="true" (onClick)="dialog.set(null)" />
+        <p-button [label]="t('common.save')" icon="pi pi-check" [loading]="saving()" [disabled]="!d.name.trim()" (onClick)="save()" />
+      </div>
+    </p-dialog>
+  }
+</ng-container>

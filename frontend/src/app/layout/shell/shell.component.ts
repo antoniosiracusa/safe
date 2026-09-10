@@ -61,6 +61,8 @@ export const NAV: NavSection[] = [
       { path: 'admin/teams', labelKey: 'nav.teams', icon: 'pi pi-sitemap', permission: 'teams.view' },
       { path: 'admin/devices', labelKey: 'nav.devices', icon: 'pi pi-mobile', permission: 'devices.view' },
       { path: 'admin/territory', labelKey: 'nav.territory', icon: 'pi pi-compass', permission: 'territory.view' },
+      { path: 'admin/lookups', labelKey: 'nav.lookups', icon: 'pi pi-book', permission: 'lookups.manage' },
+      { path: 'admin/settings', labelKey: 'nav.settings', icon: 'pi pi-cog', permission: 'company.settings' },
       { path: 'admin/keys', labelKey: 'nav.keys', icon: 'pi pi-key', permission: 'crypto.manage_keys' },
       { path: 'admin/audit', labelKey: 'nav.audit', icon: 'pi pi-history', permission: 'audit.view' },
     ],

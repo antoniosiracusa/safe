@@ -17,6 +17,17 @@ _CODES = {
 }
 
 
+class BusinessError(exceptions.APIException):
+    """Errore di dominio con codice esplicito: {"code": ..., "detail": ...} (400 di default)."""
+
+    status_code: int = status.HTTP_400_BAD_REQUEST
+
+    def __init__(self, code: str, detail: str, status_code: int | None = None) -> None:
+        if status_code is not None:
+            self.status_code = status_code
+        super().__init__({"detail": detail, "code": code})
+
+
 class ConflictError(exceptions.APIException):
     status_code = status.HTTP_409_CONFLICT
     default_detail = "Conflitto con lo stato corrente della risorsa."

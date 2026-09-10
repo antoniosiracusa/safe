@@ -1,0 +1,144 @@
+<ng-container *transloco="let t">
+  <p-toast />
+  <p-confirmDialog />
+  <div class="page-head">
+    <h1>{{ t('nav.users') }}</h1>
+    <div class="head-actions">
+      <ng-container *safeCan="'users.invite'; mode: 'hide'">
+        <p-button [label]="t('admin.invite')" icon="pi pi-user-plus" (onClick)="openInvite()" />
+      </ng-container>
+    </div>
+  </div>
+
+  <ng-container *safeCan="'users.view'">
+    @if (error()) {
+      <p class="error-box" role="alert">{{ t('common.load_error') }} <p-button [label]="t('common.retry')" [text]="true" size="small" (onClick)="reload()" /></p>
+    }
+    <div class="toolbar">
+      <p-tabs [value]="tab()" (valueChange)="tab.set($any($event))">
+        <p-tablist>
+          <p-tab value="active">{{ t('admin.tab_active') }} ({{ counts().active }})</p-tab>
+          <p-tab value="invited">{{ t('admin.tab_invited') }} ({{ counts().invited }})</p-tab>
+          <p-tab value="disabled">{{ t('admin.tab_disabled') }} ({{ counts().disabled }})</p-tab>
+        </p-tablist>
+      </p-tabs>
+      <div class="field" style="margin-left: auto">
+        <label for="u-search">{{ t('common.search') }}</label>
+        <input pInputText id="u-search" type="search" [ngModel]="search()" (ngModelChange)="search.set($event)" [placeholder]="t('admin.search_users')" />
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <p-table [value]="rows()" [loading]="loading()" styleClass="p-datatable-sm" [tableStyle]="{ 'min-width': '900px' }" dataKey="id">
+        <ng-template #header>
+          <tr>
+            <th>{{ t('admin.user') }}</th>
+            <th>{{ t('fields.team') }}</th>
+            <th>{{ t('admin.roles') }}</th>
+            <th>{{ t('admin.locale') }}</th>
+            <th>{{ t('admin.mfa') }}</th>
+            <th>{{ t('admin.last_login') }}</th>
+            <th class="num">{{ t('nav.devices') }}</th>
+            <th></th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-u>
+          <tr>
+            <td>
+              <div><b>{{ u.full_name || '—' }}</b> @if (u.is_platform_admin) { <p-tag value="platform" severity="contrast" /> }</div>
+              <div class="muted">{{ u.email }}</div>
+              @if (u.status === 'invited') { <div class="muted">{{ t('admin.invited_at') }} {{ u.invited_at | date: 'dd/MM/yyyy HH:mm' }}</div> }
+              @if (u.status === 'disabled') { <div class="muted">{{ t('admin.disabled_at') }} {{ u.disabled_at | date: 'dd/MM/yyyy HH:mm' }}</div> }
+            </td>
+            <td>@for (tm of u.teams; track tm.id) { <span>{{ tm.name }}@if (tm.is_default) { <i class="pi pi-star-fill" style="font-size: 0.6rem" [pTooltip]="t('admin.default_team')"></i> }</span>@if (!$last) { , } } @if (!u.teams.length) { — }</td>
+            <td>@for (r of u.roles; track r) { <p-tag [value]="roleLabel(r)" severity="secondary" style="margin-right: 0.25rem" /> } @if (u.grants.length || u.denies.length) { <span class="muted" [pTooltip]="'+' + u.grants.join(', ') + ' −' + u.denies.join(', ')">{{ t('admin.custom_perms', { n: u.grants.length + u.denies.length }) }}</span> }</td>
+            <td>{{ u.locale | uppercase }}</td>
+            <td>{{ u.mfa_required ? t('common.yes') : t('common.no') }}</td>
+            <td>{{ u.last_login_at ? (u.last_login_at | date: 'dd/MM/yyyy HH:mm') : '—' }}</td>
+            <td class="num">{{ u.devices_count }}</td>
+            <td class="actions-cell">
+              @if (session.can('users.manage') || session.can('users.assign_permissions')) {
+                <p-button icon="pi pi-pencil" [text]="true" size="small" (onClick)="openEdit(u)" [pTooltip]="t('common.edit')" tooltipPosition="left" />
+              }
+              @if (u.status === 'invited' && session.can('users.invite')) {
+                <p-button icon="pi pi-send" [text]="true" size="small" [loading]="busy() === u.id" (onClick)="resend(u)" [pTooltip]="t('admin.resend_invite')" tooltipPosition="left" />
+              }
+              @if (u.status !== 'disabled' && session.can('users.manage') && u.id !== session.user()?.id) {
+                <p-button icon="pi pi-ban" [text]="true" size="small" severity="danger" [loading]="busy() === u.id" (onClick)="disable(u)" [pTooltip]="t('admin.disable')" tooltipPosition="left" />
+              }
+              @if (u.status === 'disabled' && session.can('users.manage')) {
+                <p-button icon="pi pi-check-circle" [text]="true" size="small" severity="success" [loading]="busy() === u.id" (onClick)="enable(u)" [pTooltip]="t('admin.enable')" tooltipPosition="left" />
+              }
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr><td colspan="8" class="empty">@if (!loading()) { {{ t('admin.no_users') }} }</td></tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </ng-container>
+
+  @if (dialog(); as d) {
+    <p-dialog [visible]="true" (visibleChange)="dialog.set(null)" [modal]="true" [header]="d.id ? t('admin.edit_user') : t('admin.invite')" [style]="{ width: 'min(860px, 96vw)' }" [dismissableMask]="false">
+      @if (dialogError(); as e) { <p class="error-box" role="alert">{{ e }}</p> }
+      <div class="dialog-form">
+        <div class="field span-2">
+          <label for="ud-email">{{ t('admin.email') }} *</label>
+          <input pInputText id="ud-email" type="email" [ngModel]="d.email" (ngModelChange)="patchDialog({ email: $event })" [disabled]="!!d.id" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="ud-first">{{ t('admin.first_name') }}</label>
+          <input pInputText id="ud-first" [ngModel]="d.first_name" (ngModelChange)="patchDialog({ first_name: $event })" [disabled]="!!d.id && !session.can('users.manage')" />
+        </div>
+        <div class="field">
+          <label for="ud-last">{{ t('admin.last_name') }}</label>
+          <input pInputText id="ud-last" [ngModel]="d.last_name" (ngModelChange)="patchDialog({ last_name: $event })" [disabled]="!!d.id && !session.can('users.manage')" />
+        </div>
+        <div class="field">
+          <label for="ud-locale">{{ t('admin.locale') }}</label>
+          <p-selectButton inputId="ud-locale" [options]="localeOptions" optionLabel="label" optionValue="value" [ngModel]="d.locale" (ngModelChange)="patchDialog({ locale: $event })" [allowEmpty]="false" [disabled]="!!d.id && !session.can('users.manage')" />
+        </div>
+        <div class="field">
+          <label>&nbsp;</label>
+          <div class="check">
+            <p-checkbox inputId="ud-mfa" [binary]="true" [ngModel]="d.mfa_required" (ngModelChange)="patchDialog({ mfa_required: $event })" [disabled]="!!d.id && !session.can('users.manage')" />
+            <label for="ud-mfa">{{ t('admin.mfa_required') }}</label>
+          </div>
+        </div>
+        <div class="field">
+          <label for="ud-teams">{{ t('admin.teams') }}</label>
+          <p-multiSelect inputId="ud-teams" [options]="teamOptions()" optionLabel="label" optionValue="value" [ngModel]="d.teams" (ngModelChange)="patchDialog({ teams: $event })" [placeholder]="t('admin.no_team')" appendTo="body" styleClass="w-full" [disabled]="!!d.id && !session.can('users.manage')" />
+        </div>
+        <div class="field">
+          <label for="ud-default">{{ t('admin.default_team') }}</label>
+          <p-select inputId="ud-default" [options]="teamOptions()" optionLabel="label" optionValue="value" [ngModel]="d.default_team" (ngModelChange)="patchDialog({ default_team: $event })" [showClear]="true" appendTo="body" styleClass="w-full" [disabled]="!d.teams.length || (!!d.id && !session.can('users.manage'))" />
+        </div>
+        <div class="field span-2">
+          <label for="ud-roles">{{ t('admin.roles') }}</label>
+          <p-multiSelect inputId="ud-roles" [options]="roleOptions()" optionLabel="label" optionValue="value" [ngModel]="d.roles" (ngModelChange)="patchDialog({ roles: $event })" appendTo="body" styleClass="w-full" [disabled]="!!d.id && !session.can('users.assign_permissions')" />
+        </div>
+        @if (session.can('users.assign_permissions')) {
+          <h4>{{ t('admin.permissions_title') }} <span class="muted">{{ t('admin.permissions_hint') }}</span></h4>
+          <div class="perm-groups">
+            @for (g of permissionGroups(); track g.module) {
+              <div class="group">
+                <h5>{{ t('admin.module_' + g.module) }}</h5>
+                @for (p of g.perms; track p) {
+                  <div class="perm" [class.role]="inherited().has(p) && effectOf(p) === 'inherit'">
+                    <span><code>{{ p }}</code> @if (inherited().has(p)) { <i class="pi pi-check" style="font-size: 0.7rem" [pTooltip]="t('admin.from_role')"></i> }</span>
+                    <p-selectButton [options]="effectOptions()" optionLabel="label" optionValue="value" [ngModel]="effectOf(p)" (ngModelChange)="setEffect(p, $event)" [allowEmpty]="false" size="small" />
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+      <div class="dialog-actions">
+        <p-button [label]="t('common.cancel')" severity="secondary" [text]="true" (onClick)="dialog.set(null)" />
+        <p-button [label]="d.id ? t('common.save') : t('admin.send_invite')" [icon]="d.id ? 'pi pi-check' : 'pi pi-send'" [loading]="saving()" [disabled]="!d.id && !d.email.includes('@')" (onClick)="save()" />
+      </div>
+    </p-dialog>
+  }
+</ng-container>

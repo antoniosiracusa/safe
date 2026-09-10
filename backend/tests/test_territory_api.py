@@ -26,6 +26,7 @@ def test_territory_lists_scoped_and_filtered(as_admin, company, other_company):
             "difficulty": "blue",
             "zone": {"id": str(zone.id), "name": "Val Fiorentina", "ski_area": str(area.id)},
             "has_geometry": False,
+            "events_count": 0,
             "is_active": True,
         }
     ]
