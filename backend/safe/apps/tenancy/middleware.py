@@ -11,6 +11,7 @@ import logging
 from collections.abc import Callable
 
 from django.contrib.auth.models import AnonymousUser
+from django.db import transaction
 from django.http import HttpRequest, HttpResponse
 
 from safe.apps.authn.jwt import AuthError, authenticate_bearer
@@ -41,5 +42,8 @@ class TenantMiddleware:
 
         if request.tenant is not None:  # type: ignore[attr-defined]
             with tenant_context(request.tenant.id):  # type: ignore[attr-defined]
-                return self.get_response(request)
+                response = self.get_response(request)
+                if response.status_code >= 500:
+                    transaction.set_rollback(True)
+                return response
         return self.get_response(request)

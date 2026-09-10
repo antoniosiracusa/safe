@@ -5,6 +5,8 @@ from rest_framework.permissions import AllowAny
 urlpatterns = [
     path("api/v1/", include("safe.apps.core.urls")),
     path("api/v1/", include("safe.apps.authz.urls")),
+    path("api/v1/", include("safe.apps.lookups.urls")),
+    path("api/v1/", include("safe.apps.rescue.urls")),
     path(
         "api/schema/",
         SpectacularAPIView.as_view(permission_classes=[AllowAny], authentication_classes=[]),

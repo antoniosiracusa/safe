@@ -92,6 +92,9 @@ CELERY_TASK_ROUTES = {
 CELERY_TASK_ACKS_LATE = True
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_TIMEZONE = "UTC"
+CELERY_BEAT_SCHEDULE = {
+    "auto-lock-events": {"task": "safe.apps.rescue.auto_lock_events", "schedule": 900.0},
+}
 CHANNEL_LAYERS = {
     "default": {"BACKEND": "channels_redis.core.RedisChannelLayer", "CONFIG": {"hosts": [REDIS_URL]}}
 }
