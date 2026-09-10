@@ -1,0 +1,79 @@
+.card {
+  background: var(--p-surface-0);
+  border: 1px solid var(--p-surface-200);
+  border-radius: 6px;
+  padding: 0.75rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    flex: 1;
+    min-width: 0;
+  }
+  .total {
+    font-size: 0.8rem;
+    color: var(--p-text-muted-color);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .actions { display: flex; }
+}
+
+.body { position: relative; min-height: 120px; }
+
+.chart-wrap {
+  position: relative;
+  height: 100%;
+  &.dim { opacity: 0.5; }
+  &.full { height: calc(85vh - 8rem); }
+  canvas { max-width: 100%; }
+}
+
+.empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  color: var(--p-text-muted-color);
+  pointer-events: none;
+}
+
+.state {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  color: var(--p-text-muted-color);
+  i { font-size: 1.5rem; }
+  p { margin: 0; }
+}
+
+.table-scroll {
+  height: 100%;
+  overflow: auto;
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+    th, td { padding: 0.3rem 0.5rem; border-bottom: 1px solid var(--p-surface-200); text-align: right; }
+    th[scope='row'], thead th:first-child { text-align: left; }
+    thead th { position: sticky; top: 0; background: var(--p-surface-50); }
+    .tot { font-weight: 600; }
+  }
+}
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }

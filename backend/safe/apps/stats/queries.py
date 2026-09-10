@@ -6,7 +6,7 @@ import datetime as dt
 import zoneinfo
 from collections import Counter
 
-from django.db.models import Case, CharField, Count, F, Q, QuerySet, Value, When
+from django.db.models import Case, CharField, Count, OuterRef, Q, QuerySet, Subquery, Value, When
 from django.db.models.functions import ExtractIsoWeekDay, ExtractMonth
 
 from .chart import AGE_CLUSTERS
@@ -114,25 +114,17 @@ def top_countries(persons: QuerySet, limit: int) -> tuple[list[tuple[str, int]],
 
 
 def first_evacuation_mean_by_age(persons: QuerySet, cluster: str) -> dict[tuple[str | None, str | None], int]:
-    """Primo mezzo (order=1) per classe d'età; persone senza mezzi → non classificato."""
+    """Primo mezzo (order=1) per classe di età; senza mezzi → non classificato. Una riga per persona."""
+    from safe.apps.rescue.models import PersonEvacuationMean
+
+    first = PersonEvacuationMean.objects.filter(person=OuterRef("pk"), order=1).values("mean__code")[:1]
     rows = (
-        persons.annotate(_x=age_class_expr(cluster))
-        .values("_x")
-        .annotate(
-            mean=Case(
-                When(evacuation_means__order=1, then=F("evacuation_means__mean__code")),
-                default=Value(None),
-                output_field=CharField(),
-            )
-        )
-        .values("_x", "mean")
-        .annotate(n=Count("id", distinct=True))
+        persons.annotate(_x=age_class_expr(cluster), first_mean=Subquery(first))
+        .values("_x", "first_mean")
+        .annotate(n=Count("id"))
         .order_by()
     )
-    counts: dict[tuple[str | None, str | None], int] = {}
-    for r in rows:
-        counts[(r["_x"], r["mean"])] = counts.get((r["_x"], r["mean"]), 0) + r["n"]
-    return counts
+    return {(r["_x"], r["first_mean"]): r["n"] for r in rows}
 
 
 def evacuation_means_total(persons: QuerySet) -> dict[str | None, int]:

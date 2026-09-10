@@ -145,6 +145,7 @@ def test_evacuation_means(as_admin, dataset):
     first = as_admin.get("/api/v1/stats/typology/age-evacuation-mean?season=2025/2026").json()
     assert _series(first, "Akja/Toboga")["data"] == [1, 0, 1, 0, 0, 0, 0, 0]
     assert _series(first, "Elicottero 118")["data"] == [0, 0, 0, 0, 0, 0, 0, 1]
+    assert first["meta"]["total"] == 4  # una riga per persona, anche con più mezzi
 
 
 def test_geography_slopes_limit_and_sort(as_admin, dataset):

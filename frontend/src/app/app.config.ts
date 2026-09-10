@@ -11,6 +11,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 import { provideTransloco } from '@jsverse/transloco';
 import { provideOAuthClient } from 'angular-oauth2-oidc';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeuix/themes/aura';
 
@@ -28,6 +29,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([authInterceptor])),
     provideAnimationsAsync(),
     provideOAuthClient(),
+    provideCharts(withDefaultRegisterables()),
     providePrimeNG({ theme: { preset: Aura, options: { darkModeSelector: '.safe-dark' } }, ripple: false }),
     provideTransloco({
       config: {

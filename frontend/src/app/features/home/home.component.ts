@@ -3,7 +3,10 @@ import { RouterLink } from '@angular/router';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { toSignal } from '@angular/core/rxjs-interop';
 
+import { HttpParams } from '@angular/common/http';
+import { GeneralKpi, StatsService } from '../../core/api/stats.service';
 import { SessionService } from '../../core/session/session.service';
+import { signal } from '@angular/core';
 
 interface ModuleCard {
   path: string;
@@ -31,6 +34,12 @@ const MODULES: ModuleCard[] = [
       <p class="sub">{{ session.company()?.name }}</p>
 
       <section class="facts" [attr.aria-label]="t('home.session')">
+        @if (kpi(); as k) {
+          <div><span class="k">{{ t('home.kpi_season', { season: k.current_season }) }}</span><span class="v">{{ k.current_season_events }}</span></div>
+          <div><span class="k">{{ t('home.kpi_events') }}</span><span class="v">{{ k.total_events }}</span></div>
+          <div><span class="k">{{ t('home.kpi_persons') }}</span><span class="v">{{ k.total_persons }}</span></div>
+          <div><span class="k">{{ t('home.kpi_invalid') }}</span><span class="v">{{ k.invalid_events }}</span></div>
+        }
         <div><span class="k">{{ t('home.teams') }}</span><span class="v">{{ session.teams().length }}</span></div>
         <div><span class="k">{{ t('home.permissions') }}</span><span class="v">{{ activePermissions() }}</span></div>
         <div>
@@ -80,6 +89,12 @@ export class HomeComponent {
   private readonly transloco = inject(TranslocoService);
   readonly lang = toSignal(this.transloco.langChanges$, { initialValue: this.transloco.getActiveLang() });
   readonly modules = MODULES;
+  private readonly stats = inject(StatsService);
+  readonly kpi = signal<GeneralKpi | null>(null);
+
+  constructor() {
+    this.stats.general(new HttpParams()).subscribe({ next: (k) => this.kpi.set(k), error: () => undefined });
+  }
 
   link(path: string): string[] {
     return ['/', this.lang(), ...path.split('/')];

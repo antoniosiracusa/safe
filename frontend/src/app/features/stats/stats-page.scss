@@ -1,0 +1,60 @@
+:host { display: block; }
+
+.page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  h1 { margin: 0; font-size: 1.4rem; }
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  flex-wrap: wrap;
+  label { font-size: 0.8rem; color: var(--p-text-muted-color); }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 1rem;
+}
+
+.span-2 { grid-column: 1 / -1; }
+
+.table-card {
+  background: var(--p-surface-0);
+  border: 1px solid var(--p-surface-200);
+  border-radius: 6px;
+  padding: 0.75rem 1rem 1rem;
+  h2 { margin: 0 0 0.5rem; font-size: 1rem; }
+  .scroll { overflow-x: auto; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
+    th, td { padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--p-surface-200); text-align: right; white-space: nowrap; }
+    th:first-child, td:first-child { text-align: left; }
+    thead th { background: var(--p-surface-50); font-weight: 600; }
+    tfoot td { font-weight: 600; background: var(--p-surface-50); }
+    .sub { font-size: 0.75rem; color: var(--p-text-muted-color); }
+    a { color: inherit; }
+  }
+  .state { color: var(--p-text-muted-color); padding: 1.5rem 0; text-align: center; }
+}
+
+.slider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 0.25rem 0.5rem;
+  font-size: 0.85rem;
+  color: var(--p-text-muted-color);
+  input[type='range'] { width: 220px; }
+  output { font-variant-numeric: tabular-nums; color: var(--p-text-color); }
+}

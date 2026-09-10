@@ -67,7 +67,11 @@
     "data_desc": "Ereignis- und Personentabellen mit Filtern, Sortierung und PDF-Bericht.",
     "map_desc": "Ereigniskarte mit Winter-, Sommer- und Satellitenansicht.",
     "exports_desc": "Exporte an regionale Behörden und CSV/XLSX-Datensätze.",
-    "admin_desc": "Benutzer, Teams, Geräte, Gebiet und Einstellungen."
+    "admin_desc": "Benutzer, Teams, Geräte, Gebiet und Einstellungen.",
+    "kpi_season": "Ereignisse Saison {{season}}",
+    "kpi_events": "Ereignisse gesamt",
+    "kpi_persons": "Beteiligte Personen",
+    "kpi_invalid": "Ungültige Ereignisse"
   },
   "placeholder": {
     "coming": "Dieser Bereich wird im Meilenstein {{milestone}} umgesetzt.",
@@ -93,7 +97,8 @@
     "load_error": "Daten konnten nicht geladen werden.",
     "not_found": "Element nicht gefunden.",
     "save_error": "Speichern fehlgeschlagen.",
-    "page_report": "{first}–{last} von {totalRecords}"
+    "page_report": "{first}–{last} von {totalRecords}",
+    "loading": "Wird geladen…"
   },
   "state": {
     "valid": "Gültig",
@@ -229,5 +234,49 @@
     "section_equipment": "Ausrüstung und Schutz",
     "section_clinical": "Klinische Daten",
     "section_admin": "Versicherung, Unterkunft, Verantwortung"
+  },
+  "stats": {
+    "show_table": "Als Tabelle anzeigen",
+    "download_png": "Bild herunterladen",
+    "fullscreen": "Vollbild",
+    "empty": "Keine Daten für die gewählten Filter.",
+    "total": "Gesamt",
+    "unit_events": "Ereignisse",
+    "unit_persons": "Personen",
+    "unit_means": "Mittel",
+    "incremental": "Kumulativ",
+    "annual_distribution": "Jährliche Unfallverteilung (Juni → Mai)",
+    "zone_table": "Ereignisse und Personen nach Zone und Saison",
+    "events_persons": "Ereignisse / Personen",
+    "age_cluster": "Altersklassen",
+    "age_cluster_standard": "Standard",
+    "age_cluster_a01": "A01 Venetien",
+    "age_gender": "Alter × Geschlecht",
+    "country": "Verteilung nach Land",
+    "countries_shown": "Angezeigte Länder",
+    "nationality_weekday": "Inländer und Ausländer nach Wochentag",
+    "age_diagnosis": "Alter × Verdachtsdiagnose",
+    "age_injury_place": "Alter × Verletzungsstelle",
+    "age_cause": "Alter × Ursache",
+    "cause": "Verteilung der Ursachen",
+    "age_equipment": "Alter × Ausrüstung",
+    "age_insurance": "Alter × Versicherung",
+    "age_evacuation": "Alter × Evakuierungsmittel (erstes)",
+    "evacuation_total": "Eingesetzte Evakuierungsmittel",
+    "ski_areas": "Ereignisse nach Skigebiet",
+    "slope_difficulty": "Ereignisse nach Pistenschwierigkeit",
+    "slopes": "Ereignisse nach Piste",
+    "slopes_shown": "Angezeigte Pisten",
+    "weather": "Wetter",
+    "snow": "Schneeart",
+    "wind": "Wind",
+    "visibility": "Sicht",
+    "season_summary_title": "Saisonübersicht {{season}}",
+    "last_week": "letzte Woche {{from}} – {{to}}",
+    "col_season": "Aktuelle Saison",
+    "col_last_week": "Letzte Woche",
+    "col_unlocked": "Entsperrt",
+    "col_invalid": "Ungültig",
+    "col_helicopter": "Mit Hubschrauber"
   }
 }

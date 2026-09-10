@@ -1,0 +1,64 @@
+<section class="card" *transloco="let t" [attr.aria-busy]="loading()">
+  <header>
+    <h2>{{ t(titleKey()) }}</h2>
+    @if (data() && !loading()) {
+      <span class="total">{{ total() }} {{ t(unitKey()) }}</span>
+    }
+    <span class="actions">
+      <p-button icon="pi pi-table" [text]="true" size="small" severity="secondary" [attr.aria-pressed]="tableView()" [pTooltip]="t('stats.show_table')" tooltipPosition="bottom" [attr.aria-label]="t('stats.show_table')" (onClick)="tableView.set(!tableView())" />
+      <p-button icon="pi pi-download" [text]="true" size="small" severity="secondary" [pTooltip]="t('stats.download_png')" tooltipPosition="bottom" [attr.aria-label]="t('stats.download_png')" [disabled]="!data() || tableView()" (onClick)="download()" />
+      <p-button icon="pi pi-window-maximize" [text]="true" size="small" severity="secondary" [pTooltip]="t('stats.fullscreen')" tooltipPosition="bottom" [attr.aria-label]="t('stats.fullscreen')" [disabled]="!data()" (onClick)="fullscreen.set(true)" />
+    </span>
+  </header>
+
+  <div class="body" [style.height.px]="height()">
+    @if (loading() && !data()) {
+      <p-skeleton height="100%" />
+    } @else if (error()) {
+      <div class="state" role="alert">
+        <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+        <p>{{ t('common.load_error') }}</p>
+        <p-button [label]="t('common.retry')" [text]="true" size="small" (onClick)="load()" />
+      </div>
+    } @else if (data(); as d) {
+      @if (tableView()) {
+        <div class="table-scroll">
+          <table>
+            <caption class="sr-only">{{ t(titleKey()) }}</caption>
+            <thead>
+              <tr>
+                <th scope="col"></th>
+                @for (s of d.datasets; track s.label) { <th scope="col">{{ s.label }}</th> }
+                @if (d.datasets.length > 1) { <th scope="col">{{ t('stats.total') }}</th> }
+              </tr>
+            </thead>
+            <tbody>
+              @for (label of d.labels; track $index; let i = $index) {
+                <tr>
+                  <th scope="row">{{ label }}</th>
+                  @for (s of d.datasets; track s.label) { <td>{{ s.data[i] }}</td> }
+                  @if (d.datasets.length > 1) { <td class="tot">{{ rowTotal(i) }}</td> }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="chart-wrap" [class.dim]="loading()">
+          <canvas baseChart [type]="chartType()" [data]="chartData()" [options]="chartOptions()" role="img" [attr.aria-label]="t(titleKey())"></canvas>
+          @if (isEmpty()) {
+            <p class="empty">{{ t('stats.empty') }}</p>
+          }
+        </div>
+      }
+    }
+  </div>
+
+  <p-dialog [visible]="fullscreen()" (visibleChange)="fullscreen.set($event)" [modal]="true" [header]="t(titleKey())" [maximizable]="true" [style]="{ width: '90vw', height: '85vh' }" appendTo="body" [contentStyle]="{ height: '100%' }">
+    @if (fullscreen() && data()) {
+      <div class="chart-wrap full">
+        <canvas baseChart [type]="chartType()" [data]="chartData()" [options]="chartOptions()" role="img" [attr.aria-label]="t(titleKey())"></canvas>
+      </div>
+    }
+  </p-dialog>
+</section>

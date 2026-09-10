@@ -67,7 +67,11 @@
     "data_desc": "Tabelle eventi e persone con filtri, ordinamento e PDF del rapporto.",
     "map_desc": "Mappa degli eventi con stili inverno, estate e satellite.",
     "exports_desc": "Export verso gli enti regionali e dataset CSV/XLSX.",
-    "admin_desc": "Utenti, squadre, dispositivi, territorio e impostazioni."
+    "admin_desc": "Utenti, squadre, dispositivi, territorio e impostazioni.",
+    "kpi_season": "Eventi stagione {{season}}",
+    "kpi_events": "Eventi totali",
+    "kpi_persons": "Persone coinvolte",
+    "kpi_invalid": "Eventi non validi"
   },
   "placeholder": {
     "coming": "Questa sezione viene realizzata nella milestone {{milestone}}.",
@@ -93,7 +97,8 @@
     "load_error": "Impossibile caricare i dati.",
     "not_found": "Elemento non trovato.",
     "save_error": "Salvataggio non riuscito.",
-    "page_report": "{first}–{last} di {totalRecords}"
+    "page_report": "{first}–{last} di {totalRecords}",
+    "loading": "Caricamento…"
   },
   "state": {
     "valid": "Valido",
@@ -229,5 +234,49 @@
     "section_equipment": "Attrezzatura e protezioni",
     "section_clinical": "Dati clinici",
     "section_admin": "Assicurazione, alloggio, responsabilità"
+  },
+  "stats": {
+    "show_table": "Mostra come tabella",
+    "download_png": "Scarica immagine",
+    "fullscreen": "Schermo intero",
+    "empty": "Nessun dato per i filtri selezionati.",
+    "total": "Totale",
+    "unit_events": "eventi",
+    "unit_persons": "persone",
+    "unit_means": "mezzi",
+    "incremental": "Cumulativo",
+    "annual_distribution": "Distribuzione annuale incidenti (giugno → maggio)",
+    "zone_table": "Eventi e persone per zona e stagione",
+    "events_persons": "eventi / persone",
+    "age_cluster": "Classi di età",
+    "age_cluster_standard": "Standard",
+    "age_cluster_a01": "A01 Veneto",
+    "age_gender": "Età × genere",
+    "country": "Distribuzione per paese",
+    "countries_shown": "Paesi mostrati",
+    "nationality_weekday": "Connazionali e stranieri per giorno della settimana",
+    "age_diagnosis": "Età × diagnosi presunta",
+    "age_injury_place": "Età × sede lesione",
+    "age_cause": "Età × causa",
+    "cause": "Distribuzione cause",
+    "age_equipment": "Età × attrezzatura",
+    "age_insurance": "Età × assicurazione",
+    "age_evacuation": "Età × mezzo di evacuazione (primo mezzo)",
+    "evacuation_total": "Mezzi di evacuazione utilizzati",
+    "ski_areas": "Eventi per comprensorio",
+    "slope_difficulty": "Eventi per difficoltà pista",
+    "slopes": "Eventi per pista",
+    "slopes_shown": "Piste mostrate",
+    "weather": "Condizione meteo",
+    "snow": "Tipologia neve",
+    "wind": "Vento",
+    "visibility": "Visibilità",
+    "season_summary_title": "Riepilogo stagione {{season}}",
+    "last_week": "settimana scorsa {{from}} – {{to}}",
+    "col_season": "Stagione attuale",
+    "col_last_week": "Settimana scorsa",
+    "col_unlocked": "Sbloccati",
+    "col_invalid": "Non validi",
+    "col_helicopter": "Con elicottero"
   }
 }

@@ -10,6 +10,12 @@ import { PlaceholderComponent } from './features/placeholder/placeholder.compone
 import { EventsPageComponent } from './features/data/events/events-page.component';
 import { PersonsPageComponent } from './features/data/persons/persons-page.component';
 import { ShellComponent } from './layout/shell/shell.component';
+import { ZonePageComponent } from './features/stats/zone-page.component';
+import { DemographicsPageComponent } from './features/stats/demographics-page.component';
+import { TypologyPageComponent } from './features/stats/typology-page.component';
+import { GeographyPageComponent } from './features/stats/geography-page.component';
+import { WeatherPageComponent } from './features/stats/weather-page.component';
+import { SeasonPageComponent } from './features/stats/season-page.component';
 
 /** Pagine delle milestone successive: già instradate (con permesso e filtri) come segnaposto. */
 const placeholder = (
@@ -41,12 +47,12 @@ export const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'home' },
       { path: 'home', component: HomeComponent },
-      placeholder('stats/zone', 'nav.stats_zone', 'stats.view', 'M3'),
-      placeholder('stats/demographics', 'nav.stats_demographics', 'stats.view', 'M3'),
-      placeholder('stats/typology', 'nav.stats_typology', 'stats.view', 'M3'),
-      placeholder('stats/geography', 'nav.stats_geography', 'stats.view', 'M3'),
-      placeholder('stats/weather', 'nav.stats_weather', 'stats.view', 'M3'),
-      placeholder('stats/season', 'nav.stats_season', 'stats.advanced', 'M3'),
+      { path: 'stats/zone', component: ZonePageComponent, data: { filters: true } },
+      { path: 'stats/demographics', component: DemographicsPageComponent, data: { filters: true } },
+      { path: 'stats/typology', component: TypologyPageComponent, data: { filters: true } },
+      { path: 'stats/geography', component: GeographyPageComponent, data: { filters: true } },
+      { path: 'stats/weather', component: WeatherPageComponent, data: { filters: true } },
+      { path: 'stats/season', component: SeasonPageComponent, data: { filters: true } },
       { path: 'data/events', component: EventsPageComponent, data: { filters: true } },
       { path: 'data/persons', component: PersonsPageComponent, data: { filters: true } },
       placeholder('map', 'nav.map', 'map.view', 'M4'),
