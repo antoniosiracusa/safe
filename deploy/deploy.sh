@@ -19,4 +19,12 @@ $COMPOSE up -d --wait db redis   # attende gli healthcheck (al primo avvio initd
 $COMPOSE run --rm --no-deps api python manage.py migrate --noinput   # include seed di vocabolari e ruoli
 $COMPOSE up -d --remove-orphans
 $COMPOSE ps
-echo "ok: https://${DOMAIN:-$(grep ^DOMAIN= .env | cut -d= -f2)}/"
+DOMAIN="${DOMAIN:-$(grep ^DOMAIN= .env | cut -d= -f2)}"
+# la SPA risponde 200 su qualsiasi percorso: verifichiamo che /api risponda davvero con il JSON dell'API
+for i in $(seq 1 30); do
+  body=$(curl -fsS "https://${DOMAIN}/api/v1/health" 2>/dev/null || true)
+  case "$body" in *'"status":"ok"'*) echo "ok: https://${DOMAIN}/ (api: $body)"; exit 0;; esac
+  sleep 5
+done
+echo "ERRORE: l'API non risponde su https://${DOMAIN}/api/v1/health (vedi: docker compose ps, logs api)" >&2
+exit 1
