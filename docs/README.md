@@ -12,6 +12,7 @@ Piattaforma multi-tenant per la raccolta, gestione e analisi statistica degli in
 | 05 | [Schermate](05-schermate.md) | navigazione, stati standard, wireframe testuali, flussi |
 | 06 | [Piano di rilascio](06-piano-rilascio.md) | milestone M0-M7, stime, dipendenze, rischi, DoD |
 | 07 | [DPIA sintetica](07-dpia-sintetica.md) | trattamenti, basi giuridiche, misure, rischi residui, recupero chiavi |
+| 08 | [Messa online](08-messa-online.md) | decisioni preliminari, preparazione produzione, staging, onboarding, checklist go-live |
 
 Materiale di dominio usato come riferimento: `../reference/testo base.odt`, `../reference/report-evento-*.pdf`,
 `../reference/export.xlsx`, `../reference/A01_*.xls`, `../reference/Lista soccorsi *.pdf`, `../reference/comunicazione elenco infortuni.docx`.
