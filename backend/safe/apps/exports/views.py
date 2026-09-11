@@ -181,6 +181,9 @@ class ExportListView(APIView):
         return Response({"count": len(out), "next": None, "previous": None, "results": out})
 
 
+LEVEL_ORDER = {"region": 0, "province": 1, "municipality": 2}
+
+
 class AdministrativeAreasView(APIView):
     """Aree ISTAT disponibili: quelle che intersecano i comprensori della società (altrimenti tutte)."""
 
@@ -204,9 +207,12 @@ class AdministrativeAreasView(APIView):
         return Response(
             {
                 "loaded": True,
-                "areas": [
-                    {"level": u.level, "code": u.code, "name": u.name, "edition_year": u.edition_year}
-                    for u in qs
-                ],
+                "areas": sorted(
+                    (
+                        {"level": u.level, "code": u.code, "name": u.name, "edition_year": u.edition_year}
+                        for u in qs
+                    ),
+                    key=lambda a: (LEVEL_ORDER[a["level"]], a["name"]),
+                ),
             }
         )
