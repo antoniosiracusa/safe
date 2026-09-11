@@ -27,7 +27,7 @@
       (click)="keyDialog.set(true)"
     >
       <i [class]="keyStore.unlocked() ? 'pi pi-lock-open' : 'pi pi-lock'" aria-hidden="true"></i>
-      <span class="sr-only">{{ t('shell.key_' + keyState()) }}</span>
+      <span class="key-label">{{ keyStore.unlocked() ? t('keys.my_key_unlocked') : t('keys.my_key') }}</span>
     </button>
     <safe-key-dialog [visible]="keyDialog()" (closed)="keyDialog.set(false)" />
 
