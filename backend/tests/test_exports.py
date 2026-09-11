@@ -21,21 +21,6 @@ pytestmark = pytest.mark.django_db
 UTC = dt.UTC
 
 
-@pytest.fixture(autouse=True)
-def _fake_storage(monkeypatch):  # noqa: ANN001, ANN201
-    from safe.apps.jobs import runner, storage
-
-    store: dict[str, bytes] = {}
-    monkeypatch.setattr(storage, "put", lambda key, data, ct: store.__setitem__(key, data))
-    monkeypatch.setattr(storage, "get", lambda key: store[key])
-    monkeypatch.setattr(storage, "exists", lambda key: key in store)
-    monkeypatch.setattr(storage, "delete", lambda key: store.pop(key, None))
-    monkeypatch.setattr(runner.storage, "put", storage.put)
-    monkeypatch.setattr(runner.storage, "get", storage.get)
-    monkeypatch.setattr("safe.apps.reports.static_map.static_map_data_uri", lambda *a, **k: None)
-    return store
-
-
 @pytest.fixture
 def dataset(company, team):  # noqa: ANN001, ANN201
     """E1 (Squadra A, 18/01 10:05 UTC = 11:05 locali) con P1 F 26 sci e P2 M 16 snowboard;

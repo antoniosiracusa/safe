@@ -146,3 +146,19 @@ def as_rescuer(api_client: APIClient, rescuer_user: AppUser) -> APIClient:
 def tenant(company: Company) -> Iterator[None]:
     with tenant_context(company.id):
         yield
+
+
+@pytest.fixture(autouse=True)
+def _fake_storage(monkeypatch):  # noqa: ANN001, ANN201
+    """Nessun test tocca MinIO/S3: i job scrivono in memoria (vale anche per la mappa statica dei PDF)."""
+    from safe.apps.jobs import runner, storage
+
+    store: dict[str, bytes] = {}
+    monkeypatch.setattr(storage, "put", lambda key, data, ct: store.__setitem__(key, data))
+    monkeypatch.setattr(storage, "get", lambda key: store[key])
+    monkeypatch.setattr(storage, "exists", lambda key: key in store)
+    monkeypatch.setattr(storage, "delete", lambda key: store.pop(key, None))
+    monkeypatch.setattr(runner.storage, "put", storage.put)
+    monkeypatch.setattr(runner.storage, "get", storage.get)
+    monkeypatch.setattr("safe.apps.reports.static_map.static_map_data_uri", lambda *a, **k: None)
+    return store
