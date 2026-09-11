@@ -52,7 +52,8 @@ export class MapPickerComponent implements AfterViewInit {
     const el = this.container()?.nativeElement;
     if (!el || !this.mapbox.configured) return;
     const v = this.value();
-    this.map = this.mapbox.create(el, 'mapbox://styles/mapbox/outdoors-v12', { center: v ?? undefined, zoom: v ? 14 : undefined });
+    // senza posizione si usa il centro predefinito della società (un `center: undefined` esplicito lo annullerebbe)
+    this.map = this.mapbox.create(el, 'mapbox://styles/mapbox/outdoors-v12', v ? { center: v, zoom: 14 } : {});
     this.map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-left');
     this.map.on('load', () => {
       this.ready.set(true);

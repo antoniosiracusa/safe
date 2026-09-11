@@ -53,7 +53,8 @@ export class MapboxService {
       zoom: this.defaultZoom,
       attributionControl: true,
       cooperativeGestures: false,
-      ...options,
+      // le opzioni esplicitamente undefined non devono annullare i default
+      ...Object.fromEntries(Object.entries(options).filter(([, v]) => v !== undefined)),
     });
   }
 
