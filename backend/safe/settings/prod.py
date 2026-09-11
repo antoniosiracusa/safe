@@ -17,6 +17,7 @@ EMAIL_PORT = env.int("EMAIL_PORT", default=587)  # noqa: F405
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")  # noqa: F405
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")  # noqa: F405
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)  # noqa: F405
+EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)  # noqa: F405  (porta 465: SSL implicito)
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")  # noqa: F405
 
 SENTRY_DSN = env("SENTRY_DSN", default="")  # noqa: F405
