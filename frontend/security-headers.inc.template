@@ -1,0 +1,8 @@
+# Header di sicurezza della SPA (renderizzato con ${DOMAIN}); incluso in server e in ogni location.
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Frame-Options DENY always;
+    add_header Referrer-Policy strict-origin-when-cross-origin always;
+    add_header Permissions-Policy "geolocation=(), camera=(), microphone=()" always;
+    # CSP della SPA: API e WebSocket sono sulla stessa origine; Keycloak e Mapbox sono le sole origini esterne.
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://api.mapbox.com; img-src 'self' data: blob: https://*.mapbox.com; font-src 'self' data:; connect-src 'self' https://auth.${DOMAIN} https://api.mapbox.com https://events.mapbox.com https://*.tiles.mapbox.com; worker-src 'self' blob:; child-src blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://auth.${DOMAIN}; object-src 'none'" always;
+

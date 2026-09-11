@@ -1,0 +1,32 @@
+# Renderizzato all'avvio dall'immagine nginx (envsubst sulle sole variabili d'ambiente definite: DOMAIN).
+server {
+    listen 80;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Gli add_header non si ereditano nelle location che ne definiscono altri: incluso ovunque.
+    include /etc/nginx/conf.d/security-headers.inc;
+
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript image/svg+xml;
+
+    # Config runtime: mai cache, così un redeploy della config è immediato
+    location = /config/app-config.json {
+        include /etc/nginx/conf.d/security-headers.inc;
+        add_header Cache-Control "no-store" always;
+    }
+
+    # libsodium e worker Mapbox: asset statici con cache lunga
+    location ~* \.(js|css|woff2|png|svg|ico|json)$ {
+        include /etc/nginx/conf.d/security-headers.inc;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        try_files $uri =404;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+        include /etc/nginx/conf.d/security-headers.inc;
+        add_header Cache-Control "no-cache" always;
+    }
+}

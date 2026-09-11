@@ -1,0 +1,20 @@
+# Middleware condivisi (riferiti come `security@file`). L'API aggiunge i propri header (CSP, no-store).
+http:
+  middlewares:
+    security:
+      headers:
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        stsPreload: false
+        contentTypeNosniff: true
+        referrerPolicy: strict-origin-when-cross-origin
+        frameDeny: true
+        customResponseHeaders:
+          Permissions-Policy: "geolocation=(), camera=(), microphone=()"
+          Server: ""
+
+tls:
+  options:
+    default:
+      minVersion: VersionTLS12
+      sniStrict: true

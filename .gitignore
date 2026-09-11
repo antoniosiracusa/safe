@@ -45,3 +45,8 @@ backend/celerybeat-schedule*
 
 # bundle libsodium generato (npm run vendor:sodium)
 frontend/public/vendor/
+
+# deploy: segreti e file generati sul server
+deploy/.env
+deploy/generated/
+deploy/backups/
