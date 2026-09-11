@@ -6,13 +6,14 @@
   background: linear-gradient(180deg, #eef3f8 0%, #dbe6f0 100%);
 }
 
+#kc-header #kc-header-wrapper.pf-v5-c-brand,
 #kc-header-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 14px;
   padding: 24px 16px 8px;
-  color: #1f2a37;
+  color: #1f2a37 !important;
   font-size: 1.6rem;
   font-weight: 700;
   letter-spacing: 0.12em;
