@@ -162,6 +162,8 @@ services:
       KC_PROXY_HEADERS: xforwarded
       KC_HEALTH_ENABLED: "true"
       KC_LOG_LEVEL: INFO
+      # i file del tema (css/immagini) non vengono messi in cache dai browser: aggiornamenti immediati
+      KC_SPI_THEME_STATIC_MAX_AGE: "-1"
     volumes:
       - ./generated/realm-safe.json:/opt/keycloak/data/import/realm-safe.json:ro
       - ./keycloak/themes/safe:/opt/keycloak/themes/safe:ro
