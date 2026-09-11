@@ -18,6 +18,9 @@ web = f"https://{domain}"
 
 realm = json.load(open(src, encoding="utf-8"))
 
+realm["displayName"] = env.get("REALM_DISPLAY_NAME", "SAFE")
+realm["displayNameHtml"] = env.get("REALM_DISPLAY_NAME", "SAFE")
+realm["loginTheme"] = "safe"  # deploy/keycloak/themes/safe (titolo e loghi della società)
 realm["sslRequired"] = "external"
 realm["bruteForceProtected"] = True
 realm["failureFactor"] = 8

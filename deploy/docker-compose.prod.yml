@@ -164,6 +164,7 @@ services:
       KC_LOG_LEVEL: INFO
     volumes:
       - ./generated/realm-safe.json:/opt/keycloak/data/import/realm-safe.json:ro
+      - ./keycloak/themes/safe:/opt/keycloak/themes/safe:ro
     labels:
       - traefik.enable=true
       - traefik.http.routers.auth.rule=Host(`auth.${DOMAIN}`)
