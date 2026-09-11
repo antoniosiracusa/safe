@@ -27,7 +27,7 @@ x-api-base: &api-base
 
 services:
   traefik:
-    image: traefik:v3.5
+    image: traefik:v3.7.13
     restart: unless-stopped
     environment:
       DOCKER_API_VERSION: "1.44"  # Docker Engine recenti rifiutano il client 1.24 predefinito del provider
