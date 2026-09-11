@@ -15,7 +15,7 @@ fi
 
 ./render.sh
 $COMPOSE pull --quiet
-$COMPOSE up -d db redis
+$COMPOSE up -d --wait db redis   # attende gli healthcheck (al primo avvio initdb richiede qualche secondo)
 $COMPOSE run --rm --no-deps api python manage.py migrate --noinput   # include seed di vocabolari e ruoli
 $COMPOSE up -d --remove-orphans
 $COMPOSE ps
