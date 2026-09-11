@@ -61,7 +61,13 @@ jobs:
       - name: Dependency audit
         run: pip install pip-audit && pip-audit --progress-spinner off || echo '::warning::pip-audit ha segnalato vulnerabilità'
       - name: Test
-        run: pytest --cov=safe --cov-report=xml --cov-report=term-missing
+        run: |
+          set -o pipefail
+          pytest --cov=safe --cov-report=xml --cov-report=term-missing -rfE 2>&1 | tee pytest.log
+        # i test falliti compaiono come annotazioni (leggibili anche senza login)
+      - name: Riepilogo fallimenti
+        if: failure()
+        run: grep -E "^(FAILED|ERROR) " pytest.log | head -30 | sed 's/^/::error::/' || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
