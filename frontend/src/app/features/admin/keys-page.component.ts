@@ -20,7 +20,7 @@ import { ApiService } from '../../core/api/api.service';
 import { errorMessage } from '../../core/api/errors';
 import { CanDirective } from '../../core/authz/can.directive';
 import { CompanyKeyInfo, KeyStoreService } from '../../core/crypto/key-store.service';
-import { normalizeRecoveryCode } from '../../core/crypto/sodium';
+import { cryptoErrorCode, normalizeRecoveryCode } from '../../core/crypto/sodium';
 import { SessionService } from '../../core/session/session.service';
 import { KeyDialogComponent } from '../../layout/key-dialog/key-dialog.component';
 
@@ -103,7 +103,11 @@ export class KeysPageComponent {
       this.showWords(words, this.transloco.translate('keys.init_done'));
       await this.reload();
     } catch (err) {
-      this.messages.add({ severity: 'error', summary: errorMessage(err, this.transloco.translate('common.save_error')) });
+      const code = cryptoErrorCode(err);
+      this.messages.add({
+        severity: 'error',
+        summary: code ? this.transloco.translate(`keys.${code}`) : errorMessage(err, this.transloco.translate('common.save_error')),
+      });
     } finally {
       this.busy.set(null);
     }

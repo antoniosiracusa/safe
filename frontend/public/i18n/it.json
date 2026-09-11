@@ -611,7 +611,9 @@
     "words_confirm": "Ho trascritto e conservato il codice di recupero",
     "words_close": "Chiudi",
     "copy": "Copia",
-    "copied": "Codice copiato negli appunti: incollalo in un luogo sicuro e cancella gli appunti."
+    "copied": "Codice copiato negli appunti: incollalo in un luogo sicuro e cancella gli appunti.",
+    "wasm_blocked": "Il browser non permette di eseguire WebAssembly (policy di sicurezza o estensione): impossibile cifrare. Segnalalo all'assistenza.",
+    "crypto_selftest_failed": "Verifica di cifratura fallita nel browser: nessun dato è stato salvato. Riprova con un altro browser e segnalalo all'assistenza."
   },
   "audit": {
     "intro": "Ogni accesso ai dati identificativi, modifica, sblocco, export e operazione sulle chiavi è registrato in modo permanente. Il registro non contiene mai valori di dati personali.",

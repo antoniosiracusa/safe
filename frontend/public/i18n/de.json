@@ -611,7 +611,9 @@
     "words_confirm": "Ich habe den Wiederherstellungscode notiert und aufbewahrt",
     "words_close": "Schließen",
     "copy": "Kopieren",
-    "copied": "Code in die Zwischenablage kopiert: an sicherem Ort einfügen und Zwischenablage leeren."
+    "copied": "Code in die Zwischenablage kopiert: an sicherem Ort einfügen und Zwischenablage leeren.",
+    "wasm_blocked": "Dieser Browser kann kein WebAssembly ausführen (Sicherheitsrichtlinie oder Erweiterung): Verschlüsselung nicht möglich. Bitte dem Support melden.",
+    "crypto_selftest_failed": "Selbsttest der Verschlüsselung im Browser fehlgeschlagen: nichts wurde gespeichert. Bitte anderen Browser verwenden und dem Support melden."
   },
   "audit": {
     "intro": "Jeder Zugriff auf identifizierende Daten, jede Änderung, Entsperrung, jeder Export und Schlüsselvorgang wird dauerhaft protokolliert. Das Protokoll enthält nie personenbezogene Werte.",

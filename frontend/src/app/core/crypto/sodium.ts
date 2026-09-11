@@ -35,6 +35,26 @@ export interface EncryptedPrivateKey {
 
 let ready: Promise<Sodium> | null = null;
 
+/** Errori "di ambiente" distinti da una passphrase sbagliata (chiavi i18n `keys.<codice>`). */
+export const CRYPTO_ERROR_CODES = ['wasm_blocked', 'crypto_selftest_failed'] as const;
+export type CryptoErrorCode = (typeof CRYPTO_ERROR_CODES)[number];
+
+export function cryptoErrorCode(err: unknown): CryptoErrorCode | null {
+  const msg = err instanceof Error ? err.message : '';
+  return (CRYPTO_ERROR_CODES as readonly string[]).includes(msg) ? (msg as CryptoErrorCode) : null;
+}
+
+/** WebAssembly deve poter essere compilato (CSP `script-src` con 'wasm-unsafe-eval'): senza, libsodium
+ *  ripiega su asm.js e, dopo la crescita di memoria di Argon2, restituisce buffer stantii → blob corrotti. */
+function wasmAllowed(): boolean {
+  try {
+    new WebAssembly.Module(new Uint8Array([0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00]));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** Carica `vendor/sodium.js` (bundle IIFE generato da `npm run vendor:sodium`) alla prima chiamata. */
 export function sodiumReady(): Promise<Sodium> {
   return (ready ??= new Promise<Sodium>((resolve, reject) => {
@@ -42,6 +62,7 @@ export function sodiumReady(): Promise<Sodium> {
     const done = () => {
       const s = w.sodium;
       if (!s) return reject(new Error('sodium_missing'));
+      if (!wasmAllowed()) return reject(new Error('wasm_blocked'));
       s.ready.then(() => resolve(s), reject);
     };
     if (w.sodium) return done();
@@ -102,10 +123,24 @@ export async function encryptPrivateKey(privateKey: Uint8Array, secret: string):
   const key = await deriveKey(secret, params);
   const nonce = s.randombytes_buf(s.crypto_secretbox_NONCEBYTES);
   const box = s.crypto_secretbox_easy(privateKey, nonce, key);
+  assertRoundTrip(s, () => s.crypto_secretbox_open_easy(box, nonce, key), privateKey);
   const out = new Uint8Array(nonce.length + box.length);
   out.set(nonce);
   out.set(box, nonce.length);
   return { private_key_encrypted: b64.encode(out), kdf_params: params };
+}
+
+/** Un blob che non si riapre nello stesso browser non deve mai arrivare al server. */
+function assertRoundTrip(s: Sodium, open: () => Uint8Array, expected: Uint8Array): void {
+  let back: Uint8Array | null = null;
+  try {
+    back = open();
+  } catch {
+    back = null;
+  }
+  if (!back || back.length !== expected.length || !s.memcmp(back, expected)) {
+    throw new Error('crypto_selftest_failed');
+  }
 }
 
 /** Restituisce null se il segreto è sbagliato. */
@@ -148,6 +183,7 @@ export async function encryptPii(
   const nonce = s.randombytes_buf(s.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
   const plain = s.from_string(JSON.stringify(clean));
   const box = s.crypto_aead_xchacha20poly1305_ietf_encrypt(plain, null, null, nonce, dataKey);
+  assertRoundTrip(s, () => s.crypto_aead_xchacha20poly1305_ietf_decrypt(null, box, null, nonce, dataKey), plain);
   const out = new Uint8Array(nonce.length + box.length);
   out.set(nonce);
   out.set(box, nonce.length);

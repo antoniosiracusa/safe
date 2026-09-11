@@ -4,5 +4,7 @@
     add_header Referrer-Policy strict-origin-when-cross-origin always;
     add_header Permissions-Policy "geolocation=(), camera=(), microphone=()" always;
     # CSP della SPA: API e WebSocket sono sulla stessa origine; Keycloak e Mapbox sono le sole origini esterne.
-    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://api.mapbox.com; img-src 'self' data: blob: https://*.mapbox.com; font-src 'self' data:; connect-src 'self' https://auth.${DOMAIN} https://api.mapbox.com https://events.mapbox.com https://*.tiles.mapbox.com; worker-src 'self' blob:; child-src blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://auth.${DOMAIN}; object-src 'none'" always;
+    # 'wasm-unsafe-eval': libsodium (vendor/sodium.js) è WebAssembly; senza, ripiega su asm.js e dopo la
+    # crescita di memoria di Argon2 restituisce buffer stantii (chiavi personali cifrate in modo errato).
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://api.mapbox.com; img-src 'self' data: blob: https://*.mapbox.com; font-src 'self' data:; connect-src 'self' https://auth.${DOMAIN} https://api.mapbox.com https://events.mapbox.com https://*.tiles.mapbox.com; worker-src 'self' blob:; child-src blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://auth.${DOMAIN}; object-src 'none'" always;
 

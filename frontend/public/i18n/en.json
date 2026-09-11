@@ -611,7 +611,9 @@
     "words_confirm": "I have written down and stored the recovery code",
     "words_close": "Close",
     "copy": "Copy",
-    "copied": "Code copied to the clipboard: paste it somewhere safe and clear the clipboard."
+    "copied": "Code copied to the clipboard: paste it somewhere safe and clear the clipboard.",
+    "wasm_blocked": "This browser cannot run WebAssembly (security policy or extension): encryption is not possible. Please report it to support.",
+    "crypto_selftest_failed": "Encryption self-check failed in the browser: nothing was saved. Try another browser and report it to support."
   },
   "audit": {
     "intro": "Every access to identifying data, change, unlock, export and key operation is recorded permanently. The log never contains personal data values.",

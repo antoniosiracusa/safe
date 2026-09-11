@@ -224,9 +224,13 @@ export class KeyStoreService {
   }
 
   private async companyKeyPayload(ckp: KeyPair, ukp: KeyPair, recoveryCode: string) {
+    const wrapped = await seal(ckp.privateKey, ukp.publicKey);
+    // la grant verso sé stessi è verificabile subito: se non si riapre, il browser sta cifrando male
+    const back = await unseal(wrapped, ukp).catch(() => null);
+    if (!back || b64.encode(back) !== b64.encode(ckp.privateKey)) throw new Error('crypto_selftest_failed');
     return {
       public_key: b64.encode(ckp.publicKey),
-      wrapped_private_key: b64.encode(await seal(ckp.privateKey, ukp.publicKey)),
+      wrapped_private_key: b64.encode(wrapped),
       recovery: await encryptPrivateKey(ckp.privateKey, recoveryCode).then((e) => ({
         encrypted_private_key: e.private_key_encrypted,
         kdf_params: e.kdf_params,

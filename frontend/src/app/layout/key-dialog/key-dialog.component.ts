@@ -6,6 +6,7 @@ import { DialogModule } from 'primeng/dialog';
 import { PasswordModule } from 'primeng/password';
 
 import { KeyStoreService } from '../../core/crypto/key-store.service';
+import { cryptoErrorCode } from '../../core/crypto/sodium';
 import { SessionService } from '../../core/session/session.service';
 
 /** "La mia chiave": creazione (prima volta), sblocco con passphrase, cambio passphrase, blocco. */
@@ -117,7 +118,7 @@ export class KeyDialogComponent {
       this.close();
     } catch (err) {
       console.error('createUserKey', err);
-      this.error.set('error_generic');
+      this.error.set(cryptoErrorCode(err) ?? 'error_generic');
     }
   }
 
