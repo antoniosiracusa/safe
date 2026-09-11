@@ -54,15 +54,17 @@ Poi:
 ```bash
 docker compose --env-file .env -f docker-compose.prod.yml run --rm --no-deps api \
   python manage.py bootstrap_company --name "Società X S.p.A." --slug societax \
-  --admin-email admin@societax.it --admin-first-name Nome --admin-last-name Cognome
+  --admin-email admin@societax.it --admin-first-name Nome --admin-last-name Cognome --invite
 docker compose --env-file .env -f docker-compose.prod.yml run --rm --no-deps api \
   python manage.py load_istat_boundaries --year 2025 \
   --url https://www.istat.it/storage/cartografia/confini_amministrativi/generalizzati/2025/Limiti01012025_g.zip
 ```
 
-L'amministratore va creato anche in Keycloak con la stessa email: dalla console
-`https://auth.DOMINIO/admin/` (utente `KEYCLOAK_ADMIN`), oppure invitandolo da un altro
-amministratore già attivo. Al primo login OIDC l'utente `invited` diventa `active`.
+Con `--invite` l'amministratore viene creato anche in Keycloak e riceve l'email di attivazione
+(password + MFA); in alternativa crearlo dalla console `https://auth.DOMINIO/admin/` (utente
+`KEYCLOAK_ADMIN`) con la stessa email. Al primo login OIDC l'utente `invited` diventa `active`.
+Il primo amministratore ha anche il ruolo "Custode chiavi / DPO": è lui a inizializzare la chiave
+della società (Gestione → Chiavi di cifratura) e a conservare le 24 parole di recupero.
 
 ## Aggiornamento
 

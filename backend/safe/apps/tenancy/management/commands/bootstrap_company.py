@@ -1,9 +1,11 @@
 """Crea una società con il suo primo amministratore (stato invitato: si attiva al primo login OIDC).
 
     python manage.py bootstrap_company --name "Val Fiorentina S.p.A." --slug valfiorentina \
-        --admin-email admin@example.it --admin-first-name Mario --admin-last-name Rossi
+        --admin-email admin@example.it --admin-first-name Mario --admin-last-name Rossi --invite
 
-Non gestisce password: l'utente deve esistere (o essere invitato, M6) in Keycloak con la stessa email.
+Il primo amministratore riceve anche il ruolo `key_custodian` (crypto.manage_keys/recovery): senza un
+custode nessuno potrebbe inizializzare la chiave della società. Con `--invite` crea l'utente in Keycloak
+e invia l'email di attivazione (password + MFA), come farebbe l'invito dall'interfaccia.
 """
 
 from __future__ import annotations
@@ -29,6 +31,8 @@ class Command(BaseCommand):
         parser.add_argument("--team", default="Squadra soccorso", help="Nome della prima squadra")
         parser.add_argument("--timezone", default="Europe/Rome")
         parser.add_argument("--tenant-type", default="company", choices=["company", "authority"])
+        parser.add_argument("--no-custodian", action="store_true", help="Non assegna il ruolo custode chiavi")
+        parser.add_argument("--invite", action="store_true", help="Crea l'utente in Keycloak e invia l'email")
 
     def handle(self, *args, **options) -> None:  # noqa: ANN002, ANN003
         with bypass_tenant():
@@ -55,9 +59,18 @@ class Command(BaseCommand):
             UserTeam.objects.get_or_create(user=user, team=team, defaults={"is_default": True})
             admin_role = Role.objects.get(code="company_admin", company=None)
             UserRole.objects.get_or_create(user=user, role=admin_role)
+            if not options["no_custodian"]:
+                custodian_role = Role.objects.get(code="key_custodian", company=None)
+                UserRole.objects.get_or_create(user=user, role=custodian_role)
+            roles = sorted(UserRole.objects.filter(user=user).values_list("role__code", flat=True))
+            if options["invite"]:
+                from safe.apps.org.views import send_invite
+
+                send_invite(user)
         self.stdout.write(
             self.style.SUCCESS(
                 f"Società {'creata' if created else 'esistente'}: {company.name} ({company.id}); "
-                f"amministratore {'creato' if user_created else 'esistente'}: {user.email}"
+                f"amministratore {'creato' if user_created else 'esistente'}: {user.email} "
+                f"(ruoli: {', '.join(roles)})" + ("; invito inviato" if options["invite"] else "")
             )
         )
