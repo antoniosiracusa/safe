@@ -23,6 +23,9 @@ cat > generated/app-config.json <<JSON
 }
 JSON
 
-python3 render_realm.py ../infra/keycloak/realm-safe.json generated/realm-safe.json
+# realm di base: nel repository (../infra) oppure nel clone dei sorgenti sul server (/opt/safe-src)
+REALM_SRC=${REALM_SRC:-$(ls ../infra/keycloak/realm-safe.json /opt/safe-src/infra/keycloak/realm-safe.json 2>/dev/null | head -1)}
+[ -f "$REALM_SRC" ] || { echo "realm di base non trovato (REALM_SRC)"; exit 1; }
+python3 render_realm.py "$REALM_SRC" generated/realm-safe.json
 
 echo "generati: generated/app-config.json, generated/realm-safe.json"
