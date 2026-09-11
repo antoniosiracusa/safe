@@ -194,12 +194,13 @@ class AdministrativeAreasView(APIView):
         boundaries = [a.boundary for a in SkiArea.objects.filter(boundary__isnull=False)]
         qs = IstatAdminUnit.objects.filter(level__in=["region", "province"]).order_by("level", "name")
         if boundaries:
+            # con i confini dei comprensori: regioni, province e anche i comuni intersecati
             from django.db.models import Q
 
             q = Q()
             for b in boundaries:
                 q |= Q(geom__intersects=b)
-            qs = qs.filter(q)
+            qs = IstatAdminUnit.objects.filter(q).order_by("level", "name")
         return Response(
             {
                 "loaded": True,

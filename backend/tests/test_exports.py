@@ -12,7 +12,7 @@ from safe.apps.org.models import Team
 from safe.apps.rescue import services
 from safe.apps.rescue.models import Event, PersonEvacuationMean
 from safe.apps.tenancy.context import tenant_context
-from safe.apps.territory.models import IstatAdminUnit
+from safe.apps.territory.models import IstatAdminUnit, SkiArea
 
 from . import factories as f
 from .conftest import auth, create_user
@@ -174,7 +174,7 @@ def test_regional_export_a01_rows(as_admin, dataset):
     assert last[5] == 1 and last[6] == 1 and last[16] == 1 and last[26] == 1 and last[29] is None
 
 
-def test_regional_export_xls_and_area_filter(as_admin, dataset):
+def test_regional_export_xls_and_area_filter(as_admin, dataset, company):
     IstatAdminUnit.objects.create(
         level="province",
         code="025",
@@ -191,6 +191,27 @@ def test_regional_export_xls_and_area_filter(as_admin, dataset):
     )
     areas = as_admin.get("/api/v1/exports/administrative-areas").json()
     assert areas["loaded"] is True and sorted(a["code"] for a in areas["areas"]) == ["025", "999"]
+    # con il confine del comprensorio compaiono solo le aree intersecate, comuni inclusi
+    IstatAdminUnit.objects.create(
+        level="municipality",
+        code="025059",
+        name="Val di Zoldo",
+        edition_year=2025,
+        geom=MultiPolygon(
+            Polygon(((12.05, 46.42), (12.15, 46.42), (12.15, 46.48), (12.05, 46.48), (12.05, 46.42)))
+        ),
+    )
+    with tenant_context(company.id):
+        area = SkiArea.objects.get(name="Civetta")
+        area.boundary = MultiPolygon(
+            Polygon(((12.08, 46.43), (12.12, 46.43), (12.12, 46.46), (12.08, 46.46), (12.08, 46.43)))
+        )
+        area.save(update_fields=["boundary"])
+    areas = as_admin.get("/api/v1/exports/administrative-areas").json()["areas"]
+    assert [(a["level"], a["name"]) for a in areas] == [
+        ("province", "Belluno"),
+        ("municipality", "Val di Zoldo"),
+    ]
     pv = as_admin.post(
         "/api/v1/exports/regional/preview",
         {"season": "2025/2026", "administrative_area": {"level": "province", "code": "999"}},
