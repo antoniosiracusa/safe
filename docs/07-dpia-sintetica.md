@@ -55,10 +55,10 @@ su larga scala e con geolocalizzazione, di interessati vulnerabili (minori, pers
 | Operatori (personale) nominati nel rapporto | bassa | alta | dato di personale interno, base giuridica contrattuale; visibile solo nel PDF |
 | Fornitore con accesso a DB | media | bassa | E2E encryption; accesso amministrativo tracciato; contratto art. 28 |
 
-## 5. Procedura di recupero chiavi (sintesi; runbook completo in M7)
+## 5. Procedura di recupero chiavi (sintesi; procedura operativa in [runbook-M7.md](runbook-M7.md))
 
 1. Alla creazione della chiave società il custode ottiene un **codice di recupero** (24 parole BIP39) mostrato una sola volta; il browser cifra la chiave privata con Argon2id(codice) e carica il blob (`company_key_recovery`). Il codice va conservato offline (cassaforte, DPO).
-2. Opzionale: frazionamento Shamir 2-di-3 tra tre custodi.
+2. Opzionale: frazionamento Shamir 2-di-3 tra tre custodi (previsto dal modello dati, non ancora implementato nell'interfaccia).
 3. Recupero (tutti i custodi hanno perso la chiave): un utente con `crypto.recovery` (MFA) apre "Recupero" → inserisce il codice → il browser decifra la chiave privata società → crea la propria grant → invita nuovi custodi → **genera un nuovo kit** (il vecchio viene invalidato) → tutto in audit.
 4. Perdita della passphrase personale: l'utente rigenera la propria coppia; un custode gli ri-concede la grant. Nessun dato perso.
 5. Test della procedura: almeno una volta l'anno, in ambiente di staging con chiave di test.

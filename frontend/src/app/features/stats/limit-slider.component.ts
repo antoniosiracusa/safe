@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, signal, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 
@@ -20,7 +20,7 @@ import { TranslocoDirective } from '@jsverse/transloco';
     output { font-variant-numeric: tabular-nums; color: var(--p-text-color); min-width: 2ch; }
   `,
 })
-export class LimitSliderComponent {
+export class LimitSliderComponent implements OnInit {
   readonly param = input.required<string>();
   readonly labelKey = input.required<string>();
   readonly default = input(20);

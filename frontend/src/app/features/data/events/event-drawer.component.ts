@@ -15,7 +15,9 @@ import { TooltipModule } from 'primeng/tooltip';
 
 import { EventDetail, Person } from '../../../core/api/rescue.models';
 import { RescueService } from '../../../core/api/rescue.service';
+import { ApiService, Paginated } from '../../../core/api/api.service';
 import { CanDirective } from '../../../core/authz/can.directive';
+import { KeyStoreService } from '../../../core/crypto/key-store.service';
 import { LookupLabelPipe } from '../../../core/lookups/lookup-label.pipe';
 import { SessionService } from '../../../core/session/session.service';
 import { PdfButtonComponent } from '../../../shared/ui/pdf-button.component';
@@ -45,6 +47,8 @@ export class EventDrawerComponent {
   readonly created = output<string>();
 
   readonly session = inject(SessionService);
+  readonly keyStore = inject(KeyStoreService);
+  private readonly api = inject(ApiService);
   private readonly rescue = inject(RescueService);
   private readonly confirm = inject(ConfirmationService);
   private readonly messages = inject(MessageService);
@@ -60,6 +64,10 @@ export class EventDrawerComponent {
   readonly unlockDialog = signal(false);
   readonly unlockReason = signal('');
   readonly personDialog = signal<{ person: Person | null } | null>(null);
+  readonly revealed = signal<Record<string, Record<string, string>>>({});
+  readonly revealing = signal<string | null>(null);
+  readonly keyDialog = signal(false);
+  readonly history = signal<{ id: number; created_at: string; action: string; actor: string | null; changed_fields: string[] }[] | null>(null);
 
   readonly canEditThis = computed(() => {
     const ev = this.event();
@@ -80,6 +88,8 @@ export class EventDrawerComponent {
   }
 
   load(id: string): void {
+    this.history.set(null);
+    this.revealed.set({});
     this.loading.set(true);
     this.error.set(null);
     this.rescue.getEvent(id).subscribe({
@@ -188,6 +198,44 @@ export class EventDrawerComponent {
           error: () => this.messages.add({ severity: 'error', summary: this.transloco.translate('common.save_error') }),
         });
       },
+    });
+  }
+
+  async showIdentity(personId: string): Promise<void> {
+    if (!this.keyStore.canDecrypt()) {
+      await this.keyStore.ensureLoaded();
+      this.messages.add({ severity: 'warn', summary: this.transloco.translate(this.keyStore.unlocked() ? 'persons.identity_no_grant' : 'persons.identity_locked_hint') });
+      return;
+    }
+    this.revealing.set(personId);
+    try {
+      const data = await this.keyStore.readIdentity(personId);
+      this.revealed.update((r) => ({ ...r, [personId]: data }));
+    } catch {
+      this.messages.add({ severity: 'error', summary: this.transloco.translate('persons.identity_error') });
+    } finally {
+      this.revealing.set(null);
+    }
+  }
+
+  hideIdentity(personId: string): void {
+    this.revealed.update((r) => {
+      const copy = { ...r };
+      delete copy[personId];
+      return copy;
+    });
+  }
+
+  entries(data: Record<string, string>): [string, string][] {
+    return Object.entries(data);
+  }
+
+  loadHistory(): void {
+    const ev = this.event();
+    if (!ev) return;
+    this.api.get<Paginated<{ id: number; created_at: string; action: string; actor: string | null; changed_fields: string[] }>>('audit-logs', { event: ev.id, page_size: '100' }).subscribe({
+      next: (res) => this.history.set(res.results),
+      error: () => this.history.set([]),
     });
   }
 

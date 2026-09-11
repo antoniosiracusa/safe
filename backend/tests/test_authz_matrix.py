@@ -55,6 +55,16 @@ ROUTES = [
     ("get", "/api/v1/lifts", ("territory.view",)),
     ("get", "/api/v1/lookups/cause", ("lookups.manage",)),
     ("patch", "/api/v1/company", ("company.settings",)),
+    ("get", "/api/v1/company/retention", ("company.retention",)),
+    ("post", "/api/v1/company/retention/run", ("company.retention",)),
+    ("post", "/api/v1/persons/{person}/anonymize", ("company.retention",)),
+    ("get", "/api/v1/crypto/company-key", ("persons.edit",)),
+    ("post", "/api/v1/crypto/company-key", ("crypto.manage_keys",)),
+    ("post", "/api/v1/crypto/company-key/rotate", ("crypto.manage_keys",)),
+    ("get", "/api/v1/crypto/grants", ("crypto.manage_keys",)),
+    ("get", "/api/v1/crypto/recovery", ("crypto.recovery",)),
+    ("get", "/api/v1/audit-logs", ("audit.view",)),
+    ("get", "/api/v1/audit-logs/export", ("audit.view",)),
 ]
 
 

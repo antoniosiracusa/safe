@@ -150,3 +150,67 @@ class CompanyView(APIView):
             )
         company.refresh_from_db()
         return Response(company_payload(company))
+
+
+# --- retention ---------------------------------------------------------------------------------
+
+
+class RetentionPatchSerializer(serializers.Serializer):
+    retention_identity_years = serializers.IntegerField(min_value=1, max_value=30, required=False)
+    retention_audit_years = serializers.IntegerField(min_value=1, max_value=30, required=False)
+
+
+class RetentionView(APIView):
+    permission_classes = [HasPermission]
+    required_permissions = ("company.retention",)
+
+    @extend_schema(tags=["company"], responses={200: {"type": "object"}})
+    def get(self, request: Request) -> Response:
+        from safe.apps.rescue import retention
+
+        return Response(retention.status_for(cast(AppUser, request.user).company))
+
+    @extend_schema(tags=["company"], request=RetentionPatchSerializer, responses={200: {"type": "object"}})
+    def patch(self, request: Request) -> Response:
+        from safe.apps.rescue import retention
+
+        company = cast(AppUser, request.user).company
+        ser = RetentionPatchSerializer(data=request.data, partial=True)
+        ser.is_valid(raise_exception=True)
+        changed = []
+        for f, v in ser.validated_data.items():
+            if getattr(company, f) != v:
+                setattr(company, f, v)
+                changed.append(f)
+        if changed:
+            company.save(update_fields=[*changed, "updated_at"])
+            audit.record(
+                "company.retention", "company", object_id=company.id, request=request, changed_fields=changed
+            )
+        return Response(retention.status_for(company))
+
+
+class RetentionRunView(APIView):
+    """Esegue subito l'anonimizzazione delle persone scadute (job asincrono, esito in audit)."""
+
+    permission_classes = [HasPermission]
+    required_permissions = ("company.retention",)
+
+    @extend_schema(tags=["company"], responses={202: {"type": "object"}})
+    def post(self, request: Request) -> Response:
+        from safe.apps.jobs import runner
+        from safe.apps.jobs.models import AsyncJob
+        from safe.apps.jobs.views import JobSerializer
+
+        me = cast(AppUser, request.user)
+        job = runner.enqueue(
+            company_id=me.company_id, user=me, kind=AsyncJob.Kind.ANONYMIZE, params={"requested": True}
+        )
+        audit.record(
+            "retention.run_requested",
+            "company",
+            object_id=me.company_id,
+            request=request,
+            metadata={"job_id": str(job.id)},
+        )
+        return Response(JobSerializer(job).data, status=202)

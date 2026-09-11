@@ -12,7 +12,9 @@ import { AuthService } from '../../core/auth/auth.service';
 import { AppConfigService } from '../../core/config/app-config';
 import { FilterStore } from '../../core/filters/filter.store';
 import { SessionService } from '../../core/session/session.service';
+import { KeyStoreService } from '../../core/crypto/key-store.service';
 import { FilterBarComponent } from '../filter-bar/filter-bar.component';
+import { KeyDialogComponent } from '../key-dialog/key-dialog.component';
 
 export interface NavItem {
   path: string;
@@ -81,6 +83,7 @@ export const NAV: NavSection[] = [
     SelectModule,
     TooltipModule,
     FilterBarComponent,
+    KeyDialogComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './shell.component.html',
@@ -91,6 +94,8 @@ export class ShellComponent {
   readonly auth = inject(AuthService);
   readonly config = inject(AppConfigService);
   readonly filterStore = inject(FilterStore);
+  readonly keyStore = inject(KeyStoreService);
+  readonly keyDialog = signal(false);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly transloco = inject(TranslocoService);
@@ -145,6 +150,7 @@ export class ShellComponent {
   }
 
   logout(): void {
+    this.keyStore.lock();
     this.auth.logout();
   }
 }

@@ -57,6 +57,8 @@ jobs:
         run: ruff check . && ruff format --check .
       - name: Type check
         run: mypy safe
+      - name: Dependency audit
+        run: pip install pip-audit && pip-audit --progress-spinner off || echo '::warning::pip-audit ha segnalato vulnerabilità'
       - name: Test
         run: pytest --cov=safe --cov-report=xml --cov-report=term-missing
       - uses: actions/upload-artifact@v4
@@ -79,6 +81,7 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
+      - run: npm audit --audit-level=high || echo '::warning::npm audit ha segnalato vulnerabilità'
       - run: npm run lint --if-present
       - run: npm test -- --watch=false --browsers=ChromeHeadless
       - run: npm run build -- --configuration=production

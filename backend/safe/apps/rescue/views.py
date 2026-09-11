@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import base64
+from typing import cast
 
 from django.db.models import Count, Q, QuerySet
 from django.shortcuts import get_object_or_404
@@ -13,6 +14,7 @@ from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 
 from safe.apps.audit import service as audit
 from safe.apps.authz.drf import HasPermission, PermissionDenied
@@ -267,6 +269,7 @@ class PersonViewSet(
         "partial_update": ("persons.edit",),
         "destroy": ("persons.edit",),
         "identity": ("persons.reveal_identity",),
+        "anonymize": ("company.retention",),
     }
     filterset_class = PersonFilterSet
     ordering_fields = ["event__dateandtime", "age", "sequence", "created_at", "updated_at", "valid"]
@@ -313,6 +316,25 @@ class PersonViewSet(
         services.soft_delete(person, request.user, request)
         services.compute_event_validity(person.event)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def get_throttles(self):  # noqa: ANN201
+        if getattr(self, "action", None) == "identity":
+            self.throttle_scope = "identity"
+            return [ScopedRateThrottle()]
+        return super().get_throttles()
+
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
+    @action(detail=True, methods=["post"])
+    def anonymize(self, request: Request, pk=None) -> Response:  # noqa: ANN001
+        """Anonimizzazione anticipata su richiesta dell'interessato (docs/07-dpia §3)."""
+        from . import retention
+
+        person = get_object_or_404(self.get_queryset(), pk=pk)
+        if person.anonymized_at is None:
+            retention.anonymize(
+                person, request=request, reason=str(cast(dict, request.data).get("reason", "request"))[:120]
+            )
+        return Response(PersonSerializer(self.get_queryset().get(pk=person.pk)).data)
 
     @extend_schema(responses={200: OpenApiTypes.OBJECT})
     @action(detail=True, methods=["get"])

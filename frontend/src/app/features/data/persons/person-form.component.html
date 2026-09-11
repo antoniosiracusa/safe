@@ -5,7 +5,34 @@
         <p class="error-box" role="alert">{{ t('errors.' + ge) }}</p>
       }
 
-      <p-message severity="info" icon="pi pi-lock" [text]="t('persons.identity_m7')" styleClass="w-full" />
+      <fieldset class="identity">
+        <legend><i class="pi pi-lock" aria-hidden="true"></i> {{ t('persons.section_identity') }}</legend>
+        @if (!keyStore.canEncrypt()) {
+          <p-message severity="warn" icon="pi pi-exclamation-triangle" [text]="t('persons.identity_no_company_key')" styleClass="w-full" />
+        } @else if (person()?.has_identity && !identityLoaded()) {
+          <p class="hint">
+            <i class="pi pi-lock" aria-hidden="true"></i> {{ t('persons.identity_encrypted') }}
+            @if (keyStore.canDecrypt()) {
+              <p-button [label]="t('persons.identity_show')" [text]="true" size="small" [loading]="identityLoading()" (onClick)="loadIdentity()" />
+            } @else {
+              <span class="muted">{{ keyStore.unlocked() ? t('persons.identity_no_grant') : t('persons.identity_locked_hint') }}</span>
+            }
+            @if (identityError()) { <span class="err">{{ t('persons.identity_error') }}</span> }
+          </p>
+        } @else {
+          <div class="grid" [formGroup]="identity">
+            <div class="field"><label for="pi-firstname">{{ t('identity.firstname') }}</label><input pInputText id="pi-firstname" formControlName="firstname" autocomplete="off" /></div>
+            <div class="field"><label for="pi-surname">{{ t('identity.surname') }}</label><input pInputText id="pi-surname" formControlName="surname" autocomplete="off" /></div>
+            <div class="field"><label for="pi-birth">{{ t('identity.birth_date') }}</label><input pInputText id="pi-birth" formControlName="birth_date" placeholder="gg/mm/aaaa" autocomplete="off" /></div>
+            <div class="field"><label for="pi-phone">{{ t('identity.phone') }}</label><input pInputText id="pi-phone" formControlName="phone" autocomplete="off" /></div>
+            <div class="field"><label for="pi-email">{{ t('identity.email') }}</label><input pInputText id="pi-email" formControlName="email" autocomplete="off" /></div>
+            <div class="field"><label for="pi-address">{{ t('identity.address') }}</label><input pInputText id="pi-address" formControlName="address" autocomplete="off" /></div>
+            <div class="field"><label for="pi-insurance">{{ t('identity.insurance_code') }}</label><input pInputText id="pi-insurance" formControlName="insurance_code" autocomplete="off" /></div>
+            <div class="field"><label for="pi-delivered">{{ t('identity.delivered_to') }}</label><input pInputText id="pi-delivered" formControlName="delivered_to" autocomplete="off" /></div>
+          </div>
+          <small class="hint">{{ t('persons.identity_hint') }}</small>
+        }
+      </fieldset>
 
       <fieldset>
         <legend>{{ t('persons.section_person') }}</legend>

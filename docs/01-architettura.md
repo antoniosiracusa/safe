@@ -210,7 +210,7 @@ attivabile sulla stessa sorgente.
   test di autorizzazione per ogni rotta (generati dalla matrice), benchmark 100k (nightly),
   build immagini, `trivy` sulle immagini, `pip-audit`/`npm audit`.
 
-## 7. Cifratura dei dati identificativi (sintesi; dettaglio nel DPIA e in M7)
+## 7. Cifratura dei dati identificativi (sintesi; dettaglio nel DPIA e in [runbook-M7.md](runbook-M7.md))
 
 ```mermaid
 flowchart TB

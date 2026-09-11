@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
@@ -31,7 +31,7 @@ export const TRISTATE = (t: (k: string) => string) => [
   templateUrl: './event-form.component.html',
   styleUrl: './form.scss',
 })
-export class EventFormComponent {
+export class EventFormComponent implements OnInit {
   readonly event = input<EventDetail | null>(null);
   readonly saved = output<EventDetail>();
   readonly cancelled = output<void>();

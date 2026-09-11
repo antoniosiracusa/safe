@@ -14,8 +14,20 @@ import { firstValueFrom } from 'rxjs';
 import { CompanyInfo, DUP_RULE_FIELDS, EVENT_RULE_FIELDS, PERSON_RULE_FIELDS } from '../../core/api/admin.models';
 import { AdminService } from '../../core/api/admin.service';
 import { errorMessage } from '../../core/api/errors';
+import { DatePipe } from '@angular/common';
 import { CanDirective } from '../../core/authz/can.directive';
+import { ApiService } from '../../core/api/api.service';
+import { AsyncJob, JobsService } from '../../core/api/jobs.service';
 import { SessionService } from '../../core/session/session.service';
+
+interface RetentionStatus {
+  retention_identity_years: number;
+  retention_audit_years: number;
+  identity_cutoff: string;
+  persons_due: number;
+  persons_anonymized_total: number;
+  last_run: { at: string; persons_anonymized: number; audit_rows_purged: number } | null;
+}
 
 interface SettingsForm {
   name: string;
@@ -31,7 +43,7 @@ interface SettingsForm {
 
 @Component({
   selector: 'safe-admin-settings',
-  imports: [FormsModule, TranslocoDirective, ButtonModule, CheckboxModule, InputNumberModule, InputTextModule, MultiSelectModule, SelectButtonModule, ToastModule, CanDirective],
+  imports: [DatePipe, FormsModule, TranslocoDirective, ButtonModule, CheckboxModule, InputNumberModule, InputTextModule, MultiSelectModule, SelectButtonModule, ToastModule, CanDirective],
   providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './admin-page.scss',
@@ -52,7 +64,7 @@ interface SettingsForm {
                 <label for="st-locale">{{ t('admin.default_locale') }}</label>
                 <p-selectButton inputId="st-locale" [options]="localeOptions" optionLabel="label" optionValue="value" [ngModel]="f.default_locale" (ngModelChange)="patch({ default_locale: $event })" [allowEmpty]="false" />
               </div>
-              <div class="field"><label>{{ t('admin.slug') }}</label><code>{{ company()?.slug }}</code> <span class="muted">{{ company()?.tenant_type }}</span></div>
+              <div class="field"><span class="lbl">{{ t('admin.slug') }}</span><code>{{ company()?.slug }}</code> <span class="muted">{{ company()?.tenant_type }}</span></div>
             </div>
           </section>
           <section class="card">
@@ -64,7 +76,7 @@ interface SettingsForm {
                 <small class="muted">{{ t('admin.auto_lock_hint') }}</small>
               </div>
               <div class="field">
-                <label>&nbsp;</label>
+                <span class="lbl">&nbsp;</span>
                 <div class="check">
                   <p-checkbox inputId="st-dev" [binary]="true" [ngModel]="f.devices_need_authorization" (ngModelChange)="patch({ devices_need_authorization: $event })" />
                   <label for="st-dev">{{ t('admin.devices_need_authorization') }}</label>
@@ -89,6 +101,30 @@ interface SettingsForm {
             </div>
             <p class="muted" style="margin-top: 0.75rem">{{ t('admin.validity_hint') }}</p>
           </section>
+          <ng-container *safeCan="'company.retention'; mode: 'hide'">
+            <section class="card">
+              <h2>{{ t('retention.title') }}</h2>
+              <p class="muted">{{ t('retention.intro') }}</p>
+              @if (retention(); as r) {
+                <div class="dialog-form" style="min-width: 0">
+                  <div class="field">
+                    <label for="rt-id">{{ t('retention.identity_years') }}</label>
+                    <p-inputNumber inputId="rt-id" [ngModel]="r.retention_identity_years" (ngModelChange)="patchRetention({ retention_identity_years: $event })" [min]="1" [max]="30" [suffix]="' ' + t('retention.years')" styleClass="w-full" />
+                  </div>
+                  <div class="field">
+                    <label for="rt-au">{{ t('retention.audit_years') }}</label>
+                    <p-inputNumber inputId="rt-au" [ngModel]="r.retention_audit_years" (ngModelChange)="patchRetention({ retention_audit_years: $event })" [min]="1" [max]="30" [suffix]="' ' + t('retention.years')" styleClass="w-full" />
+                  </div>
+                  <div class="field"><span class="lbl">{{ t('retention.due') }}</span><b>{{ r.persons_due }}</b> <span class="muted">{{ t('retention.due_hint', { date: (r.identity_cutoff | date: 'dd/MM/yyyy') }) }}</span></div>
+                  <div class="field"><span class="lbl">{{ t('retention.last_run') }}</span>@if (r.last_run) { {{ r.last_run.at | date: 'dd/MM/yyyy HH:mm' }} · {{ r.last_run.persons_anonymized }} {{ t('retention.anonymized') }} } @else { — } <span class="muted">({{ r.persons_anonymized_total }} {{ t('retention.total_anonymized') }})</span></div>
+                </div>
+                <div class="actions" style="display: flex; gap: 0.5rem; margin-top: 0.75rem">
+                  <p-button [label]="t('retention.save')" icon="pi pi-check" [outlined]="true" [loading]="retentionBusy() === 'save'" (onClick)="saveRetention()" />
+                  <p-button [label]="t('retention.run_now')" icon="pi pi-play" severity="warn" [outlined]="true" [loading]="retentionBusy() === 'run'" [disabled]="!r.persons_due" (onClick)="runRetention()" />
+                </div>
+              }
+            </section>
+          </ng-container>
           <div class="dialog-actions" style="justify-content: flex-start">
             <p-button [label]="t('common.save')" icon="pi pi-check" [loading]="saving()" (onClick)="save()" />
             <p-button [label]="t('common.cancel')" severity="secondary" [text]="true" (onClick)="reset()" />
@@ -104,6 +140,10 @@ export class SettingsPageComponent {
   private readonly messages = inject(MessageService);
   private readonly transloco = inject(TranslocoService);
 
+  private readonly api = inject(ApiService);
+  private readonly jobs = inject(JobsService);
+  readonly retention = signal<RetentionStatus | null>(null);
+  readonly retentionBusy = signal<string | null>(null);
   readonly company = signal<CompanyInfo | null>(null);
   readonly form = signal<SettingsForm | null>(null);
   readonly saving = signal(false);
@@ -119,6 +159,49 @@ export class SettingsPageComponent {
 
   constructor() {
     void this.load();
+    if (this.session.can('company.retention')) void this.loadRetention();
+  }
+
+  async loadRetention(): Promise<void> {
+    try {
+      this.retention.set(await firstValueFrom(this.api.get<RetentionStatus>('company/retention')));
+    } catch {
+      this.retention.set(null);
+    }
+  }
+
+  patchRetention(p: Partial<RetentionStatus>): void {
+    const r = this.retention();
+    if (r) this.retention.set({ ...r, ...p });
+  }
+
+  async saveRetention(): Promise<void> {
+    const r = this.retention();
+    if (!r) return;
+    this.retentionBusy.set('save');
+    try {
+      this.retention.set(await firstValueFrom(this.api.patch<RetentionStatus>('company/retention', { retention_identity_years: r.retention_identity_years, retention_audit_years: r.retention_audit_years })));
+      this.messages.add({ severity: 'success', summary: this.transloco.translate('admin.saved') });
+    } catch (err) {
+      this.messages.add({ severity: 'error', summary: errorMessage(err, this.transloco.translate('common.save_error')) });
+    } finally {
+      this.retentionBusy.set(null);
+    }
+  }
+
+  async runRetention(): Promise<void> {
+    this.retentionBusy.set('run');
+    try {
+      const job = await firstValueFrom(this.api.post<AsyncJob>('company/retention/run', {}));
+      const done = await this.jobs.waitFor(job);
+      const n = (done.result as { persons_anonymized?: number } | null)?.persons_anonymized ?? 0;
+      this.messages.add({ severity: 'success', summary: this.transloco.translate('retention.run_done', { n }) });
+      await this.loadRetention();
+    } catch (err) {
+      this.messages.add({ severity: 'error', summary: errorMessage(err, this.transloco.translate('common.save_error')) });
+    } finally {
+      this.retentionBusy.set(null);
+    }
   }
 
   private fieldLabel(f: string): string {

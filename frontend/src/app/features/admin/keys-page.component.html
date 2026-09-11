@@ -1,0 +1,98 @@
+<ng-container *transloco="let t">
+  <p-toast />
+  <p-confirmDialog />
+  <div class="page-head">
+    <h1>{{ t('nav.keys') }}</h1>
+    <div class="head-actions">
+      <p-button [label]="store.unlocked() ? t('keys.my_key_unlocked') : t('keys.my_key')" [icon]="store.unlocked() ? 'pi pi-lock-open' : 'pi pi-lock'" [outlined]="true" size="small" (onClick)="keyDialog.set(true)" />
+    </div>
+  </div>
+  <p class="intro">{{ t('keys.intro') }}</p>
+
+  <ng-container *safeCan="'crypto.manage_keys'">
+    @if (error(); as e) { <p class="error-box" role="alert">{{ e }}</p> }
+
+    <section class="card">
+      <h2>{{ t('keys.company_key') }}</h2>
+      @if (data()?.key; as k) {
+        <p>
+          <p-tag [value]="'v' + k.version" severity="success" /> {{ t('keys.active_since', { date: (k.created_at | date: 'dd/MM/yyyy HH:mm') }) }}
+          @if (k.created_by) { <span class="muted">· {{ k.created_by }}</span> }
+        </p>
+        @if (progress(); as p) {
+          <p>{{ t('keys.rewrapping', { done: p.done, total: p.total }) }}</p>
+          <p-progressBar [value]="percent(p)" />
+        }
+        <div class="actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem">
+          <p-button [label]="t('keys.rotate')" icon="pi pi-refresh" [outlined]="true" [loading]="busy() === 'rotate'" (onClick)="rotate()" />
+          <ng-container *safeCan="'crypto.recovery'; mode: 'hide'">
+            <p-button [label]="t('keys.recover')" icon="pi pi-life-ring" [outlined]="true" severity="warn" (onClick)="recoveryDialog.set(true)" />
+          </ng-container>
+        </div>
+        <p class="muted" style="margin-top: 0.75rem">{{ store.activeCompanyKeyPair() ? t('keys.self_ok') : (store.unlocked() ? t('keys.self_no_grant') : t('keys.self_locked')) }}</p>
+      } @else if (!loading()) {
+        <p>{{ t('keys.not_initialized') }}</p>
+        <p-button [label]="t('keys.init')" icon="pi pi-key" [loading]="busy() === 'init'" (onClick)="init()" />
+      }
+    </section>
+
+    @if (data()?.key) {
+      <section class="card">
+        <h2>{{ t('keys.custodians') }}</h2>
+        <p-table [value]="data()?.grants ?? []" styleClass="p-datatable-sm">
+          <ng-template #header>
+            <tr><th>{{ t('admin.user') }}</th><th>{{ t('keys.granted_by') }}</th><th>{{ t('keys.granted_at') }}</th><th></th></tr>
+          </ng-template>
+          <ng-template #body let-g>
+            <tr>
+              <td><b>{{ g.user.name || g.user.email }}</b><div class="muted">{{ g.user.email }}</div></td>
+              <td>{{ g.granted_by || '—' }}</td>
+              <td>{{ g.created_at | date: 'dd/MM/yyyy HH:mm' }}</td>
+              <td class="actions-cell">
+                <p-button icon="pi pi-ban" [text]="true" size="small" severity="danger" (onClick)="revoke(g)" [pTooltip]="t('keys.revoke')" tooltipPosition="left" [disabled]="(data()?.grants?.length ?? 0) <= 1" />
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+        <div class="toolbar" style="margin-top: 0.75rem; align-items: flex-end">
+          <div class="field" style="min-width: 20rem">
+            <label for="ky-grant">{{ t('keys.grant_to') }}</label>
+            <p-select inputId="ky-grant" [options]="data()?.candidates ?? []" optionLabel="email" optionValue="id" [ngModel]="grantTo()" (ngModelChange)="grantTo.set($event)" [placeholder]="t('keys.grant_placeholder')" [showClear]="true" appendTo="body" styleClass="w-full" />
+          </div>
+          <p-button [label]="t('keys.grant')" icon="pi pi-user-plus" [disabled]="!grantTo()" [loading]="busy() === 'grant'" (onClick)="grant()" />
+          <span class="muted">{{ t('keys.grant_hint') }}</span>
+        </div>
+      </section>
+    }
+  </ng-container>
+
+  <safe-key-dialog [visible]="keyDialog()" (closed)="keyDialog.set(false); reload()" />
+
+  @if (words(); as w) {
+    <p-dialog [visible]="true" (visibleChange)="wordsConfirmed() ? words.set(null) : null" [modal]="true" [header]="wordsTitle()" [style]="{ width: 'min(640px, 96vw)' }" [closable]="wordsConfirmed()" [dismissableMask]="false">
+      <p class="warn" style="color: var(--p-amber-900); background: var(--p-amber-50); border: 1px solid var(--p-amber-200); padding: 0.5rem 0.75rem; border-radius: 6px">{{ t('keys.words_warning') }}</p>
+      <ol class="words" style="columns: 3; font-family: ui-monospace, monospace; font-size: 1rem; padding-left: 2rem">
+        @for (word of w; track $index) { <li>{{ word }}</li> }
+      </ol>
+      <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.75rem">
+        <p-button [label]="t('keys.copy')" icon="pi pi-copy" [text]="true" size="small" (onClick)="copyWords()" />
+      </div>
+      <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.75rem">
+        <p-checkbox inputId="ky-confirm" [binary]="true" [ngModel]="wordsConfirmed()" (ngModelChange)="wordsConfirmed.set($event)" />
+        <label for="ky-confirm">{{ t('keys.words_confirm') }}</label>
+      </div>
+      <div class="dialog-actions">
+        <p-button [label]="t('keys.words_close')" icon="pi pi-check" [disabled]="!wordsConfirmed()" (onClick)="words.set(null)" />
+      </div>
+    </p-dialog>
+  }
+
+  <p-dialog [visible]="recoveryDialog()" (visibleChange)="recoveryDialog.set($event)" [modal]="true" [header]="t('keys.recover')" [style]="{ width: 'min(560px, 96vw)' }">
+    <p>{{ t('keys.recover_intro') }}</p>
+    <textarea pTextarea rows="4" class="w-full" [ngModel]="recoveryInput()" (ngModelChange)="recoveryInput.set($event)" [placeholder]="t('keys.recover_placeholder')" autocomplete="off" spellcheck="false"></textarea>
+    <div class="dialog-actions">
+      <p-button [label]="t('common.cancel')" [text]="true" severity="secondary" (onClick)="recoveryDialog.set(false)" />
+      <p-button [label]="t('keys.recover')" icon="pi pi-life-ring" severity="warn" [loading]="busy() === 'recover'" [disabled]="!recoveryInput().trim()" (onClick)="recover()" />
+    </div>
+  </p-dialog>
+</ng-container>

@@ -42,3 +42,6 @@ infra/tiles/data/*.mbtiles
 
 # Celery beat (schedule locale del container)
 backend/celerybeat-schedule*
+
+# bundle libsodium generato (npm run vendor:sodium)
+frontend/public/vendor/

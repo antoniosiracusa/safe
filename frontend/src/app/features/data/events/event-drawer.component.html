@@ -128,14 +128,39 @@
                   <dd>@for (m of means(p); track m; let last = $last) { {{ m | lookup: 'evacuation_mean' }}@if (!last) { → } } @if (!means(p).length) { — }</dd>
                   <dt>{{ t('fields.destination') }}</dt><dd>{{ p.destination | lookup: 'destination' }}</dd>
                   <dt>{{ t('fields.identity') }}</dt>
-                  <dd>@if (p.has_identity) { <i class="pi pi-lock" aria-hidden="true"></i> {{ t('persons.identity_encrypted') }} } @else { <span class="muted">{{ t('persons.identity_missing') }}</span> }</dd>
+                  <dd>
+                    @if (p.anonymized_at) {
+                      <span class="muted">{{ t('persons.anonymized', { date: (p.anonymized_at | date: 'dd/MM/yyyy') }) }}</span>
+                    } @else if (p.has_identity) {
+                      @if (revealed()[p.id]; as data) {
+                        <span class="identity-values">@for (e of entries(data); track e[0]) { <span><b>{{ t('identity.' + e[0]) }}:</b> {{ e[1] }}</span> }</span>
+                        <p-button icon="pi pi-eye-slash" [text]="true" size="small" (onClick)="hideIdentity(p.id)" [attr.aria-label]="t('persons.identity_hide')" />
+                      } @else {
+                        <i class="pi pi-lock" aria-hidden="true"></i> {{ t('persons.identity_encrypted') }}
+                        @if (session.can('persons.reveal_identity')) {
+                          <p-button [label]="t('persons.identity_show')" icon="pi pi-eye" [text]="true" size="small" [loading]="revealing() === p.id" (onClick)="showIdentity(p.id)" />
+                        }
+                      }
+                    } @else { <span class="muted">{{ t('persons.identity_missing') }}</span> }
+                  </dd>
                 </dl>
               </article>
             }
           </p-tabpanel>
 
           <p-tabpanel value="history">
-            <p class="empty-inline">{{ t('placeholder.coming', { milestone: 'M7' }) }}</p>
+            @if (history(); as h) {
+              @if (!h.length) { <p class="empty-inline">{{ t('events.history_empty') }}</p> }
+              <ul class="history">
+                @for (r of h; track r.id) {
+                  <li><span class="when">{{ r.created_at | date: 'dd/MM/yyyy HH:mm' }}</span> <code>{{ r.action }}</code> <span class="muted">{{ r.actor || '' }}</span> @if (r.changed_fields?.length) { <span class="muted">· {{ r.changed_fields.join(', ') }}</span> }</li>
+                }
+              </ul>
+            } @else if (session.can('audit.view')) {
+              <p-button [label]="t('events.history_load')" [text]="true" size="small" (onClick)="loadHistory()" />
+            } @else {
+              <p class="empty-inline">{{ t('events.history_no_permission') }}</p>
+            }
             @if (ev.unlock_count) {
               <p class="muted">{{ t('events.unlock_count', { n: ev.unlock_count }) }}</p>
             }

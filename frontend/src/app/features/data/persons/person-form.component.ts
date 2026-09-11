@@ -13,6 +13,7 @@ import { TextareaModule } from 'primeng/textarea';
 
 import { Person, PersonWrite } from '../../../core/api/rescue.models';
 import { RescueService } from '../../../core/api/rescue.service';
+import { KeyStoreService } from '../../../core/crypto/key-store.service';
 import { LookupsService } from '../../../core/lookups/lookups.service';
 
 /** Dialogo di creazione/modifica persona: solo dati pseudonimizzati. I dati identificativi
@@ -31,6 +32,7 @@ export class PersonFormComponent implements OnInit {
   readonly cancelled = output<void>();
 
   readonly lookups = inject(LookupsService);
+  readonly keyStore = inject(KeyStoreService);
   private readonly rescue = inject(RescueService);
   private readonly fb = inject(FormBuilder);
 
@@ -39,6 +41,14 @@ export class PersonFormComponent implements OnInit {
   readonly serverErrors = signal<Record<string, string[]>>({});
   readonly generalError = signal<string | null>(null);
   readonly means = signal<(string | null)[]>([null]);
+  readonly identityLoaded = signal(false);
+  readonly identityLoading = signal(false);
+  readonly identityError = signal(false);
+
+  /** Dati identificativi: cifrati nel browser prima dell'invio, mai in chiaro verso il server. */
+  readonly identity = this.fb.nonNullable.group({
+    firstname: '', surname: '', birth_date: '', phone: '', email: '', address: '', insurance_code: '', delivered_to: '',
+  });
 
   readonly form = this.fb.nonNullable.group({
     age: this.fb.control<number | null>(null, [Validators.min(0), Validators.max(120)]),
@@ -75,6 +85,7 @@ export class PersonFormComponent implements OnInit {
 
   constructor() {
     void this.lookups.load();
+    void this.keyStore.ensureLoaded();
     this.form.controls.gravest_injury.valueChanges.subscribe((code) => {
       const part = this.lookups.items('body_part').find((b) => b.code === code);
       if (part?.parent) this.form.controls.injury_place.setValue(part.parent);
@@ -116,6 +127,35 @@ export class PersonFormComponent implements OnInit {
     });
     const sorted = [...p.evacuation_means].sort((a, b) => a.order - b.order).map((m) => m.mean);
     this.means.set(sorted.length ? sorted : [null]);
+  }
+
+  async loadIdentity(): Promise<void> {
+    const p = this.person();
+    if (!p) return;
+    this.identityLoading.set(true);
+    this.identityError.set(false);
+    try {
+      const data = await this.keyStore.readIdentity(p.id);
+      this.identity.patchValue(data);
+      this.identity.markAsPristine();
+      this.identityLoaded.set(true);
+    } catch {
+      this.identityError.set(true);
+    } finally {
+      this.identityLoading.set(false);
+    }
+  }
+
+  /** null = nessuna modifica ai dati cifrati; {pii: null} = cancellati; {pii: blob} = nuovi/aggiornati. */
+  private async identityPayload(): Promise<{ pii: PersonWrite['pii'] } | null> {
+    const p = this.person();
+    const values = this.identity.getRawValue();
+    const hasValues = Object.values(values).some((v) => v && v.trim());
+    if (p?.has_identity && !this.identityLoaded()) return null; // cifrati e non toccati
+    if (!hasValues) return p?.has_identity ? { pii: null } : null;
+    if (!this.identity.dirty && this.identityLoaded()) return null;
+    const pii = await this.keyStore.encryptIdentity(values);
+    return pii ? { pii } : null;
   }
 
   setMean(i: number, value: string | null): void {
@@ -171,7 +211,7 @@ export class PersonFormComponent implements OnInit {
     };
   }
 
-  submit(): void {
+  async submit(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -180,7 +220,16 @@ export class PersonFormComponent implements OnInit {
     this.serverErrors.set({});
     this.generalError.set(null);
     const p = this.person();
-    const req = p ? this.rescue.updatePerson(p.id, this.payload()) : this.rescue.addPerson(this.eventId(), this.payload());
+    let body: PersonWrite = this.payload();
+    try {
+      const extra = await this.identityPayload();
+      if (extra) body = { ...body, ...extra };
+    } catch {
+      this.saving.set(false);
+      this.generalError.set('encrypt_error');
+      return;
+    }
+    const req = p ? this.rescue.updatePerson(p.id, body) : this.rescue.addPerson(this.eventId(), body);
     req.subscribe({
       next: (res) => {
         this.saving.set(false);

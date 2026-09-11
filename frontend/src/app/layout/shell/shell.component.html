@@ -17,17 +17,19 @@
 
     <div class="spacer"></div>
 
-    <span
+    <button
+      type="button"
       class="key-state"
-      [class.granted]="keyState() === 'granted'"
-      [pTooltip]="t('shell.key_' + keyState())"
+      [class.granted]="keyStore.canDecrypt()"
+      [class.unlocked]="keyStore.unlocked()"
+      [pTooltip]="keyStore.unlocked() ? t('shell.key_unlocked') : t('shell.key_' + keyState())"
       tooltipPosition="bottom"
-      tabindex="0"
-      role="status"
+      (click)="keyDialog.set(true)"
     >
-      <i [class]="keyState() === 'granted' ? 'pi pi-lock-open' : 'pi pi-lock'" aria-hidden="true"></i>
+      <i [class]="keyStore.unlocked() ? 'pi pi-lock-open' : 'pi pi-lock'" aria-hidden="true"></i>
       <span class="sr-only">{{ t('shell.key_' + keyState()) }}</span>
-    </span>
+    </button>
+    <safe-key-dialog [visible]="keyDialog()" (closed)="keyDialog.set(false)" />
 
     <p-select
       class="lang"

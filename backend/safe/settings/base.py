@@ -53,6 +53,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "safe.apps.core.middleware.SecurityHeadersMiddleware",
     "safe.apps.tenancy.middleware.TenantMiddleware",
 ]
 
@@ -99,6 +100,7 @@ CELERY_TIMEZONE = "UTC"
 CELERY_BEAT_SCHEDULE = {
     "auto-lock-events": {"task": "safe.apps.rescue.auto_lock_events", "schedule": 900.0},
     "cleanup-expired-jobs": {"task": "safe.apps.jobs.cleanup_expired", "schedule": 86400.0},
+    "retention-run": {"task": "safe.apps.rescue.retention_run", "schedule": 86400.0},
 }
 CHANNEL_LAYERS = {
     "default": {"BACKEND": "channels_redis.core.RedisChannelLayer", "CONFIG": {"hosts": [REDIS_URL]}}
@@ -117,7 +119,14 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
     "EXCEPTION_HANDLER": "safe.apps.core.exceptions.exception_handler",
-    "DEFAULT_THROTTLE_RATES": {"anon": "60/min", "user": "600/min"},
+    "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.UserRateThrottle"],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "60/min",
+        "user": "600/min",
+        "identity": "30/min",
+        "recovery": "5/hour",
+        "invite": "30/hour",
+    },
 }
 
 SPECTACULAR_SETTINGS = {

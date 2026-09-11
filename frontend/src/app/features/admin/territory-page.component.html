@@ -20,7 +20,7 @@
         </div>
         <ul>
           @for (a of areas(); track a.id) {
-            <li [class.selected]="a.id === selectedArea()" [class.inactive]="!a.is_active" (click)="selectArea(a.id)">
+            <li [class.selected]="a.id === selectedArea()" [class.inactive]="!a.is_active" (click)="selectArea(a.id)" (keydown.enter)="selectArea(a.id)" tabindex="0" role="button">
               <span class="name">{{ a.name }} @if (a.regional_code) { <span class="muted">({{ a.regional_code }})</span> }</span>
               <span class="badge">{{ a.zones_count }} {{ t('admin.zones_short') }}</span>
               @if (a.has_boundary) { <i class="pi pi-map" [pTooltip]="t('admin.has_boundary')"></i> }
@@ -45,7 +45,7 @@
           </div>
           <ul>
             @for (z of areaZones(); track z.id) {
-              <li [class.selected]="z.id === selectedZone()" [class.inactive]="!z.is_active" (click)="selectedZone.set(z.id)">
+              <li [class.selected]="z.id === selectedZone()" [class.inactive]="!z.is_active" (click)="selectedZone.set(z.id)" (keydown.enter)="selectedZone.set(z.id)" tabindex="0" role="button">
                 <span class="name">{{ z.name }}</span>
                 <span class="badge">{{ z.slopes_count }} {{ t('admin.slopes_short') }}</span>
                 <ng-container *safeCan="'territory.manage'; mode: 'hide'">

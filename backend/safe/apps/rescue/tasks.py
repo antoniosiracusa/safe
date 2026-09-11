@@ -25,3 +25,39 @@ def recompute_validity(company_id: str) -> int:
             services.compute_event_validity(ev)
             n += 1
     return n
+
+
+@shared_task(name="safe.apps.rescue.retention_run")
+def retention_run() -> dict[str, int]:
+    """Anonimizzazione periodica (beat, giornaliera) per tutte le società attive."""
+    from safe.apps.tenancy.models import Company
+
+    from . import retention
+
+    totals = {"persons_anonymized": 0, "audit_rows_purged": 0}
+    with bypass_tenant():
+        companies = list(Company.objects.filter(is_active=True))
+    for company in companies:
+        with tenant_context(company.id):
+            res = retention.run_for_company(company)
+        for k in totals:
+            totals[k] += res[k]
+    return totals
+
+
+def _register_anonymize_job() -> None:
+    import json
+
+    from safe.apps.jobs.models import AsyncJob
+    from safe.apps.jobs.runner import JobResult, register
+
+    @register(AsyncJob.Kind.ANONYMIZE)
+    def anonymize_job(job: AsyncJob) -> JobResult:
+        from . import retention
+
+        res = retention.run_for_company(job.company, actor=job.requested_by)
+        data = json.dumps(res).encode()
+        return JobResult(data=data, filename="retention-run.json", mime="application/json", extra=res)
+
+
+_register_anonymize_job()

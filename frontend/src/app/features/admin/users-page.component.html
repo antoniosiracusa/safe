@@ -100,7 +100,7 @@
           <p-selectButton inputId="ud-locale" [options]="localeOptions" optionLabel="label" optionValue="value" [ngModel]="d.locale" (ngModelChange)="patchDialog({ locale: $event })" [allowEmpty]="false" [disabled]="!!d.id && !session.can('users.manage')" />
         </div>
         <div class="field">
-          <label>&nbsp;</label>
+          <span class="lbl">&nbsp;</span>
           <div class="check">
             <p-checkbox inputId="ud-mfa" [binary]="true" [ngModel]="d.mfa_required" (ngModelChange)="patchDialog({ mfa_required: $event })" [disabled]="!!d.id && !session.can('users.manage')" />
             <label for="ud-mfa">{{ t('admin.mfa_required') }}</label>

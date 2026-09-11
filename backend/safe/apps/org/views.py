@@ -15,6 +15,7 @@ from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from safe.apps.audit import service as audit
@@ -134,6 +135,12 @@ class UserViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Gen
 
     def _fresh(self, user: AppUser) -> Response:
         return Response(UserSerializer(user_queryset().get(pk=user.pk)).data)
+
+    def get_throttles(self):  # noqa: ANN201
+        if getattr(self, "action", None) in ("invite", "resend_invite"):
+            self.throttle_scope = "invite"
+            return [ScopedRateThrottle()]
+        return super().get_throttles()
 
     @extend_schema(request=InviteSerializer, responses={201: UserSerializer})
     @action(detail=False, methods=["post"])

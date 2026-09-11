@@ -6,17 +6,7 @@ import { AppConfigService } from './core/config/app-config';
 import { detectLang, langGuard, langMatch } from './core/i18n/lang.guard';
 import { HomeComponent } from './features/home/home.component';
 import { NotProvisionedComponent } from './features/not-provisioned/not-provisioned.component';
-import { PlaceholderComponent } from './features/placeholder/placeholder.component';
 import { ShellComponent } from './layout/shell/shell.component';
-
-/** Pagine delle milestone successive: già instradate (con permesso e filtri) come segnaposto. */
-const placeholder = (
-  path: string,
-  titleKey: string,
-  permission: string,
-  milestone: string,
-  filters = true,
-) => ({ path, component: PlaceholderComponent, data: { titleKey, permission, milestone, filters } });
 
 export const routes: Routes = [
   {
@@ -56,8 +46,8 @@ export const routes: Routes = [
       { path: 'admin/territory', loadComponent: () => import('./features/admin/territory-page.component').then((m) => m.TerritoryPageComponent) },
       { path: 'admin/lookups', loadComponent: () => import('./features/admin/lookups-page.component').then((m) => m.LookupsPageComponent) },
       { path: 'admin/settings', loadComponent: () => import('./features/admin/settings-page.component').then((m) => m.SettingsPageComponent) },
-      placeholder('admin/keys', 'nav.keys', 'crypto.manage_keys', 'M7', false),
-      placeholder('admin/audit', 'nav.audit', 'audit.view', 'M7', false),
+      { path: 'admin/keys', loadComponent: () => import('./features/admin/keys-page.component').then((m) => m.KeysPageComponent) },
+      { path: 'admin/audit', loadComponent: () => import('./features/admin/audit-page.component').then((m) => m.AuditPageComponent) },
       { path: '**', redirectTo: 'home' },
     ],
   },

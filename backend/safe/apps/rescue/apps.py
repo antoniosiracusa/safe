@@ -7,4 +7,4 @@ class RescueConfig(AppConfig):
     verbose_name = "SAFE eventi e persone"
 
     def ready(self) -> None:
-        from . import signals  # noqa: F401
+        from . import signals, tasks  # noqa: F401  (tasks registra il job di anonimizzazione)
