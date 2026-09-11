@@ -23,7 +23,7 @@ API e SPA condividono l'origine (`DOMINIO`): niente CORS, cookie o WebSocket cro
 
 ## DNS
 
-Due record `A` verso l'IP del server: `DOMINIO` e `auth.DOMINIO`. Se si usa Cloudflare come proxy:
+Tre record `A` verso l'IP del server: `DOMINIO` (record `@`), `auth.DOMINIO` e `www.DOMINIO` (reindirizzato al dominio nudo). Se si usa Cloudflare come proxy:
 modalità TLS "Full (strict)" e regola di esclusione della cache per `/api/*`; altrimenti DNS-only.
 
 ## Prima installazione
