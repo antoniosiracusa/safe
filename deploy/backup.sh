@@ -29,6 +29,7 @@ if [ -n "${BACKUP_S3_BUCKET:-}" ]; then
       amazon/aws-cli:2.27.50 s3 "$@" --endpoint-url "$BACKUP_S3_ENDPOINT"
   }
   s3 cp "/backups/$(basename "$OUT")" "s3://$BACKUP_S3_BUCKET/$(basename "$OUT")" --only-show-errors
+  basename "$OUT" > "$DEST/.last-uploaded"   # letto da monitor.sh
   echo "copiato su s3://$BACKUP_S3_BUCKET"
   # pulizia remota: i backup più vecchi di BACKUP_S3_KEEP_DAYS giorni (default 90) vengono rimossi.
   # Su Backblaze B2 impostare il ciclo di vita del bucket su "Keep only the last version", altrimenti

@@ -39,7 +39,7 @@ if [ -z "$last" ] || [ -n "$(find "$last" -mmin +1560 2>/dev/null)" ]; then
   problems+=("nessun backup nelle ultime 26 ore")
 else
   info+=("ultimo backup: $(basename "$last") ($(du -h "$last" | cut -f1))")
-  if [ -n "${BACKUP_S3_BUCKET:-}" ] && ! tail -n 5 /var/log/safe-backup.log 2>/dev/null | grep -q "copiato su s3"; then
+  if [ -n "${BACKUP_S3_BUCKET:-}" ] && [ "$(cat backups/.last-uploaded 2>/dev/null)" != "$(basename "$last")" ]; then
     problems+=("l'ultimo backup non risulta copiato sul bucket esterno (vedi /var/log/safe-backup.log)")
   fi
 fi

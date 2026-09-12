@@ -101,11 +101,17 @@ Ripristino su un server vuoto (dopo `install.sh`):
 cd /opt/safe
 docker compose --env-file .env -f docker-compose.prod.yml stop api ws worker beat keycloak
 gpg --batch --passphrase "$BACKUP_PASSPHRASE" -d backups/safe-YYYYMMDD-HHMM.sql.gz.gpg | gunzip \
+  | sed "s/set_config('search_path', '', false)/set_config('search_path', 'public', false)/" \
   | docker compose --env-file .env -f docker-compose.prod.yml exec -T db psql -U postgres -d postgres
 ./deploy.sh
 ```
 
-Provare il ripristino su staging **prima** del go-live e almeno una volta l'anno.
+Il `sed` serve solo ai backup fatti prima delle migrazioni `tenancy.0003/0004` (funzione di CHECK
+senza schema, vincoli non differiti); è innocuo sugli altri. Errori attesi: "cannot drop a template
+database", "current user cannot be dropped", "role postgres already exists", oggetti PostGIS già presenti.
+
+`./restore-test.sh` esegue la stessa procedura in un PostgreSQL temporaneo senza toccare quello in
+esercizio: eseguita con successo il 12/09/2026, da ripetere almeno una volta l'anno.
 
 ## Operazioni ricorrenti
 
