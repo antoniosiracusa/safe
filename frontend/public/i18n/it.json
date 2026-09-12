@@ -641,5 +641,15 @@
     "save": "Salva periodi",
     "run_now": "Anonimizza ora",
     "run_done": "Anonimizzazione completata: {{n}} persone."
+  },
+  "pwa": {
+    "offline": "Sei senza rete: puoi consultare i dati già caricati; le modifiche saranno possibili al ritorno della connessione.",
+    "install_title": "Installa sul telefono",
+    "install_desc": "Apri il portale dalla schermata Home, a tutto schermo, anche con poca rete.",
+    "install_ios": "Su iPhone: tocca Condividi (il quadrato con la freccia) e poi \"Aggiungi alla schermata Home\".",
+    "install_button": "Installa",
+    "installed": "App installata: la trovi nella schermata Home.",
+    "update_ready": "È disponibile una nuova versione del portale.",
+    "update_button": "Aggiorna ora"
   }
 }

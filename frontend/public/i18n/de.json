@@ -641,5 +641,15 @@
     "save": "Fristen speichern",
     "run_now": "Jetzt anonymisieren",
     "run_done": "Anonymisierung abgeschlossen: {{n}} Personen."
+  },
+  "pwa": {
+    "offline": "Sie sind offline: bereits geladene Daten sind einsehbar; Änderungen sind wieder möglich, sobald die Verbindung besteht.",
+    "install_title": "Auf dem Telefon installieren",
+    "install_desc": "Das Portal vom Startbildschirm aus im Vollbild öffnen, auch bei schlechtem Empfang.",
+    "install_ios": "Auf dem iPhone: Teilen (Quadrat mit Pfeil) und dann „Zum Home-Bildschirm“ antippen.",
+    "install_button": "Installieren",
+    "installed": "App installiert: auf dem Startbildschirm zu finden.",
+    "update_ready": "Eine neue Version des Portals ist verfügbar.",
+    "update_button": "Jetzt aktualisieren"
   }
 }

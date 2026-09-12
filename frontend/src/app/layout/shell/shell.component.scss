@@ -151,3 +151,16 @@
   }
   .user .user-name, .brand .company, .key-state .key-label { display: none; }
 }
+
+/* banner dell'app installabile (M8): senza rete / nuova versione */
+.pwa-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--p-surface-200);
+  &.offline { background: #fff4e5; color: #7a4100; }
+  &.update { background: #e8f4ff; color: #0b3d6b; }
+  p-button { margin-left: auto; }
+}

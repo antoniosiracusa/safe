@@ -30,7 +30,15 @@ export class AuthService {
     };
     this.oauth.configure(config);
     this.oauth.setupAutomaticSilentRefresh();
-    await this.oauth.loadDiscoveryDocumentAndTryLogin();
+    try {
+      await this.oauth.loadDiscoveryDocumentAndTryLogin();
+    } catch (err) {
+      // Senza rete (app installata, M8) il documento di discovery non è raggiungibile: se in memoria c'è
+      // ancora un token valido l'app parte in modalità offline, altrimenti l'errore è reale.
+      if (navigator.onLine || !this.oauth.hasValidAccessToken()) throw err;
+      console.warn('OIDC discovery non disponibile offline: si prosegue con il token in memoria');
+      return;
+    }
     const target = this.oauth.state ? decodeURIComponent(this.oauth.state) : null;
     if (target && target.startsWith('/')) {
       // ritorno dal login: torniamo alla pagina richiesta (filtri inclusi)

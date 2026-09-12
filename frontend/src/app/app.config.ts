@@ -9,8 +9,9 @@ import {
 } from '@angular/core';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
+import { provideServiceWorker } from '@angular/service-worker';
 import { provideTransloco } from '@jsverse/transloco';
-import { provideOAuthClient } from 'angular-oauth2-oidc';
+import { OAuthStorage, provideOAuthClient } from 'angular-oauth2-oidc';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeuix/themes/aura';
@@ -29,6 +30,11 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([authInterceptor])),
     provideAnimationsAsync(),
     provideOAuthClient(),
+    // Token in localStorage: l'app installata sul telefono (M8) viene chiusa e riaperta di continuo e
+    // sessionStorage andrebbe perso a ogni riapertura; le sessioni restano brevi lato Keycloak.
+    { provide: OAuthStorage, useFactory: () => localStorage },
+    // Service worker (solo build di produzione): app installabile e dati di riferimento offline (ngsw-config.json)
+    provideServiceWorker('ngsw-worker.js', { enabled: !isDevMode(), registrationStrategy: 'registerWhenStable:10000' }),
     provideCharts(withDefaultRegisterables()),
     providePrimeNG({ theme: { preset: Aura, options: { darkModeSelector: '.safe-dark' } }, ripple: false }),
     provideTransloco({

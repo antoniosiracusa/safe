@@ -45,7 +45,8 @@
             ],
             "allowedCommonJsDependencies": [
               "mapbox-gl"
-            ]
+            ],
+            "serviceWorker": "ngsw-config.json"
           },
           "configurations": {
             "production": {
@@ -65,7 +66,10 @@
               "optimization": {
                 "scripts": true,
                 "fonts": true,
-                "styles": { "minify": true, "inlineCritical": false }
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                }
               }
             },
             "development": {

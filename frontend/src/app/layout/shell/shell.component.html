@@ -81,6 +81,15 @@
   </nav>
 
   <main class="content">
+    @if (!pwa.online()) {
+      <div class="pwa-banner offline" role="status"><i class="pi pi-wifi" aria-hidden="true"></i> {{ t('pwa.offline') }}</div>
+    }
+    @if (pwa.updateReady()) {
+      <div class="pwa-banner update" role="status">
+        <i class="pi pi-refresh" aria-hidden="true"></i> {{ t('pwa.update_ready') }}
+        <p-button type="button" [label]="t('pwa.update_button')" size="small" (onClick)="pwa.applyUpdate()" />
+      </div>
+    }
     @if (showFilters()) {
       <safe-filter-bar />
     }

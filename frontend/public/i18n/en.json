@@ -641,5 +641,15 @@
     "save": "Save periods",
     "run_now": "Anonymise now",
     "run_done": "Anonymisation completed: {{n}} persons."
+  },
+  "pwa": {
+    "offline": "You are offline: you can browse data already loaded; changes will be possible when the connection is back.",
+    "install_title": "Install on your phone",
+    "install_desc": "Open the portal from the Home screen, full screen, even with poor coverage.",
+    "install_ios": "On iPhone: tap Share (the square with the arrow) and then \"Add to Home Screen\".",
+    "install_button": "Install",
+    "installed": "App installed: find it on your Home screen.",
+    "update_ready": "A new version of the portal is available.",
+    "update_button": "Update now"
   }
 }

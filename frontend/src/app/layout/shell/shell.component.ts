@@ -13,6 +13,7 @@ import { AppConfigService } from '../../core/config/app-config';
 import { FilterStore } from '../../core/filters/filter.store';
 import { SessionService } from '../../core/session/session.service';
 import { KeyStoreService } from '../../core/crypto/key-store.service';
+import { PwaService } from '../../core/pwa/pwa.service';
 import { FilterBarComponent } from '../filter-bar/filter-bar.component';
 import { KeyDialogComponent } from '../key-dialog/key-dialog.component';
 
@@ -95,6 +96,7 @@ export class ShellComponent {
   readonly config = inject(AppConfigService);
   readonly filterStore = inject(FilterStore);
   readonly keyStore = inject(KeyStoreService);
+  readonly pwa = inject(PwaService);
   readonly keyDialog = signal(false);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);

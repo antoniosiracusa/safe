@@ -1,0 +1,48 @@
+{
+  "$schema": "./node_modules/@angular/service-worker/config/schema.json",
+  "index": "/index.html",
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": ["/favicon.ico", "/index.html", "/manifest.webmanifest", "/*.css", "/*.js", "/i18n/*.json", "/vendor/sodium.js"]
+      }
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": ["/icons/**", "/media/**", "/assets/**", "/brand/**", "/**/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"]
+      }
+    }
+  ],
+  "dataGroups": [
+    {
+      "name": "config",
+      "urls": ["/config/app-config.json"],
+      "cacheConfig": { "strategy": "freshness", "timeout": "3s", "maxSize": 2, "maxAge": "7d" }
+    },
+    {
+      "name": "riferimento",
+      "urls": [
+        "/api/v1/me",
+        "/api/v1/company",
+        "/api/v1/filters/options",
+        "/api/v1/lookups",
+        "/api/v1/ski-areas**",
+        "/api/v1/zones**",
+        "/api/v1/slopes**",
+        "/api/v1/lifts**",
+        "/api/v1/teams**",
+        "/api/v1/crypto/company-key",
+        "/api/v1/crypto/my-key",
+        "/api/v1/crypto/users/*/public-key"
+      ],
+      "cacheConfig": { "strategy": "freshness", "timeout": "4s", "maxSize": 200, "maxAge": "7d" }
+    }
+  ],
+  "navigationUrls": ["/**", "!/**/*.*", "!/**/*__*", "!/**/*__*/**", "!/api/**", "!/config/**", "!/brand/**"]
+}

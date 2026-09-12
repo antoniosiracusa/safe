@@ -4,7 +4,9 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 import { HttpParams } from '@angular/common/http';
+import { ButtonModule } from 'primeng/button';
 import { GeneralKpi, StatsService } from '../../core/api/stats.service';
+import { PwaService } from '../../core/pwa/pwa.service';
 import { SessionService } from '../../core/session/session.service';
 import { signal } from '@angular/core';
 
@@ -26,7 +28,7 @@ const MODULES: ModuleCard[] = [
 
 @Component({
   selector: 'safe-home',
-  imports: [RouterLink, TranslocoDirective],
+  imports: [RouterLink, TranslocoDirective, ButtonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <ng-container *transloco="let t">
@@ -47,6 +49,21 @@ const MODULES: ModuleCard[] = [
           <span class="v small">{{ t('shell.key_' + keyState()) }}</span>
         </div>
       </section>
+
+      @if (!pwa.standalone()) {
+        <section class="install" [attr.aria-label]="t('pwa.install_title')">
+          <i class="pi pi-mobile" aria-hidden="true"></i>
+          <div>
+            <h3>{{ t('pwa.install_title') }}</h3>
+            <p>{{ t('pwa.install_desc') }}</p>
+            @if (pwa.isIOS) {
+              <p class="how">{{ t('pwa.install_ios') }}</p>
+            } @else if (pwa.canPromptInstall()) {
+              <p-button type="button" [label]="t('pwa.install_button')" icon="pi pi-download" size="small" (onClick)="pwa.promptInstall()" />
+            }
+          </div>
+        </section>
+      }
 
       <h2>{{ t('home.modules') }}</h2>
       <div class="cards">
@@ -82,10 +99,16 @@ const MODULES: ModuleCard[] = [
     .card.locked { opacity: 0.75; border-style: dashed; }
     .card.locked i:first-child { color: var(--p-text-muted-color); }
     .hint { font-size: 0.8rem !important; margin-top: 0.25rem !important; }
+    .install { display: flex; gap: 1rem; align-items: flex-start; background: var(--p-surface-0); border: 1px solid var(--p-surface-200); border-left: 4px solid #c8102e; border-radius: 6px; padding: 0.9rem 1rem; margin-bottom: 1.5rem; }
+    .install > i { font-size: 1.6rem; color: #c8102e; margin-top: 0.1rem; }
+    .install h3 { margin: 0 0 0.25rem; font-size: 1rem; }
+    .install p { margin: 0 0 0.4rem; font-size: 0.9rem; color: var(--p-text-muted-color); }
+    .install .how { color: var(--p-text-color); }
   `,
 })
 export class HomeComponent {
   readonly session = inject(SessionService);
+  readonly pwa = inject(PwaService);
   private readonly transloco = inject(TranslocoService);
   readonly lang = toSignal(this.transloco.langChanges$, { initialValue: this.transloco.getActiveLang() });
   readonly modules = MODULES;

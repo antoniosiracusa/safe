@@ -17,6 +17,23 @@ server {
         add_header Cache-Control "no-store" always;
     }
 
+    # Service worker e manifest (app installabile, M8): mai cache lunga, altrimenti gli aggiornamenti
+    # non arriverebbero ai telefoni. ngsw.json è il catalogo delle versioni letto dal service worker.
+    location = /ngsw-worker.js {
+        include /etc/nginx/conf.d/security-headers.inc;
+        add_header Cache-Control "no-cache" always;
+        add_header Service-Worker-Allowed "/" always;
+    }
+    location = /ngsw.json {
+        include /etc/nginx/conf.d/security-headers.inc;
+        add_header Cache-Control "no-cache" always;
+    }
+    location = /manifest.webmanifest {
+        include /etc/nginx/conf.d/security-headers.inc;
+        add_header Cache-Control "no-cache" always;
+        types { application/manifest+json webmanifest; }
+    }
+
     # libsodium e worker Mapbox: asset statici con cache lunga
     location ~* \.(js|css|woff2|png|svg|ico|json)$ {
         include /etc/nginx/conf.d/security-headers.inc;
