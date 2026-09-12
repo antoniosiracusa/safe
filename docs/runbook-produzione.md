@@ -144,3 +144,21 @@ esercizio: eseguita con successo il 12/09/2026, da ripetere almeno una volta l'a
    `S3_REGION` come indicato dal pannello.
 3. Rimuovere il servizio `minio` da `docker-compose.prod.yml` (o lasciarlo spento) e rilanciare `deploy.sh`.
 4. Per i backup: bucket separato `safe-backup` e le variabili `BACKUP_S3_*`.
+
+## Canale beta (M8, modalità pista)
+
+L'interfaccia di prova gira su `https://beta.DOMINIO` con la **stessa API e gli stessi dati** della
+produzione: solo il frontend è diverso (immagine `safe-web:beta`, costruita dalla CI dai rami `m8-*`).
+Attivazione, una tantum:
+
+1. DNS: record `A` per `beta.DOMINIO` verso il server (Aruba).
+2. Keycloak, console `https://auth.DOMINIO/admin/` → realm `safe` → Clients → `safe-web`: aggiungere
+   `https://beta.DOMINIO/*` ai *Valid redirect URIs* e `https://beta.DOMINIO` ai *Web origins*.
+   (`render_realm.py` li include già per le installazioni future.)
+3. `.env`: `COMPOSE_PROFILES=beta` e `ALLOWED_HOSTS=DOMINIO,beta.DOMINIO,api`.
+4. `./deploy.sh` (scarica anche `web-beta`; `render.sh` genera `generated/app-config.beta.json`).
+
+Aggiornare la beta dopo un push sul ramo: `./deploy.sh` (o `docker compose --env-file .env -f
+docker-compose.prod.yml pull web-beta && ... up -d web-beta`). Disattivare: `COMPOSE_PROFILES=` e
+`docker compose ... rm -sf web-beta`. La beta condivide utenti, permessi e database: gli interventi
+registrati dalla beta sono reali.

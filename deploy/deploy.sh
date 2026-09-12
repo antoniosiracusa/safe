@@ -16,7 +16,7 @@ fi
 ./render.sh
 # solo le immagini applicative: quelle di terze parti (db, redis, keycloak, minio) restano quelle
 # installate e si aggiornano di proposito (Docker Hub può negare pull anonimi, es. minio/minio)
-$COMPOSE pull --quiet api web
+$COMPOSE pull --quiet api web $( [ "${COMPOSE_PROFILES:-}" = "beta" ] && echo web-beta )
 $COMPOSE up -d --wait db redis   # attende gli healthcheck (al primo avvio initdb richiede qualche secondo)
 $COMPOSE run --rm --no-deps api python manage.py migrate --noinput   # include seed di vocabolari e ruoli
 $COMPOSE up -d --remove-orphans

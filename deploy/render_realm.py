@@ -54,8 +54,9 @@ for c in realm["clients"]:
     if cid == "safe-web":
         c["rootUrl"] = web
         c["baseUrl"] = "/"
-        c["redirectUris"] = [f"{web}/*"]
-        c["webOrigins"] = [web]
+        beta = f"https://beta.{domain}"  # canale beta (M8): stesso client, secondo host
+        c["redirectUris"] = [f"{web}/*", f"{beta}/*"]
+        c["webOrigins"] = [web, beta]
         c["attributes"] = {**c.get("attributes", {}), "post.logout.redirect.uris": f"{web}/*", "pkce.code.challenge.method": "S256"}
     if cid == "safe-admin":
         c["secret"] = env["KEYCLOAK_ADMIN_CLIENT_SECRET"]

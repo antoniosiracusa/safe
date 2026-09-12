@@ -23,6 +23,8 @@ cat > generated/app-config.json <<JSON
   "brand": { "logoUrl": "${BRAND_LOGO_URL:-}", "name": "${BRAND_NAME:-}" }
 }
 JSON
+# beta (M8): stessa configurazione ma API e WebSocket sull'host beta.DOMINIO (stesso backend)
+sed -e "s#https://${DOMAIN}/api/v1#https://beta.${DOMAIN}/api/v1#" -e "s#wss://${DOMAIN}/ws/v1#wss://beta.${DOMAIN}/ws/v1#"   -e 's#"name": "'"${BRAND_NAME:-}"'"#"name": "'"${BRAND_NAME:-SAFE} BETA"'"#' generated/app-config.json > generated/app-config.beta.json
 
 # realm di base: nel repository (../infra) oppure nel clone dei sorgenti sul server (/opt/safe-src)
 if [ -z "${REALM_SRC:-}" ]; then
