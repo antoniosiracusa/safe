@@ -10,6 +10,21 @@ cd "$(dirname "$0")"
 apt-get install -y -qq gnupg gettext-base >/dev/null
 chmod +x ./*.sh ./db/init.prod.sh
 grep -q CHANGE-ME .env && { echo "ERRORE: in .env restano valori CHANGE-ME"; exit 1; }
+# rotazione dei log dei container (20 MB x 5 per container) e dei log di backup/monitor
+if [ ! -f /etc/docker/daemon.json ]; then
+  echo '{ "log-driver": "json-file", "log-opts": { "max-size": "20m", "max-file": "5" } }' > /etc/docker/daemon.json
+  systemctl restart docker
+fi
+cat > /etc/logrotate.d/safe <<'EOF'
+/var/log/safe-*.log {
+    weekly
+    rotate 8
+    compress
+    missingok
+    notifempty
+    copytruncate
+}
+EOF
 ./deploy.sh
 # backup notturno alle 02:30 e pulizia settimanale delle immagini non usate
 ( crontab -l 2>/dev/null | grep -v 'safe/backup.sh' ; echo "30 2 * * * cd /opt/safe && ./backup.sh >> /var/log/safe-backup.log 2>&1" ) | crontab -
