@@ -41,7 +41,7 @@
   <img src="{{LOGO}}" alt="Ski Civetta">
   <div class="title">SAFECIVETTA.IT</div>
   <div class="sub">Guida rapida per gli operatori del soccorso piste</div>
-  <div class="meta">Consorzio Impianti a Fune Civetta · portale https://safecivetta.it<br>Versione 1.0 · settembre 2026</div>
+  <div class="meta">Consorzio Impianti a Fune Civetta · portale https://safecivetta.it<br>Versione 1.1 · settembre 2026</div>
 </div>
 
 <h1 class="first">Indice</h1>
@@ -55,6 +55,8 @@
   <li>Chiudere il rapporto e stampare il PDF</li>
   <li>Ritrovare un evento</li>
   <li>Statistiche e mappa</li>
+  <li>Modalità pista dal telefono</li>
+  <li>Cambiare password o app di autenticazione</li>
   <li>Problemi frequenti</li>
   <li>Regole per la privacy</li>
 </ol>
@@ -165,10 +167,54 @@
 
 <h1>9. Statistiche e mappa</h1>
 <p><span class="ui">Statistiche</span>: riepilogo di stagione per squadra, riepilogo per zona, demografia, tipologia degli incidenti, geografia, meteo. I grafici seguono i filtri della barra in alto; molti numeri sono cliccabili e portano all'elenco degli eventi corrispondenti.</p>
-<p><span class="ui">Mappa</span>: tutti gli eventi con posizione, con stili inverno, estate e satellite. Cliccando un punto si apre la scheda dell'evento.</p>
+<p><span class="ui">Mappa</span>: tutti gli eventi con posizione, con stili inverno, estate e satellite. Cliccando un punto compaiono data e codice; <span class="ui">Apri evento</span> mostra la scheda completa.</p>
 <p><span class="ui">Esportazioni</span> (per chi ha il permesso): dataset CSV/XLSX con i filtri correnti ed export per gli enti regionali nel tracciato A01, con anteprima dei dati incompleti da sistemare prima dell'invio.</p>
 
-<h1>10. Problemi frequenti</h1>
+<h1 class="newpage">10. Modalità pista dal telefono</h1>
+<p>Dalla versione 1.1 il portale si installa sul telefono come un'app e permette di registrare un intervento in pochi secondi, anche senza rete. Il rapporto completo si finisce poi dal computer, come descritto nei capitoli 5, 6 e 7.</p>
+
+<h2>Installare il portale sul telefono (una volta sola)</h2>
+<ul>
+  <li><span class="ui">iPhone</span> (Safari): apri <span class="ui">https://safecivetta.it</span>, entra con le tue credenziali, tocca <span class="ui">Condividi</span> (il quadrato con la freccia) e poi <span class="ui">Aggiungi alla schermata Home</span>.</li>
+  <li><span class="ui">Android</span> (Chrome): apri <span class="ui">https://safecivetta.it</span>, entra e tocca <span class="ui">Installa</span> nella Home del portale (oppure <span class="ui">Installa app</span> dal menu di Chrome).</li>
+</ul>
+<div class="box ok"><span class="t">Da ora apri l'icona "Civetta" sulla schermata Home</span>Si apre a tutto schermo, ricorda l'accesso e funziona anche senza rete per registrare gli interventi. Aprila almeno una volta a settimana in stagione, così resta aggiornata.</div>
+
+<h2>Registrare un intervento in tre passi</h2>
+<p>Tocca <span class="ui">Pista</span> nel menu (o nella Home) e poi <span class="ui">Nuovo intervento</span>.</p>
+<table>
+  <tr><th style="width:14%">Passo</th><th>Cosa compilare</th></tr>
+  <tr><td><span class="ui">Dove</span></td><td>Zona e pista (o tipo di luogo se non sei su una pista). Il telefono rileva la <span class="ui">posizione GPS</span> da solo: controlla la precisione in metri e, se serve, sposta il punto toccando la mappa.</td></tr>
+  <tr><td><span class="ui">Cosa</span></td><td>Data e ora (già proposte), squadra (già proposta), causa, tipo di evento, una nota breve. <b>Niente nomi o telefoni nella nota.</b></td></tr>
+  <tr><td><span class="ui">Chi</span></td><td><span class="ui">Aggiungi persona</span>: età, genere, nazione, ruolo, diagnosi presunta, sede della lesione, mezzo di evacuazione, destinazione. Sotto, i <span class="ui">dati identificativi</span>: nome, cognome, data di nascita, telefono. Vengono cifrati sul telefono prima dell'invio.</td></tr>
+</table>
+<p>Tocca <span class="ui">Salva e invia</span>. L'intervento compare in <span class="ui">I miei interventi</span> con lo stato:</p>
+<ul>
+  <li><span class="ui">Inviato</span>: è nel portale; il codice accanto serve a ritrovarlo dal computer.</li>
+  <li><span class="ui">Da inviare</span>: manca la rete. Non devi fare nulla: parte da solo appena torna la copertura, anche se hai chiuso l'app e la riapri più tardi. In alto compare il numero degli interventi in attesa.</li>
+  <li><span class="ui">Errore</span>: il portale ha rifiutato l'invio, per esempio per un permesso mancante. Leggi il messaggio, avvisa l'amministratore e poi tocca <span class="ui">Riprova</span>.</li>
+</ul>
+
+<h2>La chiave personale sul telefono</h2>
+<p>Per <b>inserire</b> i dati identificativi non serve sbloccare nulla. Per <b>leggerli</b> serve la tua chiave personale, come sul computer: tocca <span class="ui">La mia chiave</span> in alto e inserisci la passphrase.</p>
+<div class="box"><span class="t">Ricorda per il turno</span>Nella finestra della chiave spunta <span class="ui">Ricorda su questo telefono per il turno (8 ore)</span>: il telefono chiede Face ID, Touch ID o l'impronta e da quel momento, per 8 ore, sblocchi la chiave con il pulsante <span class="ui">Sblocca con Face ID o impronta</span>, senza digitare la passphrase. Se il telefono non lo supporta, il pulsante non compare e resta la passphrase.</div>
+
+<h2>Se qualcosa non va sul telefono</h2>
+<table>
+  <tr><th style="width:38%">Cosa vedi</th><th>Cosa fare</th></tr>
+  <tr><td>"Posizione non disponibile"</td><td>Attiva la localizzazione per Safari o Chrome nelle impostazioni del telefono, oppure tocca il punto sulla mappa.</td></tr>
+  <tr><td>Precisione scarsa (oltre 50 m)</td><td>Normale nelle gole e sotto gli impianti: correggi il punto sulla mappa.</td></tr>
+  <tr><td>"Sei senza rete" all'apertura</td><td>La sessione è scaduta e serve la connessione per rientrare. Gli interventi salvati restano sul telefono e partiranno dopo l'accesso.</td></tr>
+  <tr><td>Non trovo la zona o la pista nell'elenco</td><td>Scegli "Nessuna pista / altro luogo", indica il tipo di luogo e una descrizione; segnala la pista mancante all'amministratore.</td></tr>
+  <tr><td>Il campo dei dati identificativi non compare</td><td>La chiave della società non è disponibile sul telefono: apri l'app una volta con la rete, poi riprova. In ogni caso i dati si possono aggiungere dal portale.</td></tr>
+  <tr><td>"È disponibile una nuova versione"</td><td>Tocca <span class="ui">Aggiorna ora</span>: dura pochi secondi.</td></tr>
+</table>
+<div class="box"><span class="t">Regole d'oro in pista</span>Prima il soccorso, poi il telefono. Registra subito almeno dove, quando e chi; il resto si completa dopo. Nomi e telefoni solo nella sezione dei dati identificativi. Blocca il telefono quando lo posi; in caso di furto avvisa subito l'amministratore, che disattiva il tuo utente.</div>
+
+<h1>11. Cambiare password o app di autenticazione</h1>
+<p>In alto a destra, menu <span class="ui">Password e sicurezza</span>: <span class="ui">Cambia password</span> oppure <span class="ui">Configura l'app di autenticazione</span>. Si apre la pagina di accesso, che chiede il nuovo dato e riporta al portale. Se hai cambiato telefono e non hai più l'app di autenticazione, chiedi all'amministratore di azzerarla.</p>
+
+<h1>12. Problemi frequenti</h1>
 <table>
   <tr><th style="width:38%">Cosa vedi</th><th>Cosa fare</th></tr>
   <tr><td>"Utente non abilitato" dopo l'accesso</td><td>L'email con cui sei entrato non è stata invitata nel portale, oppure il tuo utente è stato disattivato. Rivolgiti all'amministratore.</td></tr>
@@ -178,11 +224,12 @@
   <tr><td>La mappa non compare nel modulo evento</td><td>Ricarica la pagina (Ctrl+F5). Se persiste, segnalalo indicando browser e dispositivo.</td></tr>
   <tr><td>L'evento risulta "non valido"</td><td>Apri l'evento: l'elenco dei campi mancanti è in testa alla scheda. Completali.</td></tr>
   <tr><td>Non riesco a modificare un evento</td><td>È bloccato: serve lo sblocco con motivo, da parte di chi ha il permesso.</td></tr>
+  <tr><td>Sul telefono l'app mostra ancora la versione vecchia</td><td>Chiudi e riapri l'app; se compare il banner "nuova versione", tocca <span class="ui">Aggiorna ora</span>.</td></tr>
   <tr><td>Il QR della pagina Dispositivi dà "not found"</td><td>È normale: serve alla futura app mobile, non va inquadrato con la fotocamera.</td></tr>
   <tr><td>Non arriva l'email di invito o di reset</td><td>Controlla la posta indesiderata; verifica con l'amministratore che l'email sia scritta correttamente.</td></tr>
 </table>
 
-<h1>11. Regole per la privacy</h1>
+<h1>13. Regole per la privacy</h1>
 <ul>
   <li>Inserisci solo i dati necessari all'intervento e alla statistica. Nome, contatti e documenti vanno esclusivamente nella sezione cifrata.</li>
   <li>Leggi i dati identificativi solo quando serve davvero: ogni lettura è registrata con il tuo nome.</li>
