@@ -62,7 +62,8 @@ export class AuthService {
     this.oauth.logOut();
   }
 
+  /** Console "account" di Keycloak, sezione sicurezza: cambio password, app di autenticazione, sessioni. */
   accountUrl(): string {
-    return `${this.appConfig.config.oidc.issuer}/account`;
+    return `${this.appConfig.config.oidc.issuer}/account/#/security/signing-in`;
   }
 }
