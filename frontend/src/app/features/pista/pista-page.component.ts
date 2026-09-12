@@ -14,6 +14,7 @@ import { firstValueFrom } from 'rxjs';
 import { EventWrite, PersonWrite, Slope } from '../../core/api/rescue.models';
 import { RescueService } from '../../core/api/rescue.service';
 import { KeyStoreService } from '../../core/crypto/key-store.service';
+import { sodiumReady } from '../../core/crypto/sodium';
 import { FilterOptionsService } from '../../core/filters/filter-options.service';
 import { LookupsService } from '../../core/lookups/lookups.service';
 import { OfflineQueueService, QueuedIntervention } from '../../core/pwa/offline-queue.service';
@@ -270,6 +271,7 @@ export class PistaPageComponent {
       this.lookups.load(),
       firstValueFrom(this.rescue.slopes()).then((s) => this.slopes.set(s)),
       this.keyStore.loadCompanyKey(),
+      sodiumReady(), // libreria di cifratura pronta (e in cache) prima che serva in pista
     ]);
   }
 

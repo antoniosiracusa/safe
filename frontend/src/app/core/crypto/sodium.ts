@@ -55,24 +55,47 @@ function wasmAllowed(): boolean {
   }
 }
 
-/** Carica `vendor/sodium.js` (bundle IIFE generato da `npm run vendor:sodium`) alla prima chiamata. */
-export function sodiumReady(): Promise<Sodium> {
-  return (ready ??= new Promise<Sodium>((resolve, reject) => {
-    const w = window as unknown as { sodium?: Sodium };
-    const done = () => {
-      const s = w.sodium;
-      if (!s) return reject(new Error('sodium_missing'));
-      if (!wasmAllowed()) return reject(new Error('wasm_blocked'));
-      s.ready.then(() => resolve(s), reject);
-    };
-    if (w.sodium) return done();
+function loadScript(src: string): Promise<void> {
+  return new Promise((resolve, reject) => {
     const script = document.createElement('script');
-    script.src = 'vendor/sodium.js';
+    script.src = src;
     script.async = true;
-    script.onload = done;
-    script.onerror = () => reject(new Error('sodium_load_failed'));
+    script.onload = () => resolve();
+    script.onerror = () => {
+      script.remove();
+      reject(new Error('sodium_load_failed'));
+    };
     document.head.appendChild(script);
-  }));
+  });
+}
+
+/** Carica `vendor/sodium.js` (bundle IIFE generato da `npm run vendor:sodium`) alla prima chiamata.
+ *  Se il primo caricamento fallisce (rete instabile, copia del service worker non valida) riprova una
+ *  volta con un URL che aggira le cache; un esito negativo non resta "memorizzato": la chiamata
+ *  successiva ritenta da capo. */
+export function sodiumReady(): Promise<Sodium> {
+  if (ready) return ready;
+  const w = window as unknown as { sodium?: Sodium };
+  const attempt = (async () => {
+    if (!w.sodium) {
+      try {
+        await loadScript('vendor/sodium.js');
+      } catch {
+        console.warn('sodium: primo caricamento fallito, riprovo aggirando le cache');
+        await loadScript(`vendor/sodium.js?retry=${Date.now()}`);
+      }
+    }
+    const s = w.sodium;
+    if (!s) throw new Error('sodium_missing');
+    if (!wasmAllowed()) throw new Error('wasm_blocked');
+    await s.ready;
+    return s;
+  })();
+  ready = attempt.catch((err: unknown) => {
+    ready = null; // il prossimo tentativo ricarica lo script
+    throw err;
+  });
+  return ready;
 }
 
 /** Base64 standard senza dipendere da libsodium (usato anche prima del caricamento). */
