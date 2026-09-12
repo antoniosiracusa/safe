@@ -170,6 +170,17 @@ def test_rescuer_sees_only_own_teams_and_cannot_edit_others(api_client, company,
     )
 
 
+@pytest.mark.parametrize("role", ["rescue_manager", "analyst"])
+def test_manager_and_analyst_see_only_own_teams(api_client, as_admin, company, team, seeded, role):
+    with tenant_context(company.id):
+        other_team = Team.objects.create(name="Squadra C")
+        f.event(other_team, when=dt.datetime(2026, 3, 2, 9, 0, tzinfo=dt.UTC))
+    assert as_admin.get("/api/v1/events").json()["count"] == 3  # l'amministratore vede tutto
+    user = create_user(company, f"{role}@a.test", roles=(role,), team=team)
+    r = auth(api_client, user).get("/api/v1/events")
+    assert r.status_code == 200 and r.json()["count"] == 2  # solo la squadra A
+
+
 def test_other_tenant_event_is_404(as_admin, other_company, seeded):
     with tenant_context(other_company.id):
         team_b = Team.objects.create(name="B1")

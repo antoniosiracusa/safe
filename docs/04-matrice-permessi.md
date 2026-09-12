@@ -62,6 +62,10 @@
 
 ## 3. Ruoli template
 
+Dal 12/09/2026 Responsabile soccorso, Soccorritore e Analista vedono solo gli eventi delle proprie
+squadre (richiesta del Consorzio); l'Amministratore vede tutto. Un amministratore può comunque
+concedere o negare `events.view_own_teams_only` al singolo utente dai permessi personalizzati.
+
 | Permesso | Amministratore | Responsabile soccorso | Soccorritore | Analista | Custode chiavi / DPO | Ente pubblico (futuro) |
 |---|:-:|:-:|:-:|:-:|:-:|:-:|
 | stats.view | ● | ● | | ● | | ● |
@@ -70,10 +74,10 @@
 | map.view | ● | ● | ● | ● | | ● |
 | map.realtime | ● | ● | | | | |
 | events.view | ● | ● | ● | ● | ● | |
-| events.view_own_teams_only | | | ● | | | |
+| events.view_own_teams_only | | ● | ● | ● | | |
 | events.create | ● | ● | ● | | | |
 | events.edit | ● | ● | ● | | | |
-| events.edit_any_team | ● | ● | | | | |
+| events.edit_any_team | ● | | | | | |
 | events.delete | ● | ● | | | | |
 | events.unlock | ● | ● | | | | |
 | persons.view | ● | ● | ● | ● | ● | |
