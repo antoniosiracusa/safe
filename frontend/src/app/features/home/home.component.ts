@@ -19,6 +19,7 @@ interface ModuleCard {
 }
 
 const MODULES: ModuleCard[] = [
+  { path: 'pista', labelKey: 'pista.title', descKey: 'pista.intro', icon: 'pi pi-mobile', permission: 'events.create' },
   { path: 'stats/zone', labelKey: 'nav.stats', descKey: 'home.stats_desc', icon: 'pi pi-chart-bar', permission: 'stats.view' },
   { path: 'data/events', labelKey: 'nav.data', descKey: 'home.data_desc', icon: 'pi pi-list', permission: 'events.view' },
   { path: 'map', labelKey: 'nav.map', descKey: 'home.map_desc', icon: 'pi pi-map', permission: 'map.view' },

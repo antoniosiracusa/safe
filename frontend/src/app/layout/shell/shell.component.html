@@ -67,6 +67,7 @@
             [class.locked]="item.permission && !session.can(item.permission)"
             [pTooltip]="item.permission && !session.can(item.permission) ? t('locked.title') : undefined"
             tooltipPosition="right"
+            (click)="closeSidebarOnPhone()"
           >
             <i [class]="item.icon" aria-hidden="true"></i>
             <span class="label">{{ t(item.labelKey) }}</span>

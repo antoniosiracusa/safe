@@ -31,6 +31,7 @@ export interface NavSection {
 /** Menu laterale: le voci restano visibili anche senza permesso (icona lucchetto), come da specifica. */
 export const NAV: NavSection[] = [
   { labelKey: 'nav.home', items: [{ path: 'home', labelKey: 'nav.home', icon: 'pi pi-home' }] },
+  { labelKey: 'nav.pista', items: [{ path: 'pista', labelKey: 'nav.pista', icon: 'pi pi-mobile', permission: 'events.create' }] },
   {
     labelKey: 'nav.stats',
     items: [
@@ -105,7 +106,12 @@ export class ShellComponent {
   readonly nav = NAV;
   readonly lang = toSignal(this.transloco.langChanges$, { initialValue: this.transloco.getActiveLang() });
   readonly langOptions = this.config.config.supportedLocales.map((l) => ({ value: l, label: l.toUpperCase() }));
-  readonly sidebarOpen = signal(true);
+  /** Sui telefoni (M8) il menu parte chiuso e si richiude dopo ogni navigazione: non deve coprire la pagina. */
+  readonly sidebarOpen = signal(window.innerWidth > 900);
+
+  closeSidebarOnPhone(): void {
+    if (window.innerWidth <= 900) this.sidebarOpen.set(false);
+  }
   readonly version = this.config.config.version;
   readonly brand = this.config.config.brand ?? {};
 

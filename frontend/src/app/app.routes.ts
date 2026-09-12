@@ -29,6 +29,7 @@ export const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'home' },
       { path: 'home', component: HomeComponent },
+      { path: 'pista', loadComponent: () => import('./features/pista/pista-page.component').then((m) => m.PistaPageComponent), data: { filters: false } },
       { path: 'stats/zone', loadComponent: () => import('./features/stats/zone-page.component').then((m) => m.ZonePageComponent), data: { filters: true } },
       { path: 'stats/demographics', loadComponent: () => import('./features/stats/demographics-page.component').then((m) => m.DemographicsPageComponent), data: { filters: true } },
       { path: 'stats/typology', loadComponent: () => import('./features/stats/typology-page.component').then((m) => m.TypologyPageComponent), data: { filters: true } },
