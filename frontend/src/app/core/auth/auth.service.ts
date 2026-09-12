@@ -66,4 +66,10 @@ export class AuthService {
   accountUrl(): string {
     return `${this.appConfig.config.oidc.issuer}/account/#/security/signing-in`;
   }
+
+  /** Azione richiesta dall'utente (AIA di Keycloak): rimanda alla pagina di accesso con l'azione da
+   *  eseguire, poi torna al portale. Non dipende dalla console "account". */
+  requestAction(action: 'UPDATE_PASSWORD' | 'CONFIGURE_TOTP', returnUrl: string): void {
+    this.oauth.initCodeFlow(returnUrl, { kc_action: action });
+  }
 }

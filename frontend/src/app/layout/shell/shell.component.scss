@@ -72,7 +72,8 @@
   align-items: center;
   gap: 0.5rem;
   .user-name { font-size: 0.9rem; }
-  .account { font-size: 0.85rem; }
+  .account { font-size: 0.85rem; background: none; border: 0; padding: 0; font-family: inherit; color: var(--p-primary-color); cursor: pointer; display: inline-flex; align-items: center; gap: 0.2rem; }
+  .account:hover { text-decoration: underline; }
 }
 
 .sidenav {

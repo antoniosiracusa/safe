@@ -9,7 +9,9 @@
     "key_nokey": "Chiave personale non creata",
     "key_nogrant": "Chiave personale presente, nessuna abilitazione ai dati identificativi",
     "key_granted": "Abilitato ai dati identificativi",
-    "key_unlocked": "Chiave sbloccata: clic per gestire o bloccare"
+    "key_unlocked": "Chiave sbloccata: clic per gestire o bloccare",
+    "change_password": "Cambia password",
+    "configure_totp": "Configura l'app di autenticazione"
   },
   "nav": {
     "home": "Home",

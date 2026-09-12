@@ -9,7 +9,9 @@
     "key_nokey": "Personal key not created",
     "key_nogrant": "Personal key present, not granted access to identity data",
     "key_granted": "Granted access to identity data",
-    "key_unlocked": "Key unlocked: click to manage or lock"
+    "key_unlocked": "Key unlocked: click to manage or lock",
+    "change_password": "Change password",
+    "configure_totp": "Set up the authenticator app"
   },
   "nav": {
     "home": "Home",

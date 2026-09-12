@@ -3,7 +3,9 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { MenuItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { MenuModule } from 'primeng/menu';
 import { SelectModule } from 'primeng/select';
 import { TooltipModule } from 'primeng/tooltip';
 import { filter, map, startWith } from 'rxjs/operators';
@@ -83,6 +85,7 @@ export const NAV: NavSection[] = [
     RouterLinkActive,
     TranslocoDirective,
     ButtonModule,
+    MenuModule,
     SelectModule,
     TooltipModule,
     FilterBarComponent,
@@ -114,6 +117,12 @@ export class ShellComponent {
   closeSidebarOnPhone(): void {
     if (window.innerWidth <= 900) this.sidebarOpen.set(false);
   }
+
+  /** Menu "Password e sicurezza": azioni gestite dalla pagina di accesso di Keycloak (kc_action). */
+  readonly securityItems = computed<MenuItem[]>(() => [
+    { label: this.transloco.translate('shell.change_password'), icon: 'pi pi-key', command: () => this.auth.requestAction('UPDATE_PASSWORD', this.router.url) },
+    { label: this.transloco.translate('shell.configure_totp'), icon: 'pi pi-mobile', command: () => this.auth.requestAction('CONFIGURE_TOTP', this.router.url) },
+  ]);
   readonly version = this.config.config.version;
   readonly brand = this.config.config.brand ?? {};
 

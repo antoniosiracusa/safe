@@ -9,7 +9,9 @@
     "key_nokey": "Persönlicher Schlüssel nicht erstellt",
     "key_nogrant": "Persönlicher Schlüssel vorhanden, keine Freigabe für Identitätsdaten",
     "key_granted": "Freigabe für Identitätsdaten erteilt",
-    "key_unlocked": "Schlüssel entsperrt: klicken zum Verwalten oder Sperren"
+    "key_unlocked": "Schlüssel entsperrt: klicken zum Verwalten oder Sperren",
+    "change_password": "Passwort ändern",
+    "configure_totp": "Authentifizierungs-App einrichten"
   },
   "nav": {
     "home": "Startseite",
