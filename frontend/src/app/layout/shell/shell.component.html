@@ -10,8 +10,12 @@
       (onClick)="toggleSidebar()"
     />
     <a class="brand" [routerLink]="['/', lang(), 'home']" queryParamsHandling="preserve">
-      <span class="mark" aria-hidden="true">S</span>
-      <span class="name">SAFE</span>
+      @if (brand.logoUrl) {
+        <img class="logo" [src]="brand.logoUrl" alt="" aria-hidden="true" />
+      } @else {
+        <span class="mark" aria-hidden="true">S</span>
+      }
+      <span class="name">{{ brand.name || 'SAFE' }}</span>
       <span class="company">{{ session.company()?.name }}</span>
     </a>
 

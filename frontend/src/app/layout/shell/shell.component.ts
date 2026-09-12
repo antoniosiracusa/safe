@@ -105,6 +105,7 @@ export class ShellComponent {
   readonly langOptions = this.config.config.supportedLocales.map((l) => ({ value: l, label: l.toUpperCase() }));
   readonly sidebarOpen = signal(true);
   readonly version = this.config.config.version;
+  readonly brand = this.config.config.brand ?? {};
 
   /** La barra filtri compare solo sulle pagine che la dichiarano (data.filters = true). */
   readonly showFilters = toSignal(

@@ -9,6 +9,8 @@ export interface AppConfig {
   map: { provider: 'mapbox'; mapboxToken: string; defaultCenter: [number, number]; defaultZoom: number };
   defaultLocale: string;
   supportedLocales: string[];
+  /** Marchio dell'installazione (facoltativo): logo nell'intestazione al posto del simbolo "S". */
+  brand?: { logoUrl?: string; name?: string };
 }
 
 @Injectable({ providedIn: 'root' })

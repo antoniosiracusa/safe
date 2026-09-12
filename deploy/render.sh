@@ -19,7 +19,8 @@ cat > generated/app-config.json <<JSON
     "defaultZoom": ${MAP_DEFAULT_ZOOM:-11}
   },
   "defaultLocale": "it",
-  "supportedLocales": ["it", "en", "de"]
+  "supportedLocales": ["it", "en", "de"],
+  "brand": { "logoUrl": "${BRAND_LOGO_URL:-}", "name": "${BRAND_NAME:-}" }
 }
 JSON
 

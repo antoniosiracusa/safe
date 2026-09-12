@@ -41,6 +41,7 @@
     place-items: center;
     font-weight: 700;
   }
+  .logo { height: 38px; width: auto; max-width: 140px; object-fit: contain; }
   .name { font-weight: 700; letter-spacing: 0.04em; }
   .company { color: var(--p-text-muted-color); font-size: 0.9rem; }
 }

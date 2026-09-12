@@ -63,6 +63,8 @@ services:
       DOMAIN: ${DOMAIN}
     volumes:
       - ./generated/app-config.json:/usr/share/nginx/html/config/app-config.json:ro
+      # loghi condivisi con il tema Keycloak: raggiungibili come https://DOMINIO/brand/<file>.png (BRAND_LOGO_URL)
+      - ./keycloak/themes/safe/login/resources/img:/usr/share/nginx/html/brand:ro
     labels:
       - traefik.enable=true
       - traefik.http.routers.web.rule=Host(`${DOMAIN}`)
