@@ -88,6 +88,12 @@ servizi cambiati. Tempo di indisponibilità: pochi secondi per l'API. Per tornar
   `/var/log/safe-backup.log`.
 - Snapshot della macchina dal pannello Aruba: utile in aggiunta, non in sostituzione.
 - I file su MinIO (PDF, export) sono rigenerabili e non fanno parte del backup.
+- `restore-test.sh`: prova di ripristino dell'ultimo backup in un PostgreSQL temporaneo (conteggi di
+  società, utenti, eventi, Keycloak), poi rimosso. Eseguita il 12/09/2026; da ripetere ogni anno.
+- `monitor.sh` (cron ogni ora, riepilogo lunedì 08:00): disco, container, API, Keycloak, scadenza
+  certificato, backup < 26 h e copia esterna. Email a `ALERT_EMAIL` quando lo stato cambia;
+  `./monitor.sh --test` invia un'email di prova. Log in `/var/log/safe-monitor.log`. In aggiunta è
+  consigliato un controllo esterno di raggiungibilità (es. UptimeRobot su https://DOMINIO/api/v1/health).
 
 Ripristino su un server vuoto (dopo `install.sh`):
 
