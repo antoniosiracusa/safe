@@ -81,7 +81,10 @@ servizi cambiati. Tempo di indisponibilità: pochi secondi per l'API. Per tornar
 
 - `backup.sh` (cron 02:30): `pg_dumpall` di SAFE e Keycloak, compresso e cifrato con AES-256
   (`BACKUP_PASSPHRASE`), in `/opt/safe/backups` per `BACKUP_KEEP_DAYS` giorni; copia su bucket S3
-  esterno se `BACKUP_S3_*` è impostato (Aruba Object Storage consigliato). Log in
+  esterno se `BACKUP_S3_*` è impostato, conservata `BACKUP_S3_KEEP_DAYS` giorni (default 90).
+  In produzione: Backblaze B2, bucket privato `safecivetta-backup` (endpoint
+  `s3.eu-central-003.backblazeb2.com`, chiave applicativa limitata al bucket, ciclo di vita del
+  bucket "Keep only the last version" così le cancellazioni liberano spazio). Log in
   `/var/log/safe-backup.log`.
 - Snapshot della macchina dal pannello Aruba: utile in aggiunta, non in sostituzione.
 - I file su MinIO (PDF, export) sono rigenerabili e non fanno parte del backup.
