@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>SAFE · Guida rapida per gli operatori</title>
+<style>
+  @page { size: A4; margin: 20mm 18mm 20mm 18mm;
+    @bottom-left { content: "SAFE · Guida rapida per gli operatori · safecivetta.it"; font-size: 8.5pt; color: #6b7280; }
+    @bottom-right { content: "Pagina " counter(page) " di " counter(pages); font-size: 8.5pt; color: #6b7280; } }
+  @page cover { @bottom-left { content: none } @bottom-right { content: none } }
+  body { font-family: "DejaVu Sans", sans-serif; font-size: 10.5pt; color: #1f2a37; line-height: 1.45; }
+  h1 { font-size: 17pt; color: #c8102e; margin: 9mm 0 3mm; page-break-after: avoid; }
+  h1.first { margin-top: 0; }
+  h1.newpage { page-break-before: always; margin-top: 0; }
+  h2 { font-size: 12.5pt; color: #1f2a37; margin: 5mm 0 2mm; border-bottom: 1.5pt solid #c8102e; padding-bottom: 1mm; page-break-after: avoid; }
+  h3 { font-size: 11pt; margin: 4mm 0 1.5mm; }
+  p { margin: 0 0 2.5mm; }
+  ol, ul { margin: 0 0 3mm; padding-left: 6mm; }
+  li { margin-bottom: 1.2mm; }
+  .cover { page: cover; text-align: center; padding-top: 40mm; page-break-after: always; }
+  .cover img { height: 32mm; margin-bottom: 12mm; }
+  .cover .title { font-size: 30pt; font-weight: bold; color: #1f2a37; letter-spacing: 0.08em; }
+  .cover .sub { font-size: 15pt; color: #c8102e; margin-top: 3mm; }
+  .cover .meta { margin-top: 30mm; color: #6b7280; font-size: 10pt; }
+  .box { border: 1pt solid #d1d5db; border-left: 4pt solid #c8102e; background: #f9fafb; padding: 3mm 4mm; margin: 3mm 0; page-break-inside: avoid; }
+  .box.ok { border-left-color: #2e7d32; }
+  .box .t { font-weight: bold; display: block; margin-bottom: 1mm; }
+  .ui { font-weight: bold; color: #1f2a37; }
+  .path { font-family: "DejaVu Sans Mono", monospace; font-size: 9.5pt; background: #eef2f7; padding: 0 1.5mm; border-radius: 2pt; }
+  table { border-collapse: collapse; width: 100%; margin: 2mm 0 4mm; font-size: 9.8pt; page-break-inside: avoid; }
+  th, td { border: 0.6pt solid #d1d5db; padding: 1.8mm 2.5mm; vertical-align: top; text-align: left; }
+  th { background: #eef2f7; }
+  .toc li { margin-bottom: 0.8mm; }
+  .small { font-size: 9pt; color: #6b7280; }
+  .steps li { margin-bottom: 2mm; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <img src="{{LOGO}}" alt="Ski Civetta">
+  <div class="title">SAFE</div>
+  <div class="sub">Guida rapida per gli operatori del soccorso piste</div>
+  <div class="meta">Consorzio Impianti a Fune Civetta · portale https://safecivetta.it<br>Versione 1.0 · settembre 2026</div>
+</div>
+
+<h1 class="first">Indice</h1>
+<ol class="toc">
+  <li>Che cos'è SAFE e da dove si entra</li>
+  <li>Il primo accesso</li>
+  <li>Entrare e uscire ogni giorno</li>
+  <li>La chiave personale e i dati identificativi</li>
+  <li>Registrare un evento di soccorso</li>
+  <li>Aggiungere le persone soccorse</li>
+  <li>Chiudere il rapporto e stampare il PDF</li>
+  <li>Ritrovare un evento</li>
+  <li>Statistiche e mappa</li>
+  <li>Problemi frequenti</li>
+  <li>Regole per la privacy</li>
+</ol>
+
+<h1 class="newpage">1. Che cos'è SAFE e da dove si entra</h1>
+<p>SAFE è il portale con cui il Consorzio registra gli interventi di soccorso sulle piste: chi è intervenuto, dove, quando, in quali condizioni e quali persone sono state soccorse. Dai dati inseriti il portale produce il rapporto in PDF, le statistiche di stagione, la mappa degli eventi e l'esportazione richiesta dalla Regione.</p>
+<p>Si usa da un normale browser (Chrome, Edge, Firefox, Safari) su computer, tablet o telefono, all'indirizzo:</p>
+<div class="box ok"><span class="t">https://safecivetta.it</span>Non serve installare nulla. Conviene salvarlo tra i preferiti.</div>
+<p>Il portale è in italiano, con inglese e tedesco disponibili dal selettore in alto a destra.</p>
+
+<h1>2. Il primo accesso</h1>
+<p>Il tuo amministratore ti invita dal portale. Ricevi un'email da <span class="ui">SAFE &lt;noreply@safecivetta.it&gt;</span> con un link valido <strong>7 giorni</strong>. Se non la trovi, controlla la posta indesiderata.</p>
+<ol class="steps">
+  <li>Apri il link dell'email e scegli la tua <span class="ui">password</span>: almeno 12 caratteri, diversa dal tuo nome e dalla tua email. Una frase con qualche numero e simbolo va benissimo.</li>
+  <li>Se il tuo amministratore ha attivato l'<span class="ui">autenticazione a due fattori</span>, il portale mostra un codice QR. Installa sul telefono un'app di autenticazione (Google Authenticator, Microsoft Authenticator o FreeOTP), inquadra il QR e inserisci il codice a sei cifre che compare. Da quel momento, a ogni accesso, oltre alla password ti verrà chiesto il codice dell'app.</li>
+  <li>Vieni portato nella pagina <span class="ui">Home</span> del portale: il primo accesso è completato.</li>
+  <li>Subito dopo, crea la tua <span class="ui">chiave personale</span> (capitolo 4).</li>
+</ol>
+<div class="box"><span class="t">Il link è scaduto o non funziona?</span>Chiedi all'amministratore di rimandare l'invito: basta un clic dalla pagina Utenti.</div>
+
+<h1>3. Entrare e uscire ogni giorno</h1>
+<ol class="steps">
+  <li>Vai su <span class="ui">https://safecivetta.it</span>: compare la pagina di accesso con i loghi Ski Civetta.</li>
+  <li>Inserisci la tua email (o nome utente) e la password; se richiesto, il codice dell'app di autenticazione.</li>
+  <li>Per uscire, in alto a destra clicca sul tuo nome e poi <span class="ui">Esci</span>. Fallo sempre su computer condivisi.</li>
+</ol>
+<p>Dopo <strong>30 minuti</strong> senza attività la sessione scade e va rifatto l'accesso. Se hai dimenticato la password usa <span class="ui">Password dimenticata?</span> nella pagina di accesso: ricevi un'email per sceglierne una nuova.</p>
+<p>La pagina <span class="ui">Home</span> riassume la tua sessione: le squadre di cui fai parte, le funzioni abilitate, lo stato della chiave personale e i numeri della stagione.</p>
+
+<h1>4. La chiave personale e i dati identificativi</h1>
+<p>I dati identificativi delle persone soccorse (nome, cognome, data di nascita, telefono, email, indirizzo, codice assicurazione o skipass) sono <strong>cifrati nel tuo browser</strong> prima di essere inviati. Il server li conserva in forma illeggibile: nemmeno chi gestisce il portale può leggerli. Per cifrarli e leggerli serve la tua chiave personale.</p>
+
+<h2>Creare la chiave (una volta sola)</h2>
+<ol class="steps">
+  <li>In alto a destra clicca il pulsante <span class="ui">La mia chiave</span>.</li>
+  <li>Scegli una <span class="ui">passphrase</span> di almeno 12 caratteri e ripetila. Non è la password di accesso: è una seconda parola d'ordine, solo per i dati identificativi.</li>
+  <li>Clicca <span class="ui">Crea la chiave</span>. Il pulsante in alto diventa <span class="ui">Chiave sbloccata</span>.</li>
+</ol>
+<div class="box"><span class="t">La passphrase non è recuperabile</span>Nessuno può ritrovarla per te: non viene mai inviata al server. Se la dimentichi puoi rigenerare la chiave (pulsante <span class="ui">Ho dimenticato la passphrase</span>), ma perdi l'abilitazione ai dati identificativi finché un custode delle chiavi non te la riassegna.</div>
+
+<h2>Sbloccare la chiave durante il lavoro</h2>
+<p>Ogni volta che entri nel portale la chiave è bloccata. Per inserire o leggere dati identificativi clicca <span class="ui">La mia chiave</span>, digita la passphrase e premi <span class="ui">Sblocca</span>. Resta sbloccata per <strong>15 minuti di inattività</strong>, poi si blocca da sola; puoi bloccarla tu con <span class="ui">Blocca</span>.</p>
+
+<h2>Chi può leggere i dati identificativi</h2>
+<p>Avere la chiave personale non basta: un <strong>custode delle chiavi</strong> della società deve averti <em>abilitato</em>. Lo stato è indicato dal pulsante in alto e nella Home:</p>
+<table>
+  <tr><th>Stato mostrato</th><th>Significato</th></tr>
+  <tr><td>Chiave personale non creata</td><td>Crea la chiave (sopra).</td></tr>
+  <tr><td>Chiave personale presente, nessuna abilitazione</td><td>Puoi lavorare su tutto tranne i dati identificativi. Chiedi l'abilitazione a un custode se ti serve.</td></tr>
+  <tr><td>Abilitato ai dati identificativi</td><td>Con la chiave sbloccata puoi inserirli e leggerli.</td></tr>
+</table>
+
+<h1>5. Registrare un evento di soccorso</h1>
+<p>Menu a sinistra: <span class="ui">Dati → Eventi</span>, poi il pulsante <span class="ui">Nuovo evento</span>. Il modulo è diviso in tre sezioni.</p>
+
+<h2>Quando e chi</h2>
+<ul>
+  <li><span class="ui">Data e ora</span> dell'intervento (proposta l'ora attuale).</li>
+  <li><span class="ui">Squadra</span>: la tua squadra predefinita è già selezionata.</li>
+  <li><span class="ui">Operatori</span> intervenuti, <span class="ui">Chiamante</span>, <span class="ui">Ora ricezione chiamata</span>, <span class="ui">Tipo di evento</span>.</li>
+</ul>
+
+<h2>Dove</h2>
+<ul>
+  <li><span class="ui">Comprensorio</span> (Civetta) e <span class="ui">Zona</span>: Alleghe, Val Fiorentina, S. Fosca, Pecol, Palafavera.</li>
+  <li><span class="ui">Pista</span>: scegli dall'elenco della zona. Se l'incidente non è su una pista, indica il <span class="ui">Tipo di luogo</span> (impianto, area di sosta, fuori pista…) e una <span class="ui">Descrizione del luogo</span>.</li>
+  <li><span class="ui">Posizione</span>: clicca sulla mappa nel punto dell'incidente o trascina il segnaposto. Puoi ingrandire con la rotellina o con i pulsanti. La posizione serve alla mappa e alle statistiche geografiche.</li>
+</ul>
+
+<h2>Condizioni e causa</h2>
+<ul>
+  <li><span class="ui">Causa</span> dell'incidente, con eventuale nota.</li>
+  <li><span class="ui">Meteo</span>, <span class="ui">Neve</span>, <span class="ui">Visibilità</span>, <span class="ui">Vento</span>, <span class="ui">Traffico</span>, <span class="ui">Innevamento</span>, <span class="ui">Difficoltà</span> della pista.</li>
+  <li><span class="ui">Relazione di servizio</span>, <span class="ui">Testimoni</span>, <span class="ui">Note</span>.</li>
+</ul>
+<p>Premi <span class="ui">Crea evento</span>. L'evento riceve un codice breve (per esempio 88CD0AA4) con cui ritrovarlo. Se manca qualche campo richiesto dalla società, l'evento viene salvato comunque ma segnato come <em>non valido</em>, con l'elenco <span class="ui">Campi mancanti per la validità</span>: completali quando puoi.</p>
+<div class="box"><span class="t">In pista, dal telefono</span>Puoi inserire subito i dati essenziali (ora, zona, pista, posizione, causa) e completare il resto dal computer a fine turno: l'evento resta modificabile finché non viene bloccato.</div>
+
+<h1>6. Aggiungere le persone soccorse</h1>
+<ol class="steps">
+  <li>Apri l'evento e vai alla scheda <span class="ui">Persone</span>, poi <span class="ui">Aggiungi persona</span>.</li>
+  <li><span class="ui">Persona</span>: età, genere, nazione, iniziali, ruolo (sciatore, snowboarder, pedone…), casco.</li>
+  <li><span class="ui">Attrezzatura e protezioni</span>: attrezzatura, proprietà, stato, altre protezioni.</li>
+  <li><span class="ui">Dati clinici</span>: diagnosi presunta e secondarie, lesione principale e sede, mezzi di evacuazione (aggiungine più di uno se serve), soccorso rifiutato.</li>
+  <li><span class="ui">Assicurazione, alloggio, responsabilità</span>: assicurazione, alloggio, destinazione (pronto soccorso, ambulatorio…), responsabilità, violazioni amministrative.</li>
+  <li><span class="ui">Dati identificativi (cifrati)</span>: nome, cognome, data di nascita, telefono, email, indirizzo, codice assicurazione o skipass, consegnato a. Compaiono solo se la tua chiave è sbloccata e sei abilitato. Vengono cifrati nel momento in cui salvi.</li>
+  <li><span class="ui">Salva</span>. Ripeti per ogni persona coinvolta.</li>
+</ol>
+<div class="box"><span class="t">Mai dati personali nei campi liberi</span>Nome, telefono, targa, numero di stanza e simili vanno <strong>solo</strong> nella sezione "Dati identificativi": è l'unica cifrata. Note, descrizione del luogo e relazione di servizio sono leggibili da tutti gli utenti autorizzati e finiscono negli export.</div>
+<p>Per rileggere i dati identificativi di una persona: chiave sbloccata, poi <span class="ui">Mostra</span> accanto a "Dati identificativi cifrati presenti". Ogni lettura viene registrata nel registro delle operazioni.</p>
+
+<h1>7. Chiudere il rapporto e stampare il PDF</h1>
+<h2>Bloccare l'evento</h2>
+<p>Quando il rapporto è completo, nella scheda dell'evento premi <span class="ui">Blocca</span>: l'evento non è più modificabile e vale come chiuso. Se la società ha impostato il blocco automatico, gli eventi si bloccano da soli dopo un certo numero di ore (di norma 48).</p>
+<p>Per correggere un evento bloccato serve il permesso di sblocco: <span class="ui">Sblocca</span>, indica il <span class="ui">Motivo dello sblocco</span> (viene registrato), modifica e blocca di nuovo.</p>
+<h2>Il PDF del rapporto</h2>
+<p>Dalla scheda dell'evento, pulsante <span class="ui">PDF</span>: il portale genera il rapporto d'intervento, con i dati dell'evento e delle persone. Il file compare dopo qualche secondo e resta scaricabile. Il PDF non contiene mai i dati identificativi: viene prodotto dal server, che non può leggerli. Se servono su carta, vanno aggiunti a mano.</p>
+
+<h1>8. Ritrovare un evento</h1>
+<ul>
+  <li><span class="ui">Dati → Eventi</span> mostra l'elenco della stagione corrente, dal più recente.</li>
+  <li>La <span class="ui">barra dei filtri</span> in alto vale per tutte le pagine: <span class="ui">Squadra</span>, <span class="ui">Stagione</span>, <span class="ui">Periodo</span>, <span class="ui">Comprensorio</span>, <span class="ui">Zona</span>, <span class="ui">Solo validi</span>. <span class="ui">Reimposta filtri</span> li azzera.</li>
+  <li>La casella <span class="ui">Cerca nel luogo o nelle note</span> trova gli eventi per testo.</li>
+  <li>Puoi ordinare l'elenco cliccando sulle intestazioni delle colonne.</li>
+  <li>Nella scheda dell'evento, <span class="ui">Storico</span> mostra chi ha fatto cosa e quando (se hai il permesso).</li>
+</ul>
+<p>La pagina <span class="ui">Dati → Persone</span> elenca le persone soccorse con gli stessi filtri, senza mostrare i dati identificativi.</p>
+
+<h1>9. Statistiche e mappa</h1>
+<p><span class="ui">Statistiche</span>: riepilogo di stagione per squadra, riepilogo per zona, demografia, tipologia degli incidenti, geografia, meteo. I grafici seguono i filtri della barra in alto; molti numeri sono cliccabili e portano all'elenco degli eventi corrispondenti.</p>
+<p><span class="ui">Mappa</span>: tutti gli eventi con posizione, con stili inverno, estate e satellite. Cliccando un punto si apre la scheda dell'evento.</p>
+<p><span class="ui">Esportazioni</span> (per chi ha il permesso): dataset CSV/XLSX con i filtri correnti ed export per gli enti regionali nel tracciato A01, con anteprima dei dati incompleti da sistemare prima dell'invio.</p>
+
+<h1>10. Problemi frequenti</h1>
+<table>
+  <tr><th style="width:38%">Cosa vedi</th><th>Cosa fare</th></tr>
+  <tr><td>"Utente non abilitato" dopo l'accesso</td><td>L'email con cui sei entrato non è stata invitata nel portale, oppure il tuo utente è stato disattivato. Rivolgiti all'amministratore.</td></tr>
+  <tr><td>Il codice dell'app di autenticazione viene rifiutato</td><td>Controlla che l'ora del telefono sia automatica; il codice cambia ogni 30 secondi, inserisci quello appena generato. Se hai cambiato telefono, l'amministratore può azzerare l'app.</td></tr>
+  <tr><td>"Passphrase errata" su La mia chiave</td><td>Attenzione a maiuscole e spazi. Se non la ricordi: <span class="ui">Ho dimenticato la passphrase</span> → <span class="ui">Rigenera la chiave</span>, poi chiedi a un custode di riabilitarti.</td></tr>
+  <tr><td>Non vedo la sezione dei dati identificativi</td><td>La chiave è bloccata (sbloccala) oppure non sei abilitato (chiedi a un custode).</td></tr>
+  <tr><td>La mappa non compare nel modulo evento</td><td>Ricarica la pagina (Ctrl+F5). Se persiste, segnalalo indicando browser e dispositivo.</td></tr>
+  <tr><td>L'evento risulta "non valido"</td><td>Apri l'evento: l'elenco dei campi mancanti è in testa alla scheda. Completali.</td></tr>
+  <tr><td>Non riesco a modificare un evento</td><td>È bloccato: serve lo sblocco con motivo, da parte di chi ha il permesso.</td></tr>
+  <tr><td>Il QR della pagina Dispositivi dà "not found"</td><td>È normale: serve alla futura app mobile, non va inquadrato con la fotocamera.</td></tr>
+  <tr><td>Non arriva l'email di invito o di reset</td><td>Controlla la posta indesiderata; verifica con l'amministratore che l'email sia scritta correttamente.</td></tr>
+</table>
+
+<h1>11. Regole per la privacy</h1>
+<ul>
+  <li>Inserisci solo i dati necessari all'intervento e alla statistica. Nome, contatti e documenti vanno esclusivamente nella sezione cifrata.</li>
+  <li>Leggi i dati identificativi solo quando serve davvero: ogni lettura è registrata con il tuo nome.</li>
+  <li>Non condividere password e passphrase, non lasciarle scritte vicino al computer, non usare il salvataggio automatico su computer condivisi.</li>
+  <li>Esci dal portale quando lasci la postazione; blocca la chiave con <span class="ui">Blocca</span> se ti allontani.</li>
+  <li>Non fotografare lo schermo e non copiare dati in messaggi o chat.</li>
+  <li>I dati identificativi vengono cancellati automaticamente dopo il periodo di conservazione stabilito dalla società (10 anni); gli eventi restano in forma anonima per le statistiche.</li>
+</ul>
+<p class="small">Per assistenza rivolgiti all'amministratore del portale del Consorzio. Questa guida si riferisce alla versione del portale di settembre 2026.</p>
+
+</body>
+</html>
