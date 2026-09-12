@@ -8,9 +8,11 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import type { FeatureCollection, MultiPolygon, Point } from 'geojson';
 import mapboxgl from 'mapbox-gl';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { SelectButtonModule } from 'primeng/selectbutton';
+import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
 import { firstValueFrom } from 'rxjs';
 
@@ -33,7 +35,9 @@ const DEFAULT_LAYERS: Layer[] = ['boundaries', 'slopes', 'events'];
  */
 @Component({
   selector: 'safe-map-page',
-  imports: [FormsModule, TranslocoDirective, ButtonModule, CheckboxModule, SelectButtonModule, TooltipModule, CanDirective, EventDrawerComponent],
+  imports: [FormsModule, TranslocoDirective, ButtonModule, CheckboxModule, SelectButtonModule, ToastModule, TooltipModule, CanDirective, EventDrawerComponent],
+  // Il drawer dell'evento mostra le notifiche (salvato, bloccato...) tramite MessageService: va fornito qui come nella pagina Eventi.
+  providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './map-page.component.html',
   styleUrl: './map-page.component.scss',
