@@ -86,8 +86,11 @@ import { SessionService } from '../../core/session/session.service';
               } @else {
                 <p-button [label]="t('keys.device_enable')" icon="pi pi-mobile" [outlined]="true" [loading]="store.busy()" (onClick)="enableDevice()" />
                 <p class="muted">{{ t('keys.device_hint') }}</p>
+                @if (store.device.lastError(); as e) { <p class="muted">{{ e }}</p> }
               }
             </div>
+          } @else {
+            <p class="muted">{{ t('keys.device_unsupported') }}</p>
           }
           <div class="field">
             <label for="kd-cpass">{{ t('keys.new_passphrase') }}</label>

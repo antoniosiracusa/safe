@@ -53,17 +53,22 @@ function tx<T>(db: IDBDatabase, mode: IDBTransactionMode, fn: (s: IDBObjectStore
 
 @Injectable({ providedIn: 'root' })
 export class DeviceUnlockService {
-  /** Il dispositivo ha un autenticatore biometrico utilizzabile (verificato all'avvio). */
-  readonly supported = signal(false);
+  readonly supportedNow = typeof PublicKeyCredential !== 'undefined' && typeof indexedDB !== 'undefined';
+  /** Il dispositivo può usare un autenticatore biometrico: si parte da "sì" se WebAuthn esiste e si
+   *  passa a "no" solo se il browser lo esclude esplicitamente (alcuni browser non rispondono). */
+  readonly supported = signal(this.supportedNow);
   /** Esiste una chiave ricordata, non scaduta, per l'utente corrente. */
   readonly available = signal(false);
-  readonly supportedNow = typeof PublicKeyCredential !== 'undefined' && typeof indexedDB !== 'undefined';
+  /** Esito dell'ultimo tentativo di registrazione, per la diagnostica nella finestra della chiave. */
+  readonly lastError = signal<string | null>(null);
 
   constructor() {
     if (this.supportedNow) {
       PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
-        .then((ok) => this.supported.set(ok))
-        .catch(() => this.supported.set(false));
+        .then((ok) => {
+          if (!ok) this.supported.set(false);
+        })
+        .catch(() => undefined);
     }
   }
 
@@ -90,14 +95,24 @@ export class DeviceUnlockService {
             extensions: { prf: {} } as AuthenticationExtensionsClientInputs & PrfExtension,
           },
         })) as PublicKeyCredential | null;
-        if (!cred) return false;
+        if (!cred) {
+          this.lastError.set('nessuna credenziale');
+          return false;
+        }
         const ext = cred.getClientExtensionResults() as PrfResults;
-        if (!ext.prf?.enabled) return false; // autenticatore senza PRF: niente "ricorda"
+        if (!ext.prf?.enabled) {
+          this.lastError.set('PRF non supportata'); // autenticatore senza PRF: niente "ricorda"
+          return false;
+        }
         credId = b64.encode(new Uint8Array(cred.rawId));
       }
       const salt = crypto.getRandomValues(new Uint8Array(32));
       const secret = await this.deriveSecret(credId, salt);
-      if (!secret) return false;
+      if (!secret) {
+        this.lastError.set('PRF senza risultato');
+        return false;
+      }
+      this.lastError.set(null);
       const blob = await sealWithKey(kp.privateKey, secret);
       item = {
         user_id: userId,
@@ -112,6 +127,7 @@ export class DeviceUnlockService {
       return true;
     } catch (err) {
       console.warn('device unlock: registrazione non riuscita', err);
+      this.lastError.set(err instanceof Error ? `${err.name}: ${err.message}` : String(err));
       return false;
     }
   }
