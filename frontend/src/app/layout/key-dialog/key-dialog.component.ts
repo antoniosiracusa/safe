@@ -31,6 +31,12 @@ import { SessionService } from '../../core/session/session.service';
             <p-password inputId="kd-pass2" [ngModel]="pass2()" (ngModelChange)="pass2.set($event)" [feedback]="false" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full" />
           </div>
           <p class="muted">{{ t('keys.passphrase_hint') }}</p>
+          @if (store.device.supported()) {
+            <div class="field remember">
+              <p-checkbox inputId="kd-remember-c" [binary]="true" [ngModel]="remember()" (ngModelChange)="remember.set($event)" />
+              <label for="kd-remember-c" class="plain">{{ t('keys.device_remember') }}</label>
+            </div>
+          }
           <div class="actions">
             <p-button [label]="t('common.cancel')" [text]="true" severity="secondary" (onClick)="close()" />
             <p-button [label]="t('keys.create')" icon="pi pi-key" [loading]="store.busy()" [disabled]="pass().length < 12 || pass() !== pass2()" (onClick)="create()" />
@@ -72,6 +78,17 @@ import { SessionService } from '../../core/session/session.service';
         } @else {
           <p><i class="pi pi-lock-open" style="color: var(--p-green-600)"></i> {{ t('keys.unlocked_status') }}</p>
           <p class="muted">{{ store.hasGrant() ? t('keys.grant_yes') : t('keys.grant_no') }}</p>
+          @if (store.device.supported()) {
+            <div class="field">
+              @if (store.device.available()) {
+                <p class="muted"><i class="pi pi-mobile"></i> {{ t('keys.device_active') }}</p>
+                <p-button [label]="t('keys.device_forget')" icon="pi pi-times" [text]="true" severity="secondary" size="small" (onClick)="forgetDevice()" />
+              } @else {
+                <p-button [label]="t('keys.device_enable')" icon="pi pi-mobile" [outlined]="true" [loading]="store.busy()" (onClick)="enableDevice()" />
+                <p class="muted">{{ t('keys.device_hint') }}</p>
+              }
+            </div>
+          }
           <div class="field">
             <label for="kd-cpass">{{ t('keys.new_passphrase') }}</label>
             <p-password inputId="kd-cpass" [ngModel]="pass()" (ngModelChange)="pass.set($event)" [feedback]="true" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full" />
@@ -127,10 +144,21 @@ export class KeyDialogComponent {
     });
   }
 
+  async enableDevice(): Promise<void> {
+    this.error.set(null);
+    const ok = await this.store.rememberOnDevice();
+    if (!ok) this.error.set('device_unsupported');
+  }
+
+  async forgetDevice(): Promise<void> {
+    await this.store.forgetDevice();
+  }
+
   async create(): Promise<void> {
     this.error.set(null);
     try {
       await this.store.createUserKey(this.pass());
+      if (this.remember()) await this.store.rememberOnDevice();
       this.close();
     } catch (err) {
       console.error('createUserKey', err);

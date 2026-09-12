@@ -621,7 +621,11 @@
     "device_unlock": "Unlock with Face ID or fingerprint",
     "device_remember": "Remember on this phone for the shift (8 hours)",
     "device_failed": "Phone unlock failed: use the passphrase.",
-    "device_hint": "The key stays protected by the phone's biometric check and expires after 8 hours."
+    "device_hint": "The key stays protected by the phone's biometric check and expires after 8 hours.",
+    "device_enable": "Enable Face ID or fingerprint unlock for the shift",
+    "device_active": "Face ID or fingerprint unlock is active for this shift (8 hours).",
+    "device_forget": "Disable on this phone",
+    "device_unsupported": "This phone or browser does not support biometric unlock: the passphrase remains."
   },
   "audit": {
     "intro": "Every access to identifying data, change, unlock, export and key operation is recorded permanently. The log never contains personal data values.",

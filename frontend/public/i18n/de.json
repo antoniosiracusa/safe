@@ -621,7 +621,11 @@
     "device_unlock": "Mit Face ID oder Fingerabdruck entsperren",
     "device_remember": "Auf diesem Telefon für die Schicht merken (8 Stunden)",
     "device_failed": "Entsperren mit dem Telefon fehlgeschlagen: Passphrase verwenden.",
-    "device_hint": "Der Schlüssel bleibt durch die biometrische Prüfung des Telefons geschützt und verfällt nach 8 Stunden."
+    "device_hint": "Der Schlüssel bleibt durch die biometrische Prüfung des Telefons geschützt und verfällt nach 8 Stunden.",
+    "device_enable": "Entsperren mit Face ID oder Fingerabdruck für die Schicht aktivieren",
+    "device_active": "Entsperren mit Face ID oder Fingerabdruck ist für diese Schicht aktiv (8 Stunden).",
+    "device_forget": "Auf diesem Telefon deaktivieren",
+    "device_unsupported": "Dieses Telefon oder dieser Browser unterstützt kein biometrisches Entsperren: die Passphrase bleibt."
   },
   "audit": {
     "intro": "Jeder Zugriff auf identifizierende Daten, jede Änderung, Entsperrung, jeder Export und Schlüsselvorgang wird dauerhaft protokolliert. Das Protokoll enthält nie personenbezogene Werte.",

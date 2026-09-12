@@ -621,7 +621,11 @@
     "device_unlock": "Sblocca con Face ID o impronta",
     "device_remember": "Ricorda su questo telefono per il turno (8 ore)",
     "device_failed": "Sblocco con il telefono non riuscito: usa la passphrase.",
-    "device_hint": "La chiave resta protetta dal riconoscimento biometrico del telefono e scade dopo 8 ore."
+    "device_hint": "La chiave resta protetta dal riconoscimento biometrico del telefono e scade dopo 8 ore.",
+    "device_enable": "Attiva lo sblocco con Face ID o impronta per il turno",
+    "device_active": "Sblocco con Face ID o impronta attivo per questo turno (8 ore).",
+    "device_forget": "Disattiva su questo telefono",
+    "device_unsupported": "Questo telefono o browser non supporta lo sblocco biometrico: resta la passphrase."
   },
   "audit": {
     "intro": "Ogni accesso ai dati identificativi, modifica, sblocco, export e operazione sulle chiavi è registrato in modo permanente. Il registro non contiene mai valori di dati personali.",

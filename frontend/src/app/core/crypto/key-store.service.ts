@@ -168,6 +168,18 @@ export class KeyStoreService {
     }
   }
 
+  /** Con la chiave già sbloccata: la conserva nel telefono, protetta dal riconoscimento biometrico, per il turno. */
+  async rememberOnDevice(): Promise<boolean> {
+    const u = this.session.user();
+    if (!u || !this.userKeyPair) return false;
+    this.busy.set(true);
+    try {
+      return await this.device.remember(u.id, u.email, this.userKeyPair);
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
   /** Dimentica la chiave ricordata sul telefono (uscita, rigenerazione). */
   async forgetDevice(): Promise<void> {
     const u = this.session.user();
