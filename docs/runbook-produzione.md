@@ -132,6 +132,11 @@ esercizio: eseguita con successo il 12/09/2026, da ripetere almeno una volta l'a
 - Keycloak: brute force detection, password policy (12 caratteri, storico 3), sessioni 30 min di
   inattività, MFA attivabile per utente (`mfa_required` nell'invito). La console admin è raggiungibile
   solo con l'utente `KEYCLOAK_ADMIN`: usare una password lunga e attivare OTP al primo accesso.
+- La console "account" di Keycloak (`/realms/safe/account`) non è usata: il realm importato non ha lo
+  scope `roles` e la pagina va in errore. Gli utenti cambiano password e app di autenticazione dal
+  menu "Password e sicurezza" del portale (azioni `kc_action=UPDATE_PASSWORD|CONFIGURE_TOTP`).
+  Per il canale beta va aggiunto `https://beta.DOMINIO/*` anche tra i *Valid post logout redirect URIs*
+  del client `safe-web` (il realm generato lo include per le installazioni nuove).
 - Accesso al server: solo chiave SSH, fail2ban, aggiornamenti di sicurezza automatici (riavvio
   manuale quando `/var/run/reboot-required` esiste).
 - Le chiavi di cifratura dei dati identificativi non stanno sul server in chiaro: il recupero è
