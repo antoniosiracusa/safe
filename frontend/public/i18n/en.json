@@ -540,7 +540,10 @@
     "dup_gender": "Gender",
     "dup_age_class_a01": "A01 age class",
     "dup_equipment": "Equipment",
-    "validity_hint": "When validity rules change, the validity of all events is recomputed in the background."
+    "validity_hint": "When validity rules change, the validity of all events is recomputed in the background.",
+    "first_season": "First visible season",
+    "first_season_all": "All seasons",
+    "first_season_hint": "Earlier seasons are hidden from filters and statistics. Useful when no historical data is loaded."
   },
   "identity": {
     "firstname": "First name",

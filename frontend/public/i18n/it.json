@@ -540,7 +540,10 @@
     "dup_gender": "Genere",
     "dup_age_class_a01": "Classe di età A01",
     "dup_equipment": "Attrezzatura",
-    "validity_hint": "Cambiando le regole di validità, la validità di tutti gli eventi viene ricalcolata in background."
+    "validity_hint": "Cambiando le regole di validità, la validità di tutti gli eventi viene ricalcolata in background.",
+    "first_season": "Prima stagione visibile",
+    "first_season_all": "Tutte le stagioni",
+    "first_season_hint": "Le stagioni precedenti non compaiono nei filtri e nelle statistiche. Utile se non si caricano dati storici."
   },
   "identity": {
     "firstname": "Nome",

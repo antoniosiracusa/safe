@@ -39,6 +39,11 @@ class Company(models.Model):
 
     # --- impostazioni con default (docs/03-openapi.yaml CompanySettings) -------------
     @property
+    def first_season(self) -> str | None:
+        """Prima stagione mostrata nei filtri/statistiche ('2025/2026'); None = tutte le stagioni."""
+        return self.settings.get("first_season") or None
+
+    @property
     def auto_lock_hours(self) -> int:
         return int(self.settings.get("auto_lock_hours", 48))
 

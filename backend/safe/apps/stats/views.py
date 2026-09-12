@@ -35,7 +35,8 @@ class AnnualDistributionView(StatsView):
         lang = self.lang
         incremental = self.request.query_params.get("incremental") in ("true", "1")
         selected = self.request.query_params.get("season") or Season.current().code
-        all_codes = [s.code for s in Season.objects.order_by("start_date") if s.code <= selected]
+        first = self.company.first_season or ""
+        all_codes = [s.code for s in Season.objects.order_by("start_date") if first <= s.code <= selected]
         seasons = all_codes[-3:]
         events = self.events(apply_season=False).filter(season__code__in=seasons)
         counts = q.events_by_season_month(events, self.tz)

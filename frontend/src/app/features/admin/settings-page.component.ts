@@ -7,6 +7,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelectModule } from 'primeng/multiselect';
+import { SelectModule } from 'primeng/select';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { ToastModule } from 'primeng/toast';
 import { firstValueFrom } from 'rxjs';
@@ -34,6 +35,7 @@ interface SettingsForm {
   timezone: string;
   default_locale: string;
   auto_lock_hours: number;
+  first_season: string | null;
   devices_need_authorization: boolean;
   event_required: string[];
   person_required: string[];
@@ -43,7 +45,7 @@ interface SettingsForm {
 
 @Component({
   selector: 'safe-admin-settings',
-  imports: [DatePipe, FormsModule, TranslocoDirective, ButtonModule, CheckboxModule, InputNumberModule, InputTextModule, MultiSelectModule, SelectButtonModule, ToastModule, CanDirective],
+  imports: [DatePipe, FormsModule, TranslocoDirective, ButtonModule, CheckboxModule, InputNumberModule, InputTextModule, MultiSelectModule, SelectModule, SelectButtonModule, ToastModule, CanDirective],
   providers: [MessageService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './admin-page.scss',
@@ -74,6 +76,11 @@ interface SettingsForm {
                 <label for="st-lock">{{ t('admin.auto_lock_hours') }}</label>
                 <p-inputNumber inputId="st-lock" [ngModel]="f.auto_lock_hours" (ngModelChange)="patch({ auto_lock_hours: $event })" [min]="0" [max]="720" suffix=" h" styleClass="w-full" />
                 <small class="muted">{{ t('admin.auto_lock_hint') }}</small>
+              </div>
+              <div class="field">
+                <label for="st-season">{{ t('admin.first_season') }}</label>
+                <p-select inputId="st-season" [options]="seasonOptions" optionLabel="label" optionValue="value" [ngModel]="f.first_season" (ngModelChange)="patch({ first_season: $event })" [showClear]="true" [placeholder]="t('admin.first_season_all')" appendTo="body" styleClass="w-full" />
+                <small class="muted">{{ t('admin.first_season_hint') }}</small>
               </div>
               <div class="field">
                 <span class="lbl">&nbsp;</span>
@@ -153,6 +160,14 @@ export class SettingsPageComponent {
     { value: 'en', label: 'EN' },
     { value: 'de', label: 'DE' },
   ];
+  /** Stagioni selezionabili come "prima stagione": dalla prima in archivio (2018/2019) a quella corrente. */
+  readonly seasonOptions = (() => {
+    const today = new Date();
+    const currentStart = today.getMonth() + 1 >= 6 ? today.getFullYear() : today.getFullYear() - 1;
+    const out: { value: string; label: string }[] = [];
+    for (let y = currentStart; y >= 2018; y--) out.push({ value: `${y}/${y + 1}`, label: `${y}/${y + 1}` });
+    return out;
+  })();
   readonly eventFieldOptions = computed(() => EVENT_RULE_FIELDS.map((f) => ({ value: f, label: this.fieldLabel(f) })));
   readonly personFieldOptions = computed(() => PERSON_RULE_FIELDS.map((f) => ({ value: f, label: this.fieldLabel(f) })));
   readonly dupFieldOptions = computed(() => DUP_RULE_FIELDS.map((f) => ({ value: f, label: this.transloco.translate('admin.dup_' + f) })));
@@ -225,7 +240,7 @@ export class SettingsPageComponent {
     if (!c) return;
     this.form.set({
       name: c.name, timezone: c.timezone, default_locale: c.default_locale, auto_lock_hours: c.settings.auto_lock_hours,
-      devices_need_authorization: c.settings.devices_need_authorization, event_required: [...c.settings.validity_rules.event_required],
+      first_season: c.settings.first_season ?? null, devices_need_authorization: c.settings.devices_need_authorization, event_required: [...c.settings.validity_rules.event_required],
       person_required: [...c.settings.validity_rules.person_required], dup_minutes: c.settings.duplicate_rule.minutes,
       dup_fields: [...c.settings.duplicate_rule.fields],
     });
@@ -246,7 +261,8 @@ export class SettingsPageComponent {
         this.admin.patchCompany({
           name: f.name.trim(), timezone: f.timezone.trim(), default_locale: f.default_locale,
           settings: {
-            auto_lock_hours: f.auto_lock_hours, devices_need_authorization: f.devices_need_authorization,
+            auto_lock_hours: f.auto_lock_hours, first_season: f.first_season || null,
+            devices_need_authorization: f.devices_need_authorization,
             validity_rules: { event_required: f.event_required, person_required: f.person_required },
             duplicate_rule: { minutes: f.dup_minutes, fields: f.dup_fields },
           },

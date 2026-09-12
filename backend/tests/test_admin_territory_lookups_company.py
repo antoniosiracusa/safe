@@ -183,6 +183,7 @@ def test_company_get_and_patch_settings(as_admin, api_client, company, rescuer_u
             "default_locale": "de",
             "settings": {
                 "auto_lock_hours": 24,
+                "first_season": "2025/2026",
                 "devices_need_authorization": False,
                 "validity_rules": {"person_required": ["age", "gender"]},
                 "duplicate_rule": {"minutes": 45},
@@ -196,6 +197,7 @@ def test_company_get_and_patch_settings(as_admin, api_client, company, rescuer_u
         b["name"] == "Società A S.p.A." and b["timezone"] == "Europe/Vienna" and b["default_locale"] == "de"
     )
     assert b["settings"]["auto_lock_hours"] == 24 and b["settings"]["devices_need_authorization"] is False
+    assert b["settings"]["first_season"] == "2025/2026"
     assert b["settings"]["validity_rules"]["person_required"] == ["age", "gender"]
     assert b["settings"]["validity_rules"]["event_required"][0] == "dateandtime"  # default conservato
     assert b["settings"]["duplicate_rule"] == {

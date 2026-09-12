@@ -58,6 +58,7 @@ def company_payload(c: Company) -> dict[str, Any]:
         "retention_audit_years": c.retention_audit_years,
         "settings": {
             "auto_lock_hours": c.auto_lock_hours,
+            "first_season": c.first_season,
             "devices_need_authorization": c.devices_need_authorization,
             "validity_rules": c.validity_rules,
             "duplicate_rule": c.duplicate_rule,
@@ -89,6 +90,7 @@ class DuplicateRuleSerializer(serializers.Serializer):
 
 class SettingsSerializer(serializers.Serializer):
     auto_lock_hours = serializers.IntegerField(min_value=0, max_value=720, required=False)
+    first_season = serializers.RegexField(r"^\d{4}/\d{4}$", required=False, allow_null=True)
     devices_need_authorization = serializers.BooleanField(required=False)
     validity_rules = ValidityRulesSerializer(required=False)
     duplicate_rule = DuplicateRuleSerializer(required=False)

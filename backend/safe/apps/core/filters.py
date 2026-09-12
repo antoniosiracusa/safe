@@ -4,6 +4,7 @@ usato da statistiche, dati, mappa ed export (docs/03-openapi.yaml, parametri Sta
 from __future__ import annotations
 
 import datetime as dt
+from typing import cast
 
 from django.db.models import QuerySet
 from django_filters import rest_framework as df
@@ -13,7 +14,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from safe.apps.authz.drf import HasPermission
-from safe.apps.org.models import Team
+from safe.apps.org.models import AppUser, Team
 from safe.apps.rescue.models import Season
 from safe.apps.territory.models import SkiArea, Zone
 
@@ -26,6 +27,10 @@ class FilterOptionsView(APIView):
     def get(self, request: Request) -> Response:
         today = dt.date.today()
         current = Season.code_for(today)
+        qs = Season.objects.filter(start_date__lte=today).order_by("-start_date")
+        first = cast(AppUser, request.user).company.first_season
+        if first:
+            qs = qs.filter(code__gte=first)  # i codici 'AAAA/AAAA' si ordinano come stringhe
         seasons = [
             {
                 "value": s.code,
@@ -34,7 +39,7 @@ class FilterOptionsView(APIView):
                 "end_date": s.end_date.isoformat(),
                 "is_current": s.code == current,
             }
-            for s in Season.objects.filter(start_date__lte=today).order_by("-start_date")
+            for s in qs
         ]
         return Response(
             {

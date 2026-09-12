@@ -151,6 +151,7 @@ export interface CompanyInfo {
   retention_audit_years: number;
   settings: {
     auto_lock_hours: number;
+    first_season: string | null;
     devices_need_authorization: boolean;
     validity_rules: { event_required: string[]; person_required: string[] };
     duplicate_rule: { minutes: number; fields: string[] };
