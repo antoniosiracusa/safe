@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>SAFECIVETTA.IT · Modalità pista dal telefono</title>
+<style>
+  @page { size: A4; margin: 16mm 16mm 18mm 16mm;
+    @bottom-left { content: "SAFECIVETTA.IT · Modalità pista dal telefono"; font-size: 8.5pt; color: #6b7280; }
+    @bottom-right { content: "Pagina " counter(page) " di " counter(pages); font-size: 8.5pt; color: #6b7280; } }
+  body { font-family: "DejaVu Sans", sans-serif; font-size: 10.5pt; color: #1f2a37; line-height: 1.4; }
+  h1 { font-size: 18pt; color: #c8102e; margin: 0 0 2mm; }
+  .sub { color: #6b7280; margin: 0 0 6mm; }
+  h2 { font-size: 12pt; margin: 5mm 0 2mm; border-bottom: 1.5pt solid #c8102e; padding-bottom: 1mm; page-break-after: avoid; }
+  ol, ul { margin: 0 0 3mm; padding-left: 6mm; }
+  li { margin-bottom: 1.4mm; }
+  .ui { font-weight: bold; }
+  .cols { display: flex; gap: 6mm; }
+  .cols > div { flex: 1; }
+  .box { border: 1pt solid #d1d5db; border-left: 4pt solid #c8102e; background: #f9fafb; padding: 2.5mm 3.5mm; margin: 3mm 0; page-break-inside: avoid; }
+  .box.ok { border-left-color: #2e7d32; }
+  .box .t { font-weight: bold; display: block; margin-bottom: 0.8mm; }
+  table { border-collapse: collapse; width: 100%; margin: 2mm 0 3mm; font-size: 9.6pt; }
+  th, td { border: 0.6pt solid #d1d5db; padding: 1.6mm 2.2mm; vertical-align: top; text-align: left; }
+  th { background: #eef2f7; }
+  .small { font-size: 9pt; color: #6b7280; }
+  img.logo { height: 14mm; float: right; margin-left: 6mm; }
+</style>
+</head>
+<body>
+<img class="logo" src="{{LOGO}}" alt="Ski Civetta">
+<h1>Modalità pista dal telefono</h1>
+<p class="sub">Guida rapida per i soccorritori · safecivetta.it · versione 1.0, stagione 2026/2027</p>
+
+<h2>1. Installa il portale sul telefono (una volta sola)</h2>
+<div class="cols">
+  <div>
+    <p><span class="ui">iPhone</span> (Safari):</p>
+    <ol>
+      <li>Apri <span class="ui">https://safecivetta.it</span> ed entra con le tue credenziali.</li>
+      <li>Tocca <span class="ui">Condividi</span> (il quadrato con la freccia in basso).</li>
+      <li>Scegli <span class="ui">Aggiungi alla schermata Home</span> e conferma.</li>
+    </ol>
+  </div>
+  <div>
+    <p><span class="ui">Android</span> (Chrome):</p>
+    <ol>
+      <li>Apri <span class="ui">https://safecivetta.it</span> ed entra.</li>
+      <li>Nella Home del portale tocca <span class="ui">Installa</span>, oppure dal menu di Chrome scegli <span class="ui">Installa app</span>.</li>
+    </ol>
+  </div>
+</div>
+<div class="box ok"><span class="t">Da ora apri l'icona "Civetta" sulla schermata Home</span>Si apre a tutto schermo, ricorda l'accesso e funziona anche senza rete per registrare gli interventi. Aprila almeno una volta a settimana in stagione, così resta aggiornata.</div>
+
+<h2>2. Registra un intervento in 60 secondi</h2>
+<p>Dal menu o dalla Home tocca <span class="ui">Pista</span>, poi <span class="ui">Nuovo intervento</span>. Tre passi:</p>
+<table>
+  <tr><th style="width:14%">Passo</th><th>Cosa compilare</th></tr>
+  <tr><td><span class="ui">Dove</span></td><td>Zona e pista (o tipo di luogo se non sei su una pista). Il telefono rileva la <span class="ui">posizione GPS</span> da solo: controlla la precisione in metri e, se serve, sposta il punto toccando la mappa.</td></tr>
+  <tr><td><span class="ui">Cosa</span></td><td>Data e ora (già proposte), squadra (già proposta), causa, tipo di evento, una nota breve. <b>Niente nomi o telefoni nella nota.</b></td></tr>
+  <tr><td><span class="ui">Chi</span></td><td><span class="ui">Aggiungi persona</span>: età, genere, nazione, ruolo, diagnosi presunta, sede della lesione, mezzo di evacuazione, destinazione. Sotto, i <span class="ui">dati identificativi</span>: nome, cognome, data di nascita, telefono. Vengono cifrati sul telefono prima dell'invio.</td></tr>
+</table>
+<p>Tocca <span class="ui">Salva e invia</span>. L'intervento compare in <span class="ui">I miei interventi</span> con lo stato:</p>
+<ul>
+  <li><span class="ui">Inviato</span>: è nel portale; il codice accanto serve a ritrovarlo. Il rapporto si completa dal computer a fine turno.</li>
+  <li><span class="ui">Da inviare</span>: manca la rete. Non devi fare nulla: parte da solo appena torna la copertura, anche se l'app è chiusa e la riapri più tardi. In alto compare il numero degli interventi in attesa.</li>
+  <li><span class="ui">Errore</span>: il portale ha rifiutato l'invio, per esempio per un permesso mancante. Leggi il messaggio, avvisa l'amministratore e poi tocca <span class="ui">Riprova</span>.</li>
+</ul>
+
+<h2>3. La chiave personale sul telefono</h2>
+<p>Per <b>inserire</b> i dati identificativi non serve sbloccare nulla. Per <b>leggerli</b> serve la tua chiave personale, come sul computer: tocca <span class="ui">La mia chiave</span> in alto e inserisci la passphrase.</p>
+<div class="box"><span class="t">Ricorda per il turno</span>Nella finestra di sblocco spunta <span class="ui">Ricorda su questo telefono per il turno (8 ore)</span>: il telefono ti chiede Face ID, Touch ID o l'impronta e da quel momento, per 8 ore, sblocchi la chiave con il pulsante <span class="ui">Sblocca con Face ID o impronta</span>, senza digitare la passphrase. Se il telefono non lo supporta, il pulsante non compare e resta la passphrase.</div>
+
+<h2>4. Se qualcosa non va</h2>
+<table>
+  <tr><th style="width:38%">Cosa vedi</th><th>Cosa fare</th></tr>
+  <tr><td>"Posizione non disponibile"</td><td>Attiva la localizzazione per Safari o Chrome nelle impostazioni del telefono, oppure tocca il punto sulla mappa.</td></tr>
+  <tr><td>Precisione scarsa (oltre 50 m)</td><td>Normale nelle gole e sotto gli impianti: correggi il punto sulla mappa.</td></tr>
+  <tr><td>"Sei senza rete" all'apertura</td><td>La sessione è scaduta e serve la connessione per rientrare. Gli interventi salvati restano sul telefono e partiranno dopo l'accesso.</td></tr>
+  <tr><td>Non trovo la zona o la pista nell'elenco</td><td>Scegli "Nessuna pista / altro luogo", indica il tipo di luogo e una descrizione; segnala la pista mancante all'amministratore.</td></tr>
+  <tr><td>Il campo dei dati identificativi non compare</td><td>La chiave della società non è disponibile sul telefono: apri l'app una volta con la rete, poi riprova. In ogni caso i dati si possono aggiungere dal portale.</td></tr>
+  <tr><td>"È disponibile una nuova versione"</td><td>Tocca <span class="ui">Aggiorna ora</span>: dura pochi secondi.</td></tr>
+</table>
+
+<h2>5. Regole d'oro in pista</h2>
+<ul>
+  <li>Prima il soccorso, poi il telefono: l'app serve a non dimenticare i dati, non sostituisce radio e procedure.</li>
+  <li>Registra subito almeno dove, quando e chi; il resto si completa dopo.</li>
+  <li>Nomi, telefoni e documenti solo nella sezione dei dati identificativi: è l'unica cifrata.</li>
+  <li>Blocca il telefono quando lo posi; esci dal portale se lo presti a qualcuno.</li>
+  <li>In caso di furto del telefono avvisa subito l'amministratore: disattiva il tuo utente e ti riassegna l'accesso.</li>
+</ul>
+<p class="small">Assistenza: il tuo amministratore del portale. Questa guida si riferisce alla versione di ottobre 2026.</p>
+</body>
+</html>

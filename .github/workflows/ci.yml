@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'm8-*']
     tags: ['v*']
   pull_request:
 
@@ -111,9 +111,11 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Tags
         id: tags
+        # canale: `latest` solo da main (e dai tag di rilascio), `beta` dai rami m8-* (beta.DOMINIO)
         run: |
           echo "sha=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then echo "release=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"; fi
+          if [[ "$GITHUB_REF" == refs/heads/main || "$GITHUB_REF" == refs/tags/v* ]]; then echo "channel=latest" >> "$GITHUB_OUTPUT"; else echo "channel=beta" >> "$GITHUB_OUTPUT"; fi
       - name: Build and push API image
         uses: docker/build-push-action@v6
         with:
@@ -121,7 +123,7 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/safe-api:${{ steps.tags.outputs.sha }}
-            ghcr.io/${{ github.repository_owner }}/safe-api:latest
+            ghcr.io/${{ github.repository_owner }}/safe-api:${{ steps.tags.outputs.channel }}
             ${{ steps.tags.outputs.release && format('ghcr.io/{0}/safe-api:{1}', github.repository_owner, steps.tags.outputs.release) || '' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -132,7 +134,7 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/safe-web:${{ steps.tags.outputs.sha }}
-            ghcr.io/${{ github.repository_owner }}/safe-web:latest
+            ghcr.io/${{ github.repository_owner }}/safe-web:${{ steps.tags.outputs.channel }}
             ${{ steps.tags.outputs.release && format('ghcr.io/{0}/safe-web:{1}', github.repository_owner, steps.tags.outputs.release) || '' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
