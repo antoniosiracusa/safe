@@ -156,7 +156,7 @@
 /* telefoni (M8): la barra in alto non deve mai superare la larghezza dello schermo */
 @media (max-width: 600px) {
   .topbar { overflow: hidden; gap: 0.4rem; padding: 0 0.5rem; }
-  .brand .name, .user .account { display: none; }
+  .brand .name, .user .account .lbl { display: none; }
   .user { min-width: 0; }
   :host ::ng-deep .user .p-button-label { display: none; }
   :host ::ng-deep .lang .p-select-label { padding-right: 0; }

@@ -54,7 +54,9 @@
 
     <div class="user">
       <span class="user-name">{{ session.displayName() }}</span>
-      <button type="button" class="account" (click)="securityMenu.toggle($event)">{{ t('shell.account') }} <i class="pi pi-angle-down" aria-hidden="true"></i></button>
+      <button type="button" class="account" (click)="securityMenu.toggle($event)" [attr.aria-label]="t('shell.account')">
+        <i class="pi pi-shield" aria-hidden="true"></i> <span class="lbl">{{ t('shell.account') }}</span> <i class="pi pi-angle-down" aria-hidden="true"></i>
+      </button>
       <p-menu #securityMenu [model]="securityItems()" [popup]="true" appendTo="body" />
       <p-button type="button" [label]="t('shell.logout')" icon="pi pi-sign-out" [text]="true" severity="secondary" (onClick)="logout()" />
     </div>
