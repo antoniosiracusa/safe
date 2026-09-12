@@ -3,6 +3,7 @@ import { firstValueFrom } from 'rxjs';
 
 import { ApiService } from '../api/api.service';
 import { SessionService } from '../session/session.service';
+import { DeviceUnlockService } from './device-unlock.service';
 import {
   ALGORITHMS, EncryptedPrivateKey, KeyPair, b64, decryptPii, decryptPrivateKey, encryptPii, encryptPrivateKey,
   generateKeyPair, generateRecoveryCode, publicKeyOf, seal, unseal,
@@ -51,6 +52,7 @@ const AUTO_LOCK_MS = 15 * 60 * 1000;
 export class KeyStoreService {
   private readonly api = inject(ApiService);
   private readonly session = inject(SessionService);
+  readonly device = inject(DeviceUnlockService);
 
   private userKeyPair: KeyPair | null = null;
   /** chiavi private società aperte, per versione */
@@ -120,6 +122,7 @@ export class KeyStoreService {
       this.companyKeys.clear();
       this.unlocked.set(true);
       this.armAutoLock();
+      await this.forgetDevice(); // la chiave ricordata sul telefono (se c'era) non vale più
       await this.loadMyKey();
       await this.session.reload();
     } finally {
@@ -127,30 +130,63 @@ export class KeyStoreService {
     }
   }
 
-  /** Sblocca con la passphrase: apre la privata personale e tutte le grant. Ritorna false se errata. */
-  async unlock(passphrase: string): Promise<boolean> {
+  /** Sblocca con la passphrase: apre la privata personale e tutte le grant. Ritorna false se errata.
+   *  Con `rememberOnDevice` (M8.2) la privata viene conservata nel telefono, protetta dal riconoscimento
+   *  biometrico, per il turno (8 ore). */
+  async unlock(passphrase: string, rememberOnDevice = false): Promise<boolean> {
     const k = this.myKey() ?? (await this.loadMyKey());
     if (!k) return false;
     this.busy.set(true);
     try {
       const priv = await decryptPrivateKey(k, passphrase);
       if (!priv) return false;
-      this.userKeyPair = { privateKey: priv, publicKey: b64.decode(k.public_key) };
-      this.companyKeys.clear();
-      for (const g of k.grants) {
-        try {
-          const cpriv = await unseal(b64.decode(g.wrapped_private_key), this.userKeyPair);
-          this.companyKeys.set(g.key_version, { privateKey: cpriv, publicKey: b64.decode(g.company_public_key) });
-        } catch {
-          /* grant non apribile (chiave rigenerata): ignorata */
-        }
+      const kp = { privateKey: priv, publicKey: b64.decode(k.public_key) };
+      await this.applyKeyPair(kp, k);
+      if (rememberOnDevice) {
+        const u = this.session.user();
+        if (u) await this.device.remember(u.id, u.email, kp);
       }
-      this.unlocked.set(true);
-      this.armAutoLock();
       return true;
     } finally {
       this.busy.set(false);
     }
+  }
+
+  /** Sblocco con Face ID / impronta (chiave ricordata per il turno). Ritorna false se non disponibile. */
+  async unlockWithDevice(): Promise<boolean> {
+    const u = this.session.user();
+    const k = this.myKey() ?? (await this.loadMyKey());
+    if (!u || !k) return false;
+    this.busy.set(true);
+    try {
+      const kp = await this.device.unlock(u.id);
+      if (!kp || b64.encode(kp.publicKey) !== k.public_key) return false; // chiave rigenerata nel frattempo
+      await this.applyKeyPair(kp, k);
+      return true;
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  /** Dimentica la chiave ricordata sul telefono (uscita, rigenerazione). */
+  async forgetDevice(): Promise<void> {
+    const u = this.session.user();
+    if (u) await this.device.forget(u.id);
+  }
+
+  private async applyKeyPair(kp: KeyPair, k: MyKey): Promise<void> {
+    this.userKeyPair = kp;
+    this.companyKeys.clear();
+    for (const g of k.grants) {
+      try {
+        const cpriv = await unseal(b64.decode(g.wrapped_private_key), kp);
+        this.companyKeys.set(g.key_version, { privateKey: cpriv, publicKey: b64.decode(g.company_public_key) });
+      } catch {
+        /* grant non apribile (chiave rigenerata): ignorata */
+      }
+    }
+    this.unlocked.set(true);
+    this.armAutoLock();
   }
 
   /** Cambia passphrase: stessa coppia, nuovo blob cifrato (le grant restano valide). */

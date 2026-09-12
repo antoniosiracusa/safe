@@ -617,7 +617,11 @@
     "copy": "Copia",
     "copied": "Codice copiato negli appunti: incollalo in un luogo sicuro e cancella gli appunti.",
     "wasm_blocked": "Il browser non permette di eseguire WebAssembly (policy di sicurezza o estensione): impossibile cifrare. Segnalalo all'assistenza.",
-    "crypto_selftest_failed": "Verifica di cifratura fallita nel browser: nessun dato è stato salvato. Riprova con un altro browser e segnalalo all'assistenza."
+    "crypto_selftest_failed": "Verifica di cifratura fallita nel browser: nessun dato è stato salvato. Riprova con un altro browser e segnalalo all'assistenza.",
+    "device_unlock": "Sblocca con Face ID o impronta",
+    "device_remember": "Ricorda su questo telefono per il turno (8 ore)",
+    "device_failed": "Sblocco con il telefono non riuscito: usa la passphrase.",
+    "device_hint": "La chiave resta protetta dal riconoscimento biometrico del telefono e scade dopo 8 ore."
   },
   "audit": {
     "intro": "Ogni accesso ai dati identificativi, modifica, sblocco, export e operazione sulle chiavi è registrato in modo permanente. Il registro non contiene mai valori di dati personali.",
@@ -651,7 +655,11 @@
     "install_button": "Installa",
     "installed": "App installata: la trovi nella schermata Home.",
     "update_ready": "È disponibile una nuova versione del portale.",
-    "update_button": "Aggiorna ora"
+    "update_button": "Aggiorna ora",
+    "offline_login_title": "Sei senza rete",
+    "offline_login_text": "Per accedere serve la connessione. Gli interventi salvati in modalità pista restano al sicuro sul telefono e verranno inviati appena possibile.",
+    "offline_retry": "Riprova",
+    "queue_badge": "{{n}} da inviare"
   },
   "pista": {
     "title": "Modalità pista",

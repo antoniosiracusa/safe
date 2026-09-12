@@ -617,7 +617,11 @@
     "copy": "Kopieren",
     "copied": "Code in die Zwischenablage kopiert: an sicherem Ort einfügen und Zwischenablage leeren.",
     "wasm_blocked": "Dieser Browser kann kein WebAssembly ausführen (Sicherheitsrichtlinie oder Erweiterung): Verschlüsselung nicht möglich. Bitte dem Support melden.",
-    "crypto_selftest_failed": "Selbsttest der Verschlüsselung im Browser fehlgeschlagen: nichts wurde gespeichert. Bitte anderen Browser verwenden und dem Support melden."
+    "crypto_selftest_failed": "Selbsttest der Verschlüsselung im Browser fehlgeschlagen: nichts wurde gespeichert. Bitte anderen Browser verwenden und dem Support melden.",
+    "device_unlock": "Mit Face ID oder Fingerabdruck entsperren",
+    "device_remember": "Auf diesem Telefon für die Schicht merken (8 Stunden)",
+    "device_failed": "Entsperren mit dem Telefon fehlgeschlagen: Passphrase verwenden.",
+    "device_hint": "Der Schlüssel bleibt durch die biometrische Prüfung des Telefons geschützt und verfällt nach 8 Stunden."
   },
   "audit": {
     "intro": "Jeder Zugriff auf identifizierende Daten, jede Änderung, Entsperrung, jeder Export und Schlüsselvorgang wird dauerhaft protokolliert. Das Protokoll enthält nie personenbezogene Werte.",
@@ -651,7 +655,11 @@
     "install_button": "Installieren",
     "installed": "App installiert: auf dem Startbildschirm zu finden.",
     "update_ready": "Eine neue Version des Portals ist verfügbar.",
-    "update_button": "Jetzt aktualisieren"
+    "update_button": "Jetzt aktualisieren",
+    "offline_login_title": "Sie sind offline",
+    "offline_login_text": "Zum Anmelden ist eine Verbindung nötig. Im Pistenmodus gespeicherte Einsätze bleiben sicher auf dem Telefon und werden so bald wie möglich gesendet.",
+    "offline_retry": "Erneut versuchen",
+    "queue_badge": "{{n}} zu senden"
   },
   "pista": {
     "title": "Pistenmodus",

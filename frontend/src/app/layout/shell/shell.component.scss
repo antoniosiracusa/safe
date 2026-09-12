@@ -161,6 +161,20 @@
   :host ::ng-deep .lang .p-select-label { padding-right: 0; }
 }
 
+/* interventi in attesa di invio (modalità pista) */
+.queue-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  background: #fff4e5;
+  color: #7a4100;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
 /* banner dell'app installabile (M8): senza rete / nuova versione */
 .pwa-banner {
   display: flex;

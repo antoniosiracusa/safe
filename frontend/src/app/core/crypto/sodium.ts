@@ -157,6 +157,27 @@ export async function decryptPrivateKey(blob: EncryptedPrivateKey, secret: strin
   }
 }
 
+/** secretbox con chiave grezza (32 byte): nonce || box. Usato da "ricorda per il turno" (M8.2). */
+export async function sealWithKey(data: Uint8Array, key: Uint8Array): Promise<Uint8Array> {
+  const s = await sodiumReady();
+  const nonce = s.randombytes_buf(s.crypto_secretbox_NONCEBYTES);
+  const box = s.crypto_secretbox_easy(data, nonce, key);
+  assertRoundTrip(s, () => s.crypto_secretbox_open_easy(box, nonce, key), data);
+  const out = new Uint8Array(nonce.length + box.length);
+  out.set(nonce);
+  out.set(box, nonce.length);
+  return out;
+}
+
+export async function openWithKey(blob: Uint8Array, key: Uint8Array): Promise<Uint8Array | null> {
+  const s = await sodiumReady();
+  try {
+    return s.crypto_secretbox_open_easy(blob.slice(s.crypto_secretbox_NONCEBYTES), blob.slice(0, s.crypto_secretbox_NONCEBYTES), key);
+  } catch {
+    return null;
+  }
+}
+
 export async function seal(data: Uint8Array, recipientPublicKey: Uint8Array): Promise<Uint8Array> {
   const s = await sodiumReady();
   return s.crypto_box_seal(data, recipientPublicKey);

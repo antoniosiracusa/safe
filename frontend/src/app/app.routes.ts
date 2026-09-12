@@ -52,5 +52,6 @@ export const routes: Routes = [
       { path: '**', redirectTo: 'home' },
     ],
   },
+  { path: 'offline', loadComponent: () => import('./features/pista/offline-page.component').then((m) => m.OfflinePageComponent) },
   { path: '**', redirectTo: '' },
 ];

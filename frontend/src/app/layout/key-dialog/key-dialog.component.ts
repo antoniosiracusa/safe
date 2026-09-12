@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, input, ou
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
 import { PasswordModule } from 'primeng/password';
 
@@ -12,7 +13,7 @@ import { SessionService } from '../../core/session/session.service';
 /** "La mia chiave": creazione (prima volta), sblocco con passphrase, cambio passphrase, blocco. */
 @Component({
   selector: 'safe-key-dialog',
-  imports: [FormsModule, TranslocoDirective, ButtonModule, DialogModule, PasswordModule],
+  imports: [FormsModule, TranslocoDirective, ButtonModule, CheckboxModule, DialogModule, PasswordModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <ng-container *transloco="let t">
@@ -35,11 +36,21 @@ import { SessionService } from '../../core/session/session.service';
             <p-button [label]="t('keys.create')" icon="pi pi-key" [loading]="store.busy()" [disabled]="pass().length < 12 || pass() !== pass2()" (onClick)="create()" />
           </div>
         } @else if (mode() === 'unlock') {
+          @if (store.device.available()) {
+            <p-button [label]="t('keys.device_unlock')" icon="pi pi-mobile" styleClass="w-full" [loading]="store.busy()" (onClick)="unlockWithDevice()" />
+            <p class="muted">{{ t('keys.device_hint') }}</p>
+          }
           <p>{{ t('keys.unlock_intro') }}</p>
           <div class="field">
             <label for="kd-unlock">{{ t('keys.passphrase') }}</label>
             <p-password inputId="kd-unlock" [ngModel]="pass()" (ngModelChange)="pass.set($event)" [feedback]="false" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full" (keydown.enter)="unlock()" />
           </div>
+          @if (store.device.supported()) {
+            <div class="field remember">
+              <p-checkbox inputId="kd-remember" [binary]="true" [ngModel]="remember()" (ngModelChange)="remember.set($event)" />
+              <label for="kd-remember" class="plain">{{ t('keys.device_remember') }}</label>
+            </div>
+          }
           <div class="actions">
             <p-button [label]="t('keys.forgot')" [text]="true" severity="secondary" (onClick)="mode.set('reset')" />
             <p-button [label]="t('keys.unlock')" icon="pi pi-lock-open" [loading]="store.busy()" [disabled]="!pass()" (onClick)="unlock()" />
@@ -78,6 +89,8 @@ import { SessionService } from '../../core/session/session.service';
     label { font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--p-text-muted-color); }
     .actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
     .muted { color: var(--p-text-muted-color); font-size: 0.85rem; }
+    .remember { flex-direction: row; align-items: center; gap: 0.5rem; }
+    .remember .plain { text-transform: none; letter-spacing: 0; font-size: 0.9rem; color: var(--p-text-color); }
     .warn { color: var(--p-amber-800); background: var(--p-amber-50); border: 1px solid var(--p-amber-200); padding: 0.5rem 0.75rem; border-radius: 6px; }
     .error-box { padding: 0.5rem 0.75rem; border: 1px solid var(--p-red-300); border-radius: 6px; background: var(--p-red-50); color: var(--p-red-700); }
     :host ::ng-deep .w-full { width: 100%; }
@@ -94,6 +107,7 @@ export class KeyDialogComponent {
   readonly mode = signal<'create' | 'unlock' | 'reset' | 'manage'>('unlock');
   readonly pass = signal('');
   readonly pass2 = signal('');
+  readonly remember = signal(false);
   readonly error = signal<string | null>(null);
   readonly title = computed(() => this.transloco.translate('keys.my_key'));
 
@@ -103,10 +117,12 @@ export class KeyDialogComponent {
       this.pass.set('');
       this.pass2.set('');
       this.error.set(null);
-      void this.store.ensureLoaded().then(() => {
+      void this.store.ensureLoaded().then(async () => {
         if (!this.store.hasUserKey()) this.mode.set('create');
         else if (this.store.unlocked()) this.mode.set('manage');
         else this.mode.set('unlock');
+        const u = this.session.user();
+        if (u) await this.store.device.refresh(u.id);
       });
     });
   }
@@ -124,9 +140,16 @@ export class KeyDialogComponent {
 
   async unlock(): Promise<void> {
     this.error.set(null);
-    const ok = await this.store.unlock(this.pass());
+    const ok = await this.store.unlock(this.pass(), this.remember());
     if (ok) this.close();
     else this.error.set('wrong_passphrase');
+  }
+
+  async unlockWithDevice(): Promise<void> {
+    this.error.set(null);
+    const ok = await this.store.unlockWithDevice();
+    if (ok) this.close();
+    else this.error.set('device_failed');
   }
 
   async change(): Promise<void> {

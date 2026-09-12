@@ -617,7 +617,11 @@
     "copy": "Copy",
     "copied": "Code copied to the clipboard: paste it somewhere safe and clear the clipboard.",
     "wasm_blocked": "This browser cannot run WebAssembly (security policy or extension): encryption is not possible. Please report it to support.",
-    "crypto_selftest_failed": "Encryption self-check failed in the browser: nothing was saved. Try another browser and report it to support."
+    "crypto_selftest_failed": "Encryption self-check failed in the browser: nothing was saved. Try another browser and report it to support.",
+    "device_unlock": "Unlock with Face ID or fingerprint",
+    "device_remember": "Remember on this phone for the shift (8 hours)",
+    "device_failed": "Phone unlock failed: use the passphrase.",
+    "device_hint": "The key stays protected by the phone's biometric check and expires after 8 hours."
   },
   "audit": {
     "intro": "Every access to identifying data, change, unlock, export and key operation is recorded permanently. The log never contains personal data values.",
@@ -651,7 +655,11 @@
     "install_button": "Install",
     "installed": "App installed: find it on your Home screen.",
     "update_ready": "A new version of the portal is available.",
-    "update_button": "Update now"
+    "update_button": "Update now",
+    "offline_login_title": "You are offline",
+    "offline_login_text": "A connection is needed to sign in. Interventions saved in slope mode stay safe on the phone and will be sent as soon as possible.",
+    "offline_retry": "Retry",
+    "queue_badge": "{{n}} to send"
   },
   "pista": {
     "title": "Slope mode",

@@ -21,6 +21,12 @@
 
     <div class="spacer"></div>
 
+    @if (queue.pending() > 0) {
+      <a class="queue-badge" [routerLink]="['/', lang(), 'pista']" [pTooltip]="t('pwa.queue_badge', { n: queue.pending() })" tooltipPosition="bottom">
+        <i class="pi pi-cloud-upload" aria-hidden="true"></i> {{ queue.pending() }}
+      </a>
+    }
+
     <button
       type="button"
       class="key-state"

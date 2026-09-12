@@ -224,7 +224,9 @@ function emptyPerson(): PersonDraft {
     .row.actions { justify-content: flex-end; margin-top: 0.3rem; }
     .row.actions a { margin-right: auto; font-size: 0.9rem; }
     .footer { position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; gap: 0.5rem; padding: 0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom)); background: var(--p-surface-0); border-top: 1px solid var(--p-surface-200); z-index: 5; }
-    :host ::ng-deep .big .p-button { font-size: 1.1rem; padding: 0.9rem; }
+    .big { display: block; margin: 0.25rem 0 0.5rem; }
+    :host ::ng-deep .big .p-button { font-size: 1.1rem; padding: 0.9rem; width: 100%; justify-content: center; }
+    :host ::ng-deep safe-map-picker .map { height: 220px; }
     @media (max-width: 480px) { .grid2 { grid-template-columns: 1fr; } }
   `,
 })
