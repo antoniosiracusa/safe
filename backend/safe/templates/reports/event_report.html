@@ -7,12 +7,13 @@
   @page { size: A4; margin: 14mm 12mm 16mm 12mm;
     @bottom-left { content: "log: {{ log_id }}"; font-size: 7pt; color: #666; }
     @bottom-center { content: "Pagina " counter(page) " / " counter(pages); font-size: 7pt; color: #666; }
-    @bottom-right { content: "SAFE"; font-size: 7pt; color: #666; } }
+    @bottom-right { content: "{{ brand_name }}"; font-size: 7pt; color: #666; } }
   body { font-family: "DejaVu Sans", Arial, sans-serif; font-size: 8.5pt; color: #111; }
   h1 { font-size: 14pt; text-align: center; margin: 0 0 6mm; }
   h2 { font-size: 11pt; margin: 0 0 4mm; border-bottom: 1px solid #333; padding-bottom: 1mm; }
   .brand { display: flex; align-items: center; gap: 3mm; margin-bottom: 4mm; }
   .brand .mark { width: 9mm; height: 9mm; border-radius: 50%; background: #c8102e; color: #fff; font-weight: bold; font-size: 12pt; text-align: center; line-height: 9mm; }
+  .brand .logo { height: 11mm; width: auto; max-width: 40mm; }
   .brand .name { font-weight: bold; font-size: 11pt; letter-spacing: 0.05em; }
   .brand .sub { font-size: 7.5pt; color: #555; }
   .head { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1mm 6mm; margin-bottom: 4mm; }
@@ -40,7 +41,7 @@
 </head>
 <body>
 {% with u=unclassified %}
-<div class="brand"><div class="mark">S</div><div><div class="name">SAFE</div><div class="sub">{{ company.name }}</div></div></div>
+<div class="brand">{% if brand_logo %}<img class="logo" src="{{ brand_logo }}" alt="">{% else %}<div class="mark">S</div>{% endif %}<div><div class="name">{{ brand_name }}</div><div class="sub">{{ company.name }}</div></div></div>
 <h1>{% if lang == "en" %}Event report{% elif lang == "de" %}Ereignisbericht{% else %}Report sull'evento{% endif %}</h1>
 
 <div class="head">

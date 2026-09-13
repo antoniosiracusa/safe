@@ -1,10 +1,12 @@
 """Export dataset, PDF del rapporto, export regionale A01 con anteprima e duplicati."""
 
+import base64
 import datetime as dt
 import io
 
 import pytest
 from django.contrib.gis.geos import MultiPolygon, Polygon
+from django.template.loader import render_to_string
 from openpyxl import load_workbook
 
 from safe.apps.jobs.models import AsyncJob
@@ -121,6 +123,28 @@ def test_event_report_pdf(as_admin, dataset, company):
     as_admin.get(f"/api/v1/events/{e1.id}/report.pdf")
     with tenant_context(company.id):
         assert AsyncJob.objects.filter(kind="pdf_report").count() == 2
+
+
+def test_report_pdf_brand_logo_and_name(dataset, company, settings, tmp_path):
+    """Il PDF usa nome e logo della società di servizio (BRAND_NAME / BRAND_LOGO_URL) come la SPA."""
+    from safe.apps.reports import pdf
+
+    png = base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+    )
+    (tmp_path / "ski-civetta.png").write_bytes(png)
+    settings.BRAND_NAME = "SAFECIVETTA.IT"
+    settings.BRAND_LOGO_URL = "brand/ski-civetta.png"
+    settings.BRAND_DIR = str(tmp_path)
+    with tenant_context(company.id):
+        ctx = pdf.build_context(dataset["e1"], "it", downloaded_by="test", with_map=False)
+    assert ctx["brand_name"] == "SAFECIVETTA.IT"
+    assert ctx["brand_logo"].startswith("data:image/png;base64,")
+    html = render_to_string("reports/event_report.html", ctx)
+    assert 'class="logo"' in html and "SAFECIVETTA.IT" in html and 'class="mark"' not in html
+    # senza logo configurato resta il simbolo predefinito
+    settings.BRAND_LOGO_URL = ""
+    assert pdf.brand_context()["brand_logo"] is None
 
 
 def test_report_pdf_requires_permission(api_client, company, team, dataset):

@@ -2,16 +2,24 @@
 
 from __future__ import annotations
 
+import base64
 import datetime as dt
+import mimetypes
 import zoneinfo
+from pathlib import Path
 from typing import Any
 
+from django.conf import settings
 from django.template.loader import render_to_string
 
 from safe.apps.lookups.models import UNCLASSIFIED, LookupValue
 from safe.apps.rescue.models import Event, Person
 
 from .static_map import static_map_data_uri
+
+# Versione dell'impaginazione: fa parte della chiave di cache dei PDF (un cambio di layout o di logo
+# rigenera i rapporti già prodotti anche se l'evento non è cambiato).
+PDF_LAYOUT = 2
 
 LANG_LABELS = {
     "it": {"unclassified": "Non classificato", "yes": "Sì", "no": "No", "none": "—"},
@@ -43,6 +51,21 @@ class Labeler:
             {"label": v.label(self.lang), "checked": v.code in selected}
             for v in self.dimensions.get(dimension, [])
         ]
+
+
+def brand_context() -> dict[str, Any]:
+    """Nome e logo della società di servizio nel PDF: come nell'intestazione della SPA.
+
+    Il logo (BRAND_LOGO_URL, es. "brand/ski-civetta.png") viene letto da BRAND_DIR e incorporato come
+    data URI, così WeasyPrint non fa richieste esterne. Se manca, resta il simbolo predefinito.
+    """
+    logo_uri = None
+    if settings.BRAND_LOGO_URL and settings.BRAND_DIR:
+        path = Path(settings.BRAND_DIR) / Path(settings.BRAND_LOGO_URL).name
+        if path.is_file():
+            mime = mimetypes.guess_type(path.name)[0] or "image/png"
+            logo_uri = f"data:{mime};base64,{base64.b64encode(path.read_bytes()).decode()}"
+    return {"brand_name": settings.BRAND_NAME, "brand_logo": logo_uri}
 
 
 def person_context(p: Person, lb: Labeler) -> dict[str, Any]:
@@ -109,6 +132,7 @@ def build_context(event: Event, lang: str, *, downloaded_by: str, with_map: bool
     )
     return {
         "lang": lb.lang,
+        **brand_context(),
         "event": event,
         "company": event.company,
         "local_dt": local,

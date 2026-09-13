@@ -157,6 +157,14 @@ KEYCLOAK_WEB_CLIENT_ID = env("KEYCLOAK_WEB_CLIENT_ID", default="safe-web")
 WEB_BASE_URL = env("PUBLIC_WEB_URL", default="http://localhost:4200")
 PUBLIC_API_URL = env("PUBLIC_API_URL", default="http://localhost:8000/api/v1")
 
+# --- Identità visiva nei PDF (stesse variabili della SPA: BRAND_NAME, BRAND_LOGO_URL) --------------
+# BRAND_LOGO_URL è un percorso relativo alla SPA ("brand/ski-civetta.png"); il file viene cercato in
+# BRAND_DIR (in produzione la cartella dei loghi del tema Keycloak montata in /app/brand).
+# Vuoto = simbolo "S" e scritta SAFE.
+BRAND_NAME = env("BRAND_NAME", default="") or "SAFE"
+BRAND_LOGO_URL = env("BRAND_LOGO_URL", default="")
+BRAND_DIR = env("BRAND_DIR", default="")
+
 # --- Cartografia (Mapbox): stili per ambiente; il token pubblico sta nella config del client -----
 MAP_STYLES = {
     "winter": env("MAPBOX_STYLE_WINTER", default="mapbox://styles/mapbox/light-v11"),

@@ -18,6 +18,8 @@ from safe.apps.jobs.views import JobSerializer
 from safe.apps.rescue.models import Event
 from safe.apps.rescue.views import scope_events
 
+from .pdf import PDF_LAYOUT
+
 
 class EventReportView(APIView):
     permission_classes = [HasPermission]
@@ -37,6 +39,7 @@ class EventReportView(APIView):
                 status=AsyncJob.Status.DONE,
                 params__event_id=str(event.id),
                 params__lang=lang,
+                params__layout=PDF_LAYOUT,
                 params__result__event_updated_at=event.updated_at.isoformat(),
             )
             .exclude(result_object_key="")
@@ -49,7 +52,7 @@ class EventReportView(APIView):
                 company_id=event.company_id,
                 user=request.user,
                 kind=AsyncJob.Kind.PDF_REPORT,
-                params={"event_id": str(event.id), "lang": lang},
+                params={"event_id": str(event.id), "lang": lang, "layout": PDF_LAYOUT},
                 expires_days=30,
             )
         audit.record(

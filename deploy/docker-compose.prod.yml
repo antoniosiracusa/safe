@@ -14,6 +14,10 @@ name: safe
 x-api-base: &api-base
   image: ${API_IMAGE:-ghcr.io/antoniosiracusa/safe-api:latest}
   env_file: .env
+  environment:
+    BRAND_DIR: /app/brand   # loghi per i PDF (stessa cartella servita come /brand dalla SPA)
+  volumes:
+    - ./keycloak/themes/safe/login/resources/img:/app/brand:ro
   restart: unless-stopped
   logging: &logging
     driver: json-file
