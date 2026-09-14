@@ -133,7 +133,7 @@
                       <span class="muted">{{ t('persons.anonymized', { date: (p.anonymized_at | date: 'dd/MM/yyyy') }) }}</span>
                     } @else if (p.has_identity) {
                       @if (revealed()[p.id]; as data) {
-                        <span class="identity-values">@for (e of entries(data); track e[0]) { <span><b>{{ t('identity.' + e[0]) }}:</b> {{ e[1] }}</span> }</span>
+                        <span class="identity-values">@for (e of entries(data); track e[0]) { <span><b>{{ t('identity.' + e[0]) }}:</b> {{ e[0] === 'document_type' ? t('identity.document_types.' + e[1]) : e[1] }}</span> }</span>
                         <p-button icon="pi pi-eye-slash" [text]="true" size="small" (onClick)="hideIdentity(p.id)" [attr.aria-label]="t('persons.identity_hide')" />
                       } @else {
                         <i class="pi pi-lock" aria-hidden="true"></i> {{ t('persons.identity_encrypted') }}

@@ -48,7 +48,11 @@ export class PersonFormComponent implements OnInit {
   /** Dati identificativi: cifrati nel browser prima dell'invio, mai in chiaro verso il server. */
   readonly identity = this.fb.nonNullable.group({
     firstname: '', surname: '', birth_date: '', phone: '', email: '', address: '', insurance_code: '', delivered_to: '',
+    document_type: '', document_issuer: '', document_number: '',
   });
+
+  /** Tipi di documento di riconoscimento: il codice viene cifrato insieme agli altri dati identificativi. */
+  readonly documentTypes = ['id_card', 'passport', 'driving_licence', 'other'];
 
   readonly form = this.fb.nonNullable.group({
     age: this.fb.control<number | null>(null, [Validators.min(0), Validators.max(120)]),

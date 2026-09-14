@@ -21,7 +21,7 @@ DDL completo in [`02-ddl.sql`](02-ddl.sql). Questo documento spiega le scelte di
    è impostato da trigger a partire da `dateandtime` (fuso della società) e mai dal client.
 6. **Dati identificativi**: `person` contiene solo `initials_*`, `age`, `gender`, `country_code` in
    chiaro. Tutto il resto (nome, cognome, luogo di nascita, indirizzo, città, telefono, email,
-   codici assicurazione/skipass, "consegnato a") sta in `pii_ciphertext` (JSON cifrato con data key)
+   codici assicurazione/skipass, "consegnato a", documento di riconoscimento) sta in `pii_ciphertext` (JSON cifrato con data key)
    e `pii_key_wrapped` (data key sigillata con la chiave pubblica della società).
 7. **Diagnosi e lesioni**: `person.diagnosis_id` è la diagnosi presunta principale; le secondarie in
    `person_diagnosis`. `person.gravest_injury_id` è la parte del corpo principale (mappa corporea),

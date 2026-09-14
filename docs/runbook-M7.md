@@ -11,7 +11,8 @@
 
 Chi cifra: chiunque abbia `persons.edit` (basta la pubblica società, `GET /crypto/company-key`).
 Il form persona ha la sezione "Dati identificativi (cifrati)": nome, cognome, data di nascita, telefono,
-email, indirizzo, codice assicurazione/skipass, consegnato a. Con chiave sbloccata e grant, i valori
+email, indirizzo, codice assicurazione/skipass, consegnato a, documento di riconoscimento (tipo, rilasciato da,
+numero; dal 14/09/2026). Con chiave sbloccata e grant, i valori
 esistenti si possono mostrare (drawer evento e form) e modificare.
 
 ## Procedure

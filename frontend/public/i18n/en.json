@@ -559,7 +559,11 @@
     "email": "Email",
     "address": "Address",
     "insurance_code": "Insurance / ski pass code",
-    "delivered_to": "Handed over to"
+    "delivered_to": "Handed over to",
+    "document_type": "Identity document",
+    "document_issuer": "Issued by",
+    "document_number": "Document number",
+    "document_types": { "id_card": "ID card", "passport": "Passport", "driving_licence": "Driving licence", "other": "Other" }
   },
   "keys": {
     "my_key": "My key",

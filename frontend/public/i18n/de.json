@@ -559,7 +559,11 @@
     "email": "E-Mail",
     "address": "Adresse",
     "insurance_code": "Versicherungs-/Skipass-Code",
-    "delivered_to": "Übergeben an"
+    "delivered_to": "Übergeben an",
+    "document_type": "Ausweisdokument",
+    "document_issuer": "Ausgestellt von",
+    "document_number": "Dokumentnummer",
+    "document_types": { "id_card": "Personalausweis", "passport": "Reisepass", "driving_licence": "Führerschein", "other": "Sonstiges" }
   },
   "keys": {
     "my_key": "Mein Schlüssel",

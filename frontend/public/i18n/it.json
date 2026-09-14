@@ -559,7 +559,11 @@
     "email": "Email",
     "address": "Indirizzo",
     "insurance_code": "Codice assicurazione / skipass",
-    "delivered_to": "Consegnato a"
+    "delivered_to": "Consegnato a",
+    "document_type": "Documento di riconoscimento",
+    "document_issuer": "Rilasciato da",
+    "document_number": "Numero del documento",
+    "document_types": { "id_card": "Carta d'identità", "passport": "Passaporto", "driving_licence": "Patente", "other": "Altro" }
   },
   "keys": {
     "my_key": "La mia chiave",

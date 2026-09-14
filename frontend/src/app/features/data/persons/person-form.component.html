@@ -29,6 +29,15 @@
             <div class="field"><label for="pi-address">{{ t('identity.address') }}</label><input pInputText id="pi-address" formControlName="address" autocomplete="off" /></div>
             <div class="field"><label for="pi-insurance">{{ t('identity.insurance_code') }}</label><input pInputText id="pi-insurance" formControlName="insurance_code" autocomplete="off" /></div>
             <div class="field"><label for="pi-delivered">{{ t('identity.delivered_to') }}</label><input pInputText id="pi-delivered" formControlName="delivered_to" autocomplete="off" /></div>
+            <div class="field">
+              <label for="pi-document_type">{{ t('identity.document_type') }}</label>
+              <p-select inputId="pi-document_type" formControlName="document_type" [options]="documentTypes" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full">
+                <ng-template #selectedItem let-v>{{ t('identity.document_types.' + v) }}</ng-template>
+                <ng-template #item let-v>{{ t('identity.document_types.' + v) }}</ng-template>
+              </p-select>
+            </div>
+            <div class="field"><label for="pi-document_issuer">{{ t('identity.document_issuer') }}</label><input pInputText id="pi-document_issuer" formControlName="document_issuer" autocomplete="off" /></div>
+            <div class="field"><label for="pi-document_number">{{ t('identity.document_number') }}</label><input pInputText id="pi-document_number" formControlName="document_number" autocomplete="off" /></div>
           </div>
           <small class="hint">{{ t('persons.identity_hint') }}</small>
         }
