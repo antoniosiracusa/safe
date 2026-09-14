@@ -21,10 +21,17 @@ bad=$(docker compose --env-file .env -f docker-compose.prod.yml ps --format '{{.
   | grep -Ei 'unhealthy|exited|restarting|dead' || true)
 [ -n "$bad" ] && problems+=("container in errore: $(echo "$bad" | tr '\n' ';')")
 
-health=$(curl -fsS --max-time 20 "https://${DOMAIN}/api/v1/health" 2>/dev/null || true)
+# fino a 3 tentativi a distanza di 30 s: un riavvio dell'API (rilascio, migrazioni) dura meno di un minuto
+# e non deve generare un falso allarme (successo il 14/09/2026 alle 20:15, durante il rilascio v1.2.0)
+health=""
+for attempt in 1 2 3; do
+  health=$(curl -fsS --max-time 20 "https://${DOMAIN}/api/v1/health" 2>/dev/null || true)
+  case "$health" in *'"status":"ok"'*) break ;; esac
+  [ "$attempt" -lt 3 ] && sleep 30
+done
 case "$health" in
   *'"status":"ok"'*) info+=("API ok") ;;
-  *) problems+=("l'API non risponde su https://${DOMAIN}/api/v1/health") ;;
+  *) problems+=("l'API non risponde su https://${DOMAIN}/api/v1/health (3 tentativi in 60 s)") ;;
 esac
 kc=$(curl -s -o /dev/null --max-time 20 -w '%{http_code}' "https://auth.${DOMAIN}/realms/safe" 2>/dev/null || echo 000)
 [ "$kc" = "200" ] && info+=("Keycloak ok") || problems+=("Keycloak (accesso utenti) risponde con codice $kc")
