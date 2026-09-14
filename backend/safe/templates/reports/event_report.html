@@ -115,7 +115,9 @@
       <div class="grid" style="margin-top:2mm"><h3>Mezzi di evacuazione</h3>{% for m in pc.means %}<div class="on"><span class="box">{{ forloop.counter }}</span>{{ m }}</div>{% empty %}<div>{{ u }}</div>{% endfor %}{% if pc.p.evacuation_means_note %}<div class="small">{{ pc.p.evacuation_means_note }}</div>{% endif %}</div>
     </div>
     <div>
-      <div class="grid"><h3>Responsabilità</h3>{% for c in pc.responsibility_grid %}<div class="{% if c.checked %}on{% endif %}"><span class="box">{% if c.checked %}X{% endif %}</span>{{ c.label }}</div>{% endfor %}</div>
+      <div class="grid"><h3>Condizioni generali</h3>{% for c in pc.condition_grid %}<div class="{% if c.checked %}on{% endif %}"><span class="box">{% if c.checked %}X{% endif %}</span>{{ c.label }}</div>{% endfor %}</div>
+      <div class="grid" style="margin-top:2mm"><h3>Primo soccorso prestato</h3>{% for c in pc.first_aid_grid %}<div class="{% if c.checked %}on{% endif %}"><span class="box">{% if c.checked %}X{% endif %}</span>{{ c.label }}</div>{% endfor %}</div>
+      <div class="grid" style="margin-top:2mm"><h3>Responsabilità</h3>{% for c in pc.responsibility_grid %}<div class="{% if c.checked %}on{% endif %}"><span class="box">{% if c.checked %}X{% endif %}</span>{{ c.label }}</div>{% endfor %}</div>
       <div class="grid" style="margin-top:2mm"><h3>Violazioni amministrative</h3><div>{{ pc.violations }}</div></div>
       <div class="grid" style="margin-top:2mm"><h3>Soccorso rifiutato</h3><div>{{ pc.rescue_refusal }}</div></div>
     </div>

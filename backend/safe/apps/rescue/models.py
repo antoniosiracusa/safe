@@ -265,6 +265,9 @@ class Person(TenantModel):
     equipment_owner = lookup_fk("equipment_owner")
     equipment_condition = lookup_fk("equipment_condition")
     protections = models.ManyToManyField(LookupValue, through="PersonProtection", related_name="+")
+    # condizioni generali rilevate e primo soccorso prestato (scheda cartacea del Consorzio, 14/09/2026)
+    conditions = models.ManyToManyField(LookupValue, through="PersonCondition", related_name="+")
+    first_aid = models.ManyToManyField(LookupValue, through="PersonFirstAid", related_name="+")
     # assicurazione, alloggio, destinazione
     insurance = lookup_fk("insurance")
     insurance_note = models.TextField(blank=True, default="")
@@ -394,3 +397,25 @@ class PersonProtection(models.Model):
     class Meta:
         db_table = "person_protection"
         constraints = [models.UniqueConstraint(fields=["person", "protection"], name="pk_person_protection")]
+
+
+class PersonCondition(models.Model):
+    """Condizioni generali dell'assistito (cosciente, dolore forte, privo di coscienza...)."""
+
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name="person_conditions")
+    condition = lookup_fk("condition", null=False, blank=False)
+
+    class Meta:
+        db_table = "person_condition"
+        constraints = [models.UniqueConstraint(fields=["person", "condition"], name="pk_person_condition")]
+
+
+class PersonFirstAid(models.Model):
+    """Primo soccorso prestato (disinfezione, tamponamento, fasciatura, immobilizzazione, trasporto)."""
+
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name="person_first_aid")
+    first_aid = lookup_fk("first_aid", null=False, blank=False)
+
+    class Meta:
+        db_table = "person_first_aid"
+        constraints = [models.UniqueConstraint(fields=["person", "first_aid"], name="pk_person_first_aid")]

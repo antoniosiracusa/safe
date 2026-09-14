@@ -87,6 +87,8 @@ def person_context(p: Person, lb: Labeler) -> dict[str, Any]:
         "protections": [
             x.protection.label(lb.lang) for x in p.person_protections.select_related("protection")
         ],
+        "condition_grid": lb.grid("condition", {c.condition.code for c in p.person_conditions.all()}),
+        "first_aid_grid": lb.grid("first_aid", {f.first_aid.code for f in p.person_first_aid.all()}),
         "insurance_grid": lb.grid("insurance", {p.insurance.code} if p.insurance else set()),
         "accommodation_grid": lb.grid("accommodation", {p.accommodation.code} if p.accommodation else set()),
         "destination_grid": lb.grid("destination", {p.destination.code} if p.destination else set()),

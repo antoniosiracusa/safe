@@ -12,7 +12,16 @@ from safe.apps.lookups.models import Country, LookupValue
 from safe.apps.org.models import Team
 from safe.apps.territory.models import SkiArea, Slope, Zone
 
-from .models import Event, Person, PersonDiagnosis, PersonEvacuationMean, PersonInjury, PersonProtection
+from .models import (
+    Event,
+    Person,
+    PersonCondition,
+    PersonDiagnosis,
+    PersonEvacuationMean,
+    PersonFirstAid,
+    PersonInjury,
+    PersonProtection,
+)
 
 # ----------------------------------------------------------------------------- helpers
 
@@ -77,7 +86,25 @@ class Base64Field(serializers.Field):
 
 # ----------------------------------------------------------------------------- persons
 
-EXTENDED_PERSON_FIELDS = ("role", "equipment_condition", "rescue_refusal", "delivered_at", "protections")
+EXTENDED_PERSON_FIELDS = (
+    "role",
+    "equipment_condition",
+    "rescue_refusal",
+    "delivered_at",
+    "protections",
+    "conditions",
+    "first_aid",
+)
+
+
+PERSON_RELATION_KEYS = (
+    "evacuation_means",
+    "secondary_diagnoses",
+    "injuries",
+    "protections",
+    "conditions",
+    "first_aid",
+)
 
 
 class EvacuationMeanSerializer(serializers.Serializer):
@@ -241,6 +268,8 @@ class PersonSerializer(serializers.ModelSerializer):
             "rescue_refusal": code(obj.rescue_refusal),
             "delivered_at": obj.delivered_at.isoformat() if obj.delivered_at else None,
             "protections": [p.protection.code for p in obj.person_protections.all()],
+            "conditions": [c.condition.code for c in obj.person_conditions.all()],
+            "first_aid": [f.first_aid.code for f in obj.person_first_aid.all()],
         }
 
     def get_event(self, obj: Person) -> dict:
@@ -284,6 +313,8 @@ class PersonWriteSerializer(serializers.ModelSerializer):
     equipment_condition = LookupCodeField("equipment_condition")
     rescue_refusal = LookupCodeField("rescue_refusal")
     protections = serializers.ListField(child=LookupCodeField("protection", allow_null=False), required=False)
+    conditions = serializers.ListField(child=LookupCodeField("condition", allow_null=False), required=False)
+    first_aid = serializers.ListField(child=LookupCodeField("first_aid", allow_null=False), required=False)
 
     class Meta:
         model = Person
@@ -322,6 +353,8 @@ class PersonWriteSerializer(serializers.ModelSerializer):
             "rescue_refusal",
             "delivered_at",
             "protections",
+            "conditions",
+            "first_aid",
         ]
         extra_kwargs = {"sequence": {"required": False}}
 
@@ -395,6 +428,16 @@ class PersonWriteSerializer(serializers.ModelSerializer):
             PersonProtection.objects.bulk_create(
                 [PersonProtection(person=person, protection=p) for p in data["protections"]]
             )
+        if "conditions" in data:
+            person.person_conditions.all().delete()
+            PersonCondition.objects.bulk_create(
+                [PersonCondition(person=person, condition=c) for c in data["conditions"]]
+            )
+        if "first_aid" in data:
+            person.person_first_aid.all().delete()
+            PersonFirstAid.objects.bulk_create(
+                [PersonFirstAid(person=person, first_aid=f) for f in data["first_aid"]]
+            )
 
     def _apply_pii(self, person: Person, pii: dict | None, present: bool) -> None:
         if not present:
@@ -412,11 +455,7 @@ class PersonWriteSerializer(serializers.ModelSerializer):
 
     def create(self, validated: dict) -> Person:
         event: Event = validated.pop("event")
-        relations = {
-            k: validated.pop(k)
-            for k in ("evacuation_means", "secondary_diagnoses", "injuries", "protections")
-            if k in validated
-        }
+        relations = {k: validated.pop(k) for k in PERSON_RELATION_KEYS if k in validated}
         pii_present = "pii" in validated
         pii = validated.pop("pii", None)
         if "sequence" not in validated:
@@ -429,11 +468,7 @@ class PersonWriteSerializer(serializers.ModelSerializer):
         return person
 
     def update(self, person: Person, validated: dict) -> Person:
-        relations = {
-            k: validated.pop(k)
-            for k in ("evacuation_means", "secondary_diagnoses", "injuries", "protections")
-            if k in validated
-        }
+        relations = {k: validated.pop(k) for k in PERSON_RELATION_KEYS if k in validated}
         pii_present = "pii" in validated
         pii = validated.pop("pii", None)
         for k, v in validated.items():
@@ -607,6 +642,8 @@ class EventDetailSerializer(EventSerializer):
                 "secondary_diagnoses__diagnosis",
                 "injuries__body_part",
                 "person_protections__protection",
+                "person_conditions__condition",
+                "person_first_aid__first_aid",
             )
         )
         return list(PersonSerializer(persons, many=True, context=self.context).data)

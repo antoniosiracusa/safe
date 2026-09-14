@@ -128,6 +128,14 @@
             <label for="p-destination_note">{{ t('fields.destination_note') }}</label>
             <input pInputText id="p-destination_note" formControlName="destination_note" />
           </div>
+          <div class="field span-2">
+            <label for="p-conditions">{{ t('fields.conditions') }}</label>
+            <p-multiSelect inputId="p-conditions" formControlName="conditions" [options]="lookups.options('condition')" optionLabel="label" optionValue="value" display="chip" appendTo="body" styleClass="w-full" />
+          </div>
+          <div class="field span-2">
+            <label for="p-first_aid">{{ t('fields.first_aid') }}</label>
+            <p-multiSelect inputId="p-first_aid" formControlName="first_aid" [options]="lookups.options('first_aid')" optionLabel="label" optionValue="value" display="chip" appendTo="body" styleClass="w-full" />
+          </div>
           <div class="field">
             <label for="p-rescue_refusal">{{ t('fields.rescue_refusal') }}</label>
             <p-select inputId="p-rescue_refusal" formControlName="rescue_refusal" [options]="lookups.options('rescue_refusal')" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />

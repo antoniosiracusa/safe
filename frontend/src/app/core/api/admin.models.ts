@@ -167,5 +167,5 @@ export const LOOKUP_DIMENSIONS = [
   'cause', 'location_type', 'slope_difficulty', 'weather', 'snow_condition', 'wind', 'visibility', 'location_feature', 'traffic',
   'snow_making', 'event_type', 'gender', 'equipment', 'equipment_owner', 'equipment_condition', 'protection', 'insurance',
   'accommodation', 'destination', 'diagnosis', 'injury_place', 'body_part', 'evacuation_mean', 'responsibility', 'person_role',
-  'rescue_refusal', 'team_body',
+  'rescue_refusal', 'team_body', 'condition', 'first_aid',
 ];

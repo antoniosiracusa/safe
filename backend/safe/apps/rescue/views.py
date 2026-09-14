@@ -75,6 +75,8 @@ PERSON_PREFETCH = (
     "secondary_diagnoses__diagnosis",
     "injuries__body_part",
     "person_protections__protection",
+    "person_conditions__condition",
+    "person_first_aid__first_aid",
 )
 
 

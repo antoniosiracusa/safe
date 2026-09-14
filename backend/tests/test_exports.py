@@ -147,6 +147,28 @@ def test_report_pdf_brand_logo_and_name(dataset, company, settings, tmp_path):
     assert pdf.brand_context()["brand_logo"] is None
 
 
+def test_person_conditions_in_pdf_and_export(as_admin, dataset, company):
+    """Condizioni generali e primo soccorso prestato compaiono nelle griglie del PDF e nell'export persone."""
+    from safe.apps.reports import pdf
+    from safe.apps.rescue.models import PersonCondition, PersonFirstAid
+
+    e1 = dataset["e1"]
+    with tenant_context(company.id):
+        p = e1.persons.order_by("sequence").first()
+        PersonCondition.objects.create(person=p, condition=f.lv("condition", "conscious"))
+        PersonFirstAid.objects.create(person=p, first_aid=f.lv("first_aid", "transport"))
+        ctx = pdf.build_context(e1, "it", downloaded_by="test", with_map=False)
+    pc = ctx["persons"][0]
+    assert [c["label"] for c in pc["condition_grid"] if c["checked"]] == ["Cosciente"]
+    assert [c["label"] for c in pc["first_aid_grid"] if c["checked"]] == ["Trasporto"]
+    r = as_admin.post("/api/v1/exports/dataset", {"dataset": "persons", "format": "csv"}, format="json")
+    text = as_admin.get(r.json()["download_url"]).content.decode("utf-8-sig")
+    header, *rows = [ln for ln in text.splitlines() if ln]
+    cols = header.split(";")
+    i, j = cols.index("Condizioni generali"), cols.index("Primo soccorso prestato")
+    assert any(row.split(";")[i] == "Cosciente" and row.split(";")[j] == "Trasporto" for row in rows)
+
+
 def test_report_pdf_requires_permission(api_client, company, team, dataset):
     user = create_user(company, "nopdf@a.test", roles=("key_custodian",), team=team)
     r = auth(api_client, user).get(f"/api/v1/events/{dataset['e1'].id}/report.pdf")

@@ -197,6 +197,32 @@ def test_soft_delete_hides_event(as_admin, seeded, company):
         assert Event.objects.get(pk=e2.id).deleted_at is not None
 
 
+def test_person_conditions_and_first_aid(as_admin, seeded):
+    """Condizioni generali e primo soccorso prestato: scelta multipla sulla persona, lette in `extended`."""
+    e2 = seeded["e2"]
+    r = as_admin.post(
+        f"/api/v1/events/{e2.id}/persons",
+        {
+            "age": 30,
+            "gender": "male",
+            "country_code": "IT",
+            "conditions": ["conscious", "severe_pain"],
+            "first_aid": ["immobilization", "transport"],
+        },
+        format="json",
+    )
+    assert r.status_code == 201, r.content
+    p = r.json()
+    assert sorted(p["extended"]["conditions"]) == ["conscious", "severe_pain"]
+    assert sorted(p["extended"]["first_aid"]) == ["immobilization", "transport"]
+    r = as_admin.patch(f"/api/v1/persons/{p['id']}", {"conditions": ["unconscious"]}, format="json")
+    assert r.status_code == 200, r.content
+    assert r.json()["extended"]["conditions"] == ["unconscious"]
+    assert sorted(r.json()["extended"]["first_aid"]) == ["immobilization", "transport"]
+    bad = as_admin.patch(f"/api/v1/persons/{p['id']}", {"first_aid": ["teleport"]}, format="json")
+    assert bad.status_code == 400
+
+
 def test_person_list_filters_and_identity_requires_grant(as_admin, seeded, company):
     r = as_admin.get("/api/v1/persons?season=2025/2026&gender=female")
     assert r.status_code == 200 and r.json()["count"] == 1

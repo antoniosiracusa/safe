@@ -45,6 +45,8 @@ DIMENSIONS = (
     "person_role",
     "rescue_refusal",
     "team_body",
+    "condition",  # condizioni generali dell'assistito (scelta multipla)
+    "first_aid",  # primo soccorso prestato (scelta multipla)
 )
 
 

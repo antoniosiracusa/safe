@@ -349,6 +349,28 @@ SEED: dict[str, list[tuple]] = {
         ),
         ("rescue_only", "Solo soccorso rifiutato", "Rescue only refused", "Nur Rettung abgelehnt", 40, {}),
     ],
+    "condition": [
+        ("conscious", "Cosciente", "Conscious", "Bei Bewusstsein", 10, {}),
+        ("severe_pain", "Dolore forte", "Severe pain", "Starke Schmerzen", 20, {}),
+        (
+            "partially_conscious",
+            "Parzialmente cosciente",
+            "Partially conscious",
+            "Teilweise bei Bewusstsein",
+            30,
+            {},
+        ),
+        ("unconscious", "Privo di coscienza", "Unconscious", "Bewusstlos", 40, {}),
+        ("not_breathing", "Privo di respiro", "Not breathing", "Ohne Atmung", 50, {}),
+        ("no_heartbeat", "Privo di battito cardiaco", "No heartbeat", "Ohne Herzschlag", 60, {}),
+    ],
+    "first_aid": [
+        ("disinfection", "Disinfezione", "Disinfection", "Desinfektion", 10, {}),
+        ("packing", "Tamponamento", "Wound packing", "Wundtamponade", 20, {}),
+        ("bandage", "Fasciatura", "Bandage", "Verband", 30, {}),
+        ("immobilization", "Immobilizzazione", "Immobilization", "Ruhigstellung", 40, {}),
+        ("transport", "Trasporto", "Transport", "Transport", 50, {}),
+    ],
     "team_body": [
         ("operator", "Gestore", "Operator", "Betreiber", 10, {}),
         ("carabinieri", "Carabinieri", "Carabinieri", "Carabinieri", 20, {}),

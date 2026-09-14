@@ -137,6 +137,8 @@ export interface Person {
     rescue_refusal: string | null;
     delivered_at: string | null;
     protections: string[];
+    conditions: string[];
+    first_aid: string[];
   };
   event: {
     id: string;
@@ -189,6 +191,8 @@ export type PersonWrite = Partial<
   rescue_refusal?: string | null;
   delivered_at?: string | null;
   protections?: string[];
+  conditions?: string[];
+  first_aid?: string[];
   pii?: { ciphertext: string; key_wrapped: string; key_version: number; fields: string[] } | null;
 };
 

@@ -6,6 +6,7 @@ import { RouterLink } from '@angular/router';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { TextareaModule } from 'primeng/textarea';
@@ -31,6 +32,8 @@ interface PersonDraft {
   injury_place: string | null;
   mean: string | null;
   destination: string | null;
+  conditions: string[];
+  first_aid: string[];
   firstname: string;
   surname: string;
   birth_date: string;
@@ -60,7 +63,7 @@ function localNow(): string {
 }
 
 function emptyPerson(): PersonDraft {
-  return { age: null, gender: null, country_code: 'IT', role: null, diagnosis: null, injury_place: null, mean: null, destination: null, firstname: '', surname: '', birth_date: '', phone: '' };
+  return { age: null, gender: null, country_code: 'IT', role: null, diagnosis: null, injury_place: null, mean: null, destination: null, conditions: [], first_aid: [], firstname: '', surname: '', birth_date: '', phone: '' };
 }
 
 /**
@@ -69,7 +72,7 @@ function emptyPerson(): PersonDraft {
  */
 @Component({
   selector: 'safe-pista',
-  imports: [FormsModule, RouterLink, DatePipe, TranslocoDirective, ButtonModule, InputTextModule, SelectModule, TagModule, TextareaModule, MapPickerComponent],
+  imports: [FormsModule, RouterLink, DatePipe, TranslocoDirective, ButtonModule, InputTextModule, MultiSelectModule, SelectModule, TagModule, TextareaModule, MapPickerComponent],
   template: `
     <ng-container *transloco="let t">
       @if (view() === 'list') {
@@ -168,6 +171,8 @@ function emptyPerson(): PersonDraft {
                 <div><label [attr.for]="'p-injury_place-' + i">{{ t('pista.injury_place') }}</label><p-select [inputId]="'p-injury_place-' + i" [options]="lookups.options('injury_place')" optionLabel="label" optionValue="value" [(ngModel)]="p.injury_place" [showClear]="true" appendTo="body" styleClass="w-full" /></div>
                 <div><label [attr.for]="'p-mean-' + i">{{ t('pista.mean') }}</label><p-select [inputId]="'p-mean-' + i" [options]="lookups.options('evacuation_mean')" optionLabel="label" optionValue="value" [(ngModel)]="p.mean" [showClear]="true" appendTo="body" styleClass="w-full" /></div>
                 <div><label [attr.for]="'p-destination-' + i">{{ t('pista.destination') }}</label><p-select [inputId]="'p-destination-' + i" [options]="lookups.options('destination')" optionLabel="label" optionValue="value" [(ngModel)]="p.destination" [showClear]="true" appendTo="body" styleClass="w-full" /></div>
+                <div><label [attr.for]="'p-conditions-' + i">{{ t('pista.conditions') }}</label><p-multiSelect [inputId]="'p-conditions-' + i" [options]="lookups.options('condition')" optionLabel="label" optionValue="value" [(ngModel)]="p.conditions" display="chip" [showToggleAll]="false" appendTo="body" styleClass="w-full" /></div>
+                <div><label [attr.for]="'p-first_aid-' + i">{{ t('pista.first_aid') }}</label><p-multiSelect [inputId]="'p-first_aid-' + i" [options]="lookups.options('first_aid')" optionLabel="label" optionValue="value" [(ngModel)]="p.first_aid" display="chip" [showToggleAll]="false" appendTo="body" styleClass="w-full" /></div>
               </div>
               <h3><i class="pi pi-lock" aria-hidden="true"></i> {{ t('pista.identity') }}</h3>
               @if (identityAvailable()) {
@@ -381,6 +386,8 @@ export class PistaPageComponent {
           injury_place: p.injury_place,
           evacuation_means: p.mean ? [{ mean: p.mean, order: 1 }] : [],
           destination: p.destination,
+          conditions: p.conditions,
+          first_aid: p.first_aid,
           initials_firstname: p.firstname.trim().slice(0, 1).toUpperCase(),
           initials_surname: p.surname.trim().slice(0, 1).toUpperCase(),
           pii: pii ?? undefined,
