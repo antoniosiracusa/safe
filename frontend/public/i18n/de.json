@@ -333,6 +333,10 @@
   },
   "pdf": {
     "download": "PDF-Bericht herunterladen",
+    "download_choice": "PDF-Bericht herunterladen: vollständig oder pseudonymisiert",
+    "full": "Vollständiges Dokument (mit Identitätsdaten)",
+    "standard": "Pseudonymisierter Bericht",
+    "full_done": "Vollständiges Dokument heruntergeladen: es enthält personenbezogene Daten, bitte sorgfältig aufbewahren.",
     "no_permission": "Fehlende Berechtigung: reports.pdf",
     "error": "Das PDF konnte nicht erstellt werden."
   },
@@ -548,7 +552,7 @@
     "dup_gender": "Geschlecht",
     "dup_age_class_a01": "Altersklasse A01",
     "dup_equipment": "Ausrüstung",
-    "validity_hint": "Bei Änderung der Gültigkeitsregeln wird die Gültigkeit aller Ereignisse im Hintergrund neu berechnet. Personen mit der Rolle Zeuge sind immer gültig: für sie ist kein Feld erforderlich.",
+    "validity_hint": "Bei Änderung der Gültigkeitsregeln wird die Gültigkeit aller Ereignisse im Hintergrund neu berechnet. Personen mit der Rolle Zeuge, Begleiter, Skilehrer oder Elternteil sind immer gültig (kein Pflichtfeld) und zählen weder in den Statistiken noch im Regionalexport.",
     "first_season": "Erste sichtbare Saison",
     "first_season_all": "Alle Saisons",
     "first_season_hint": "Frühere Saisons erscheinen nicht in Filtern und Statistiken. Sinnvoll, wenn keine historischen Daten geladen werden."

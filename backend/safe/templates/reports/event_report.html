@@ -36,6 +36,14 @@
   .person { page-break-before: always; }
   .small { font-size: 7pt; color: #555; }
   .pill { display: inline-block; border: 1px solid #999; border-radius: 3mm; padding: 0 2mm; margin-right: 1mm; }
+  .identity { border: 1px solid #bbb; margin-bottom: 3mm; }
+  .identity h3 { margin: 0; background: #444; color: #fff; font-size: 7.5pt; padding: 1mm 1.5mm; }
+  .idgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 6mm; padding: 0.5mm 1.5mm 1.5mm; }
+  .idgrid div { display: flex; align-items: flex-end; gap: 2mm; border-bottom: 1px solid #999; padding: 1.2mm 0 0.6mm; min-width: 0; }
+  .idgrid div.w2 { grid-column: span 2; }
+  .idgrid div.w3 { grid-column: span 3; }
+  .idgrid b { color: #333; white-space: nowrap; }
+  .idgrid input { flex: 1 1 0; width: 0; min-width: 0; height: 4mm; border: 0; padding: 0; margin: 0; background: none; font: inherit; }
   .privacy { font-size: 7pt; color: #555; margin-top: 3mm; border-top: 1px dashed #bbb; padding-top: 1mm; }
 </style>
 </head>
@@ -97,11 +105,29 @@
     <div><b>Genere</b> {{ pc.gender }}</div>
     <div><b>Età</b> {{ pc.p.age|default_if_none:"—" }}</div>
     <div><b>Nazione</b> {{ pc.country }}</div>
-    <div><b>Dati identificativi</b> {% if pc.identity_note %}(cifrati){% else %}—{% endif %}</div>
+    <div><b>Dati identificativi</b> {% if pc.identity_note %}{% if full %}riportati sotto{% else %}(cifrati){% endif %}{% else %}—{% endif %}</div>
     <div><b>Casco</b> {{ pc.helmet }}</div>
     <div><b>Proprietà attrezzatura</b> {{ pc.equipment_owner }}</div>
     <div><b>Stato attrezzatura</b> {{ pc.equipment_condition }}</div>
   </div>
+  {% if full and pc.identity_note %}
+  <div class="identity">
+    <h3>Dati identificativi</h3>
+    <div class="idgrid">
+      <div><b>Cognome</b><input type="text" name="pii__{{ pc.p.id }}__surname" value=""></div>
+      <div><b>Nome</b><input type="text" name="pii__{{ pc.p.id }}__firstname" value=""></div>
+      <div><b>Data di nascita</b><input type="text" name="pii__{{ pc.p.id }}__birth_date" value=""></div>
+      <div><b>Telefono</b><input type="text" name="pii__{{ pc.p.id }}__phone" value=""></div>
+      <div class="w2"><b>Email</b><input type="text" name="pii__{{ pc.p.id }}__email" value=""></div>
+      <div class="w3"><b>Indirizzo</b><input type="text" name="pii__{{ pc.p.id }}__address" value=""></div>
+      <div><b>Documento</b><input type="text" name="pii__{{ pc.p.id }}__document_type" value=""></div>
+      <div><b>Rilasciato da</b><input type="text" name="pii__{{ pc.p.id }}__document_issuer" value=""></div>
+      <div><b>Numero</b><input type="text" name="pii__{{ pc.p.id }}__document_number" value=""></div>
+      <div class="w2"><b>Codice assicurazione / skipass</b><input type="text" name="pii__{{ pc.p.id }}__insurance_code" value=""></div>
+      <div><b>Consegnato a</b><input type="text" name="pii__{{ pc.p.id }}__delivered_to" value=""></div>
+    </div>
+  </div>
+  {% endif %}
   <div class="grids four">
     <div class="grid"><h3>Attrezzatura</h3>{% for c in pc.equipment_grid %}<div class="{% if c.checked %}on{% endif %}"><span class="box">{% if c.checked %}X{% endif %}</span>{{ c.label }}</div>{% endfor %}</div>
     <div class="grid"><h3>Assicurazione</h3>{% for c in pc.insurance_grid %}<div class="{% if c.checked %}on{% endif %}"><span class="box">{% if c.checked %}X{% endif %}</span>{{ c.label }}</div>{% endfor %}{% if pc.p.insurance_note %}<div class="small">{{ pc.p.insurance_note }}</div>{% endif %}</div>
@@ -128,7 +154,7 @@
 </div>
 {% endfor %}
 
-<p class="privacy">Documento pseudonimizzato: contiene solo iniziali, età e nazione delle persone soccorse; i dati identificativi restano cifrati nel sistema. Scaricato da: {{ downloaded_by }} | {{ generated_at|date:"d/m/Y, H:i:s" }}</p>
+<p class="privacy">{% if full %}Documento completo e riservato: contiene i dati identificativi delle persone, decifrati sul dispositivo di chi lo ha scaricato. Va custodito e trasmesso come dato personale.{% else %}Documento pseudonimizzato: contiene solo iniziali, età e nazione delle persone soccorse; i dati identificativi restano cifrati nel sistema.{% endif %} Scaricato da: {{ downloaded_by }} | {{ generated_at|date:"d/m/Y, H:i:s" }}</p>
 {% endwith %}
 </body>
 </html>

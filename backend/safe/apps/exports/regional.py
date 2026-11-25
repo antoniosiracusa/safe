@@ -16,7 +16,7 @@ from typing import Any
 
 from django.db.models import QuerySet
 
-from safe.apps.rescue.models import Event, Person
+from safe.apps.rescue.models import Event, Person, rescued_q
 from safe.apps.rescue.views import PERSON_PREFETCH, PERSON_SELECT, scope_events
 from safe.apps.territory.models import IstatAdminUnit
 
@@ -81,7 +81,8 @@ def select(
             sel.slopes_without_code.add(str(e.slope_id))
         kept_ids.append(e.id)
     persons = list(
-        Person.objects.filter(event_id__in=kept_ids, deleted_at__isnull=True)
+        # solo le persone soccorse: testimoni, accompagnatori, maestri e genitori non vanno alla Regione
+        Person.objects.filter(rescued_q(), event_id__in=kept_ids, deleted_at__isnull=True)
         .select_related(*PERSON_SELECT)
         .prefetch_related(*PERSON_PREFETCH)
         .order_by("event__dateandtime", "sequence")

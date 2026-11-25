@@ -9,6 +9,8 @@ from collections import Counter
 from django.db.models import Case, CharField, Count, OuterRef, Q, QuerySet, Subquery, Value, When
 from django.db.models.functions import ExtractIsoWeekDay, ExtractMonth
 
+from safe.apps.rescue.models import rescued_q
+
 from .chart import AGE_CLUSTERS
 
 
@@ -56,7 +58,7 @@ def zone_season_table(
     ev_rows = events.values("zone_id", "zone__name", "season__code").annotate(n=Count("id")).order_by()
     pe_rows = (
         events.values("zone_id", "season__code")
-        .annotate(p=Count("persons", filter=Q(persons__deleted_at__isnull=True)))
+        .annotate(p=Count("persons", filter=Q(persons__deleted_at__isnull=True) & rescued_q("persons__")))
         .order_by()
     )
     table: dict[tuple[str | None, str], dict[str, int]] = {}
@@ -160,7 +162,8 @@ def season_summary_by_team(events: QuerySet, season_events: QuerySet, now: dt.da
                 "id",
                 filter=Q(
                     persons__evacuation_means__mean__code="helicopter_118", persons__deleted_at__isnull=True
-                ),
+                )
+                & rescued_q("persons__"),
                 distinct=True,
             ),
         )

@@ -239,6 +239,17 @@ class EventOperator(models.Model):
 
 INITIALS = RegexValidator(r"^[A-Z]{0,3}$", "Solo iniziali maiuscole (max 3).")
 
+# Ruoli (vocabolario person_role) che non indicano una persona soccorsa: se ne raccolgono solo le
+# generalità. Non hanno campi obbligatori per la validità e non alimentano né le statistiche né
+# l'export regionale (decisione del Consorzio, 25/11/2026).
+NON_RESCUED_ROLES = ("witness", "companion", "instructor", "parent")
+
+
+def rescued_q(prefix: str = "") -> Q:
+    """Filtro "persona soccorsa": senza ruolo o con un ruolo diverso da quelli non soccorsi.
+    `prefix` è il percorso verso la persona (es. "persons__" partendo dall'evento)."""
+    return Q(**{f"{prefix}role__isnull": True}) | ~Q(**{f"{prefix}role__code__in": NON_RESCUED_ROLES})
+
 
 class Person(TenantModel):
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="persons")

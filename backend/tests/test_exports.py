@@ -169,6 +169,50 @@ def test_person_conditions_in_pdf_and_export(as_admin, dataset, company):
     assert any(row.split(";")[i] == "Cosciente" and row.split(";")[j] == "Trasporto" for row in rows)
 
 
+def test_full_report_has_empty_identity_slots_and_needs_reveal_permission(
+    as_admin, api_client, dataset, company, team
+):
+    """Documento completo: il server prepara solo i campi vuoti per i dati identificativi (li riempie il
+    browser dopo averli decifrati); serve anche il permesso di leggere i dati identificativi."""
+    from safe.apps.reports import pdf
+
+    e1 = dataset["e1"]
+    with tenant_context(company.id):
+        p1 = e1.persons.get(sequence=1)
+        p2 = e1.persons.get(sequence=2)
+        p1.pii_ciphertext, p1.pii_key_wrapped, p1.pii_key_version = b"\x01", b"\x02", 1
+        p1.save()
+        std = render_to_string(
+            "reports/event_report.html", pdf.build_context(e1, "it", downloaded_by="t", with_map=False)
+        )
+        full = render_to_string(
+            "reports/event_report.html",
+            pdf.build_context(e1, "it", downloaded_by="t", with_map=False, full=True),
+        )
+    assert "<input" not in std and "Documento pseudonimizzato" in std
+    assert "Documento completo e riservato" in full and "Documento pseudonimizzato" not in full
+    for field in ("surname", "firstname", "birth_date", "phone", "email", "address", "document_number"):
+        assert f'name="pii__{p1.id}__{field}" value=""' in full
+    assert f"pii__{p2.id}__" not in full  # la persona senza dati identificativi non ha il riquadro
+    r = as_admin.get(f"/api/v1/events/{e1.id}/report.pdf?variant=full")
+    assert r.status_code == 200 and r.content[:5] == b"%PDF-"
+    assert r["Content-Disposition"].endswith('-completo.pdf"')
+    # la variante completa e quella ordinaria sono documenti distinti, ognuno con la sua copia in cache
+    assert not as_admin.get(f"/api/v1/events/{e1.id}/report.pdf")["Content-Disposition"].endswith(
+        '-completo.pdf"'
+    )
+    as_admin.get(f"/api/v1/events/{e1.id}/report.pdf?variant=full")
+    with tenant_context(company.id):
+        jobs = AsyncJob.objects.filter(kind="pdf_report")
+        assert jobs.count() == 2 and sorted(j.params["variant"] for j in jobs) == ["full", "standard"]
+    # chi può scaricare il PDF ma non leggere i dati identificativi ottiene solo quello ordinario
+    user = create_user(company, "solopdf@a.test", grants=("events.view", "reports.pdf"), team=team)
+    client = auth(api_client, user)
+    assert client.get(f"/api/v1/events/{e1.id}/report.pdf").status_code == 200
+    r = client.get(f"/api/v1/events/{e1.id}/report.pdf?variant=full")
+    assert r.status_code == 403 and r.json()["missing"] == ["persons.reveal_identity"]
+
+
 def test_report_pdf_requires_permission(api_client, company, team, dataset):
     user = create_user(company, "nopdf@a.test", roles=("key_custodian",), team=team)
     r = auth(api_client, user).get(f"/api/v1/events/{dataset['e1'].id}/report.pdf")
@@ -191,6 +235,26 @@ def test_regional_preview_counts(as_admin, dataset):
     assert sorted(grp["teams"]) == ["Carabinieri", "Squadra A"] and grp["joint"] is True
     assert pv["exportable_persons"] == 3
     assert any(w["code"] == "administrative_boundaries_not_loaded" for w in pv["warnings"])
+
+
+def test_non_rescued_roles_stay_out_of_regional_export_but_in_dataset(as_admin, dataset, company):
+    with tenant_context(company.id):
+        for code in ("witness", "companion", "instructor", "parent"):
+            f.person(dataset["e4"], role=f.lv("person_role", code), age=50)
+    r = as_admin.post(
+        "/api/v1/exports/regional/preview", {"template": "veneto_a01", "season": "2025/2026"}, format="json"
+    )
+    pv = r.json()
+    assert pv["persons_total"] == 4 and pv["exportable_persons"] == 3  # come senza i quattro non soccorsi
+    r = as_admin.post(
+        "/api/v1/exports/dataset", {"dataset": "persons", "format": "csv", "lang": "it"}, format="json"
+    )
+    text = as_admin.get(r.json()["download_url"]).content.decode("utf-8-sig")
+    header, *rows = [ln for ln in text.splitlines() if ln]
+    assert len(rows) == 9  # nell'elenco delle persone restano, riconoscibili dal ruolo
+    col = header.split(";").index("Ruolo")
+    roles = [row.split(";")[col] for row in rows]
+    assert sorted(x for x in roles if x) == ["Accompagnatore", "Genitore", "Maestro/a di sci", "Testimone"]
 
 
 def test_regional_export_a01_rows(as_admin, dataset):

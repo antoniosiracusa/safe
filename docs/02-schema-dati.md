@@ -23,6 +23,7 @@ DDL completo in [`02-ddl.sql`](02-ddl.sql). Questo documento spiega le scelte di
    chiaro. Tutto il resto (nome, cognome, luogo di nascita, indirizzo, città, telefono, email,
    codici assicurazione/skipass, "consegnato a", documento di riconoscimento) sta in `pii_ciphertext` (JSON cifrato con data key)
    e `pii_key_wrapped` (data key sigillata con la chiave pubblica della società).
+6-bis. **Ruoli non soccorsi**: le persone con ruolo `witness`, `companion`, `instructor`, `parent` (`NON_RESCUED_ROLES` in `rescue/models.py`) non hanno campi obbligatori per la validità e sono escluse da statistiche ed export regionale; restano nell'elenco persone e nell'export dataset (colonna Ruolo).
 7. **Diagnosi e lesioni**: `person.diagnosis_id` è la diagnosi presunta principale; le secondarie in
    `person_diagnosis`. `person.gravest_injury_id` è la parte del corpo principale (mappa corporea),
    `person.injury_place_id` la macro-sede (arti inferiori, …) derivata o impostata a mano.

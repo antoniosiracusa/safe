@@ -11,7 +11,7 @@ from safe.apps.audit import service as audit
 from safe.apps.core.exceptions import ConflictError
 from safe.apps.tenancy.models import Company
 
-from .models import Event, Person
+from .models import NON_RESCUED_ROLES, Event, Person
 
 EVENT_CHECKS = {
     "dateandtime": lambda e: e.dateandtime is not None,
@@ -36,17 +36,14 @@ PERSON_CHECKS = {
 }
 
 
-# Ruoli che non indicano una persona soccorsa: di un testimone si raccolgono solo le generalità (dati
-# identificativi cifrati e sezione "Persona"), quindi nessun campo statistico è obbligatorio.
-ROLES_WITHOUT_REQUIRED_FIELDS = frozenset({"witness"})
-
-
 def _rules(company: Company) -> dict[str, list[str]]:
     return company.validity_rules
 
 
 def is_exempt_from_person_rules(person: Person) -> bool:
-    return person.role_id is not None and person.role.code in ROLES_WITHOUT_REQUIRED_FIELDS
+    """Testimone, accompagnatore, maestro di sci, genitore: si raccolgono solo le generalità (dati
+    identificativi cifrati e sezione "Persona"), quindi nessun campo statistico è obbligatorio."""
+    return person.role_id is not None and person.role.code in NON_RESCUED_ROLES
 
 
 def compute_person_validity(person: Person, rules: dict[str, list[str]] | None = None) -> list[dict]:

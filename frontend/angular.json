@@ -44,7 +44,8 @@
               "src/styles.scss"
             ],
             "allowedCommonJsDependencies": [
-              "mapbox-gl"
+              "mapbox-gl",
+              "pako"
             ],
             "serviceWorker": "ngsw-config.json"
           },

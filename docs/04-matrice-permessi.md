@@ -116,6 +116,7 @@ concedere o negare `events.view_own_teams_only` al singolo utente dai permessi p
 | Dati · Persone | `persons.view` | tabella bloccata |
 | Dettaglio persona · "Mostra identità" | `persons.reveal_identity` + grant | pulsante disabilitato con tooltip ("chiave non disponibile" / "permesso mancante") |
 | Pulsante PDF | `reports.pdf` | disabilitato |
+| PDF: scelta "Documento completo" | `reports.pdf` + `persons.reveal_identity` + chiave sbloccata con abilitazione | assente (si scarica solo il rapporto pseudonimizzato) |
 | Mappa | `map.view` | pagina bloccata |
 | Esportazioni · Regionale | `exports.regional` | wizard bloccato |
 | Esportazioni · Dataset | `exports.dataset` | bloccato |

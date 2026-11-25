@@ -22,7 +22,7 @@ su larga scala e con geolocalizzazione, di interessati vulnerabili (minori, pers
 | T2 | Gestione e consultazione nel back-office | come T1, con identificativi cifrati; consultazione pseudonimizzata | idem | idem |
 | T3 | Analisi statistica interna e sicurezza piste | dati pseudonimizzati/aggregati | idem | art. 6.1.f (interesse legittimo: sicurezza), art. 9.2.j non necessario se aggregati |
 | T4 | Comunicazione all'ente regionale (A01) | data, fascia oraria, sesso, fascia d'età, pista, attrezzatura, tipologia — nessun identificativo | idem | art. 6.1.c (L.R. 21/2008 art. 49 c.4) |
-| T5 | Report PDF dell'intervento | pseudonimizzato (iniziali, età, città non inclusa) | idem | come T1 |
+| T5 | Report PDF dell'intervento | pseudonimizzato (iniziali, età, città non inclusa); dal 25/11/2026 anche **documento completo** con gli identificativi, prodotto solo nel browser di un utente con chiave sbloccata e abilitazione alla lettura (il server prepara l'impaginazione con gli spazi vuoti e non riceve i dati in chiaro) | idem | come T1 |
 | T6 | Gestione utenti e dispositivi | nome, email, IP, dispositivo, log accessi | personale interno | art. 6.1.b/f |
 | T7 | Audit log | id utente, azione, id oggetto, IP | personale interno | art. 6.1.c/f (accountability, art. 32) |
 | T8 | Cartografia | posizione dell'evento (non dell'interessato in senso proprio) | — | come T1; il GeoJSON non contiene identificativi |
@@ -31,7 +31,7 @@ su larga scala e con geolocalizzazione, di interessati vulnerabili (minori, pers
 
 | Principio | Misura |
 |---|---|
-| Minimizzazione | modello minimo obbligatorio; campi estesi opzionali; città e contatti cifrati; export e PDF senza identificativi; GeoJSON solo geometria + data |
+| Minimizzazione | modello minimo obbligatorio; campi estesi opzionali; città e contatti cifrati; export e PDF ordinario senza identificativi (il documento completo è una scelta esplicita dell'utente abilitato, registrata in audit, e porta in calce l'avviso di riservatezza); GeoJSON solo geometria + data |
 | Pseudonimizzazione (art. 4.5, 32) | liste e statistiche su iniziali + età + nazione; identificativi in blob cifrato separato |
 | Cifratura (art. 32) | E2E lato client: X25519 sealed box + XChaCha20-Poly1305 (libsodium); il responsabile (fornitore) **non può** decifrare; chiavi private cifrate con Argon2id; TLS 1.2+ ovunque; dischi cifrati |
 | Controllo accessi | OIDC + MFA per custodi; permessi granulari verificati server-side; RLS; grant di decifratura nominativa e revocabile |

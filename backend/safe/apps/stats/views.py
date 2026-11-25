@@ -11,7 +11,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from safe.apps.lookups.models import UNCLASSIFIED, Country
-from safe.apps.rescue.models import Event, Person, Season
+from safe.apps.rescue.models import Event, Season
 from safe.apps.territory.models import SkiArea, Slope
 
 from . import queries as q
@@ -449,9 +449,7 @@ class GeneralView(StatsView):
         current = Season.current().code
         return {
             "total_events": events.count(),
-            "total_persons": Person.objects.filter(
-                deleted_at__isnull=True, event__in=events.values("id")
-            ).count(),
+            "total_persons": self.persons(events).count(),
             "total_seasons": events.values("season").distinct().count(),
             "current_season": current,
             "current_season_events": events.filter(season__code=current).count(),

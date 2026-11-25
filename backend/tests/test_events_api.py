@@ -91,8 +91,10 @@ def test_create_event_computes_validity_and_is_idempotent(as_admin, seeded, team
     assert r4.status_code == 200 and r4.json()["extended"]["second_rescuer"] is None
 
 
-def test_witness_needs_no_clinical_data_for_validity(as_admin, seeded, company):
-    """Di un testimone si raccolgono solo le generalità: non deve rendere non valido l'evento."""
+@pytest.mark.parametrize("role", ["witness", "companion", "instructor", "parent"])
+def test_non_rescued_roles_need_no_clinical_data_for_validity(as_admin, seeded, company, role):
+    """Di testimoni, accompagnatori, maestri e genitori si raccolgono solo le generalità: non devono
+    rendere non valido l'evento."""
     from safe.apps.rescue import services
 
     e1 = seeded["e1"]  # evento completo con una persona soccorsa completa
@@ -105,15 +107,15 @@ def test_witness_needs_no_clinical_data_for_validity(as_admin, seeded, company):
     incomplete = r.json()
     assert incomplete["valid"] is False
     assert as_admin.get(f"/api/v1/events/{e1.id}").json()["fully_valid"] is False
-    # ...ma se è un testimone no, anche senza età e genere
-    r = as_admin.patch(f"/api/v1/persons/{incomplete['id']}", {"role": "witness"}, format="json")
+    # ...ma con un ruolo non soccorso no, anche senza età e genere
+    r = as_admin.patch(f"/api/v1/persons/{incomplete['id']}", {"role": role}, format="json")
     assert r.status_code == 200, r.content
     assert r.json()["valid"] is True and r.json()["validation_errors"] == []
-    r = as_admin.post(f"/api/v1/events/{e1.id}/persons", {"role": "witness"}, format="json")
+    r = as_admin.post(f"/api/v1/events/{e1.id}/persons", {"role": role}, format="json")
     assert r.status_code == 201 and r.json()["valid"] is True
     assert as_admin.get(f"/api/v1/events/{e1.id}").json()["fully_valid"] is True
-    # tolto il ruolo, tornano le regole ordinarie
-    r = as_admin.patch(f"/api/v1/persons/{incomplete['id']}", {"role": "companion"}, format="json")
+    # con un ruolo ordinario tornano le regole di sempre
+    r = as_admin.patch(f"/api/v1/persons/{incomplete['id']}", {"role": "pupil"}, format="json")
     assert r.status_code == 200 and r.json()["valid"] is False
     assert as_admin.get(f"/api/v1/events/{e1.id}").json()["fully_valid"] is False
 

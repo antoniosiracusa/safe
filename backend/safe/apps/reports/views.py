@@ -1,5 +1,9 @@
 """GET /events/{id}/report.pdf: 200 con il PDF se già generato per l'ultima versione dell'evento,
-altrimenti 202 con il job (in test/eager il job è già completo e si risponde 200)."""
+altrimenti 202 con il job (in test/eager il job è già completo e si risponde 200).
+
+Con `?variant=full` restituisce la base del documento completo: stessa impaginazione più, per ogni
+persona con dati identificativi, campi modulo vuoti che il browser riempie dopo averli decifrati
+(il server non li conosce). Richiede anche il permesso di leggere i dati identificativi."""
 
 from __future__ import annotations
 
@@ -11,7 +15,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from safe.apps.audit import service as audit
-from safe.apps.authz.drf import HasPermission
+from safe.apps.authz.drf import HasPermission, PermissionDenied
+from safe.apps.authz.resolve import effective_permissions
 from safe.apps.jobs import runner, storage
 from safe.apps.jobs.models import AsyncJob
 from safe.apps.jobs.views import JobSerializer
@@ -33,6 +38,9 @@ class EventReportView(APIView):
             scope_events(Event.objects.filter(deleted_at__isnull=True), request.user), pk=pk
         )
         lang = request.query_params.get("lang") or getattr(request.user, "locale", "it")
+        variant = "full" if request.query_params.get("variant") == "full" else "standard"
+        if variant == "full" and "persons.reveal_identity" not in effective_permissions(request.user):
+            raise PermissionDenied(["persons.reveal_identity"])
         cached = (
             AsyncJob.objects.filter(
                 kind=AsyncJob.Kind.PDF_REPORT,
@@ -40,6 +48,7 @@ class EventReportView(APIView):
                 params__event_id=str(event.id),
                 params__lang=lang,
                 params__layout=PDF_LAYOUT,
+                params__variant=variant,
                 params__result__event_updated_at=event.updated_at.isoformat(),
             )
             .exclude(result_object_key="")
@@ -52,7 +61,7 @@ class EventReportView(APIView):
                 company_id=event.company_id,
                 user=request.user,
                 kind=AsyncJob.Kind.PDF_REPORT,
-                params={"event_id": str(event.id), "lang": lang, "layout": PDF_LAYOUT},
+                params={"event_id": str(event.id), "lang": lang, "layout": PDF_LAYOUT, "variant": variant},
                 expires_days=30,
             )
         audit.record(
@@ -61,7 +70,7 @@ class EventReportView(APIView):
             object_id=event.id,
             event_id=event.id,
             request=request,
-            metadata={"job_id": str(job.id), "cached": cached is not None},
+            metadata={"job_id": str(job.id), "cached": cached is not None, "variant": variant},
         )
         if job.status == AsyncJob.Status.DONE and storage.exists(job.result_object_key):
             resp = HttpResponse(storage.get(job.result_object_key), content_type="application/pdf")

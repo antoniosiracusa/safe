@@ -212,6 +212,38 @@ def test_general_kpis(as_admin, dataset):
     assert body["total_events"] == 5 and body["total_persons"] == 5 and body["total_seasons"] == 2
 
 
+def test_non_rescued_roles_are_excluded_from_statistics(as_admin, dataset, company):
+    """Testimoni, accompagnatori, maestri e genitori non alimentano le statistiche; gli altri ruoli sì."""
+    with tenant_context(company.id):
+        e1 = Event.objects.get(dateandtime=dt.datetime(2026, 1, 18, 10, 5, tzinfo=UTC))
+        for code in ("witness", "companion", "instructor", "parent"):
+            p = f.person(e1, role=f.lv("person_role", code), age=40, country_id="AT")
+            PersonEvacuationMean.objects.create(
+                person=p, mean=f.lv("evacuation_mean", "helicopter_118"), order=2
+            )
+        f.person(e1, role=f.lv("person_role", "pupil"), age=9, gender=f.lv("gender", "male"))
+        services.compute_event_validity(e1)
+    body = as_admin.get("/api/v1/stats/demographics/age-gender?season=2025/2026").json()
+    assert body["meta"]["total"] == 5  # i 4 di prima più l'allievo
+    assert _series(body, "Maschile")["data"][0] == 3 and _series(body, "Femminile")["data"] == [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+    ]
+    table = as_admin.get("/api/v1/stats/zone-summary/table").json()
+    assert table["totals"][1] == {"events": 4, "persons": 5}
+    assert as_admin.get("/api/v1/stats/general").json()["total_persons"] == 6
+    row = as_admin.get("/api/v1/stats/season-summary/teams?season=2025/2026").json()["rows"][0]
+    assert row["helicopter_rescues"] == 1  # l'elicottero dei non soccorsi non conta
+    countries = as_admin.get("/api/v1/stats/demographics/country?season=2025/2026").json()
+    assert "Austria" not in countries["labels"]
+
+
 def test_stats_requires_permission(api_client, company, team, dataset):
     user = create_user(company, "nostats@a.test", roles=("key_custodian",), team=team)
     r = auth(api_client, user).get("/api/v1/stats/typology/cause")

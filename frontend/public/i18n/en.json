@@ -333,6 +333,10 @@
   },
   "pdf": {
     "download": "Download the PDF report",
+    "download_choice": "Download the PDF report: complete or pseudonymised",
+    "full": "Complete document (with identity data)",
+    "standard": "Pseudonymised report",
+    "full_done": "Complete document downloaded: it contains personal data, handle it with care.",
     "no_permission": "Missing permission: reports.pdf",
     "error": "The PDF could not be generated."
   },
@@ -548,7 +552,7 @@
     "dup_gender": "Gender",
     "dup_age_class_a01": "A01 age class",
     "dup_equipment": "Equipment",
-    "validity_hint": "When validity rules change, the validity of all events is recomputed in the background. Persons with the Witness role are always valid: no field is required for them.",
+    "validity_hint": "When validity rules change, the validity of all events is recomputed in the background. Persons with the Witness, Companion, Ski instructor or Parent role are always valid (no required field) and are left out of statistics and of the regional export.",
     "first_season": "First visible season",
     "first_season_all": "All seasons",
     "first_season_hint": "Earlier seasons are hidden from filters and statistics. Useful when no historical data is loaded."

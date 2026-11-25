@@ -41,7 +41,7 @@
   <img src="{{LOGO}}" alt="Ski Civetta">
   <div class="title">SAFECIVETTA.IT</div>
   <div class="sub">Guida rapida per gli operatori del soccorso piste</div>
-  <div class="meta">Consorzio Impianti a Fune Civetta · portale https://safecivetta.it<br>Versione 1.3 · novembre 2026</div>
+  <div class="meta">Consorzio Impianti a Fune Civetta · portale https://safecivetta.it<br>Versione 1.4 · novembre 2026</div>
 </div>
 
 <h1 class="first">Indice</h1>
@@ -145,7 +145,7 @@
   <li><span class="ui">Assicurazione, alloggio, responsabilità</span>: assicurazione, alloggio, destinazione (pronto soccorso, ambulatorio…), responsabilità, violazioni amministrative.</li>
   <li><span class="ui">Dati identificativi (cifrati)</span>: nome, cognome, data di nascita, telefono, email, indirizzo, codice assicurazione o skipass, consegnato a, documento di riconoscimento (tipo: carta d'identità, passaporto, patente o altro; rilasciato da; numero). Compaiono solo se la tua chiave è sbloccata e sei abilitato. Vengono cifrati nel momento in cui salvi.</li>
   <li><span class="ui">Salva</span>. Ripeti per ogni persona coinvolta.</li>
-  <li><strong>Testimoni</strong>: aggiungi una persona con ruolo <span class="ui">Testimone</span> e compila solo la sezione <span class="ui">Persona</span> e i dati identificativi. Non servono dati clinici: un testimone risulta sempre valido e non rende non valido l'evento.</li>
+  <li><strong>Testimoni, accompagnatori, maestri di sci, genitori</strong>: aggiungi una persona con il ruolo corrispondente e compila solo la sezione <span class="ui">Persona</span> e i dati identificativi. Non servono dati clinici: queste persone risultano sempre valide, non rendono non valido l'evento e non vengono contate nelle statistiche né nel file per la Regione.</li>
 </ol>
 <div class="box"><span class="t">Mai dati personali nei campi liberi</span>Nome, telefono, targa, numero di stanza e simili vanno <strong>solo</strong> nella sezione "Dati identificativi": è l'unica cifrata. Note, descrizione del luogo e relazione di servizio sono leggibili da tutti gli utenti autorizzati e finiscono negli export.</div>
 <p>Per rileggere i dati identificativi di una persona: chiave sbloccata, poi <span class="ui">Mostra</span> accanto a "Dati identificativi cifrati presenti". Ogni lettura viene registrata nel registro delle operazioni.</p>
@@ -155,7 +155,9 @@
 <p>Quando il rapporto è completo, nella scheda dell'evento premi <span class="ui">Blocca</span>: l'evento non è più modificabile e vale come chiuso. Se la società ha impostato il blocco automatico, gli eventi si bloccano da soli dopo un certo numero di ore (di norma 48).</p>
 <p>Per correggere un evento bloccato serve il permesso di sblocco: <span class="ui">Sblocca</span>, indica il <span class="ui">Motivo dello sblocco</span> (viene registrato), modifica e blocca di nuovo.</p>
 <h2>Il PDF del rapporto</h2>
-<p>Dalla scheda dell'evento, pulsante <span class="ui">PDF</span>: il portale genera il rapporto d'intervento, con i dati dell'evento e delle persone. Il file compare dopo qualche secondo e resta scaricabile. Il PDF non contiene mai i dati identificativi: viene prodotto dal server, che non può leggerli. Se servono su carta, vanno aggiunti a mano.</p>
+<p>Dalla scheda dell'evento, pulsante <span class="ui">PDF</span>: il portale genera il rapporto d'intervento, con i dati dell'evento e delle persone. Il file compare dopo qualche secondo e resta scaricabile. Di norma il PDF è <strong>pseudonimizzato</strong>: riporta iniziali, età e nazione, non i dati identificativi.</p>
+<p>Se hai la <strong>chiave sbloccata</strong> e sei abilitato a leggere i dati identificativi, il pulsante <span class="ui">PDF</span> ti fa scegliere fra <span class="ui">Documento completo (con dati identificativi)</span> e <span class="ui">Rapporto pseudonimizzato</span>. Il documento completo riporta, per ogni persona, nome, cognome, data di nascita, contatti, indirizzo e documento di riconoscimento. I dati vengono decifrati e scritti nel file sul tuo dispositivo: il server continua a non poterli leggere, ma registra chi ha scaricato il documento.</p>
+<div class="box"><span class="t">Attenzione</span>Il documento completo contiene dati personali e sanitari. Scaricalo solo quando serve, consegnalo solo a chi ne ha titolo e non lasciarlo su computer o telefoni condivisi.</div>
 
 <h1>8. Ritrovare un evento</h1>
 <ul>

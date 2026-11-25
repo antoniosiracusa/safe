@@ -333,6 +333,10 @@
   },
   "pdf": {
     "download": "Scarica il rapporto PDF",
+    "download_choice": "Scarica il rapporto PDF: completo o pseudonimizzato",
+    "full": "Documento completo (con dati identificativi)",
+    "standard": "Rapporto pseudonimizzato",
+    "full_done": "Documento completo scaricato: contiene dati personali, custodiscilo con cura.",
     "no_permission": "Permesso mancante: reports.pdf",
     "error": "Impossibile generare il PDF."
   },
@@ -548,7 +552,7 @@
     "dup_gender": "Genere",
     "dup_age_class_a01": "Classe di età A01",
     "dup_equipment": "Attrezzatura",
-    "validity_hint": "Cambiando le regole di validità, la validità di tutti gli eventi viene ricalcolata in background. Le persone con ruolo Testimone sono sempre valide: per loro nessun campo è obbligatorio.",
+    "validity_hint": "Cambiando le regole di validità, la validità di tutti gli eventi viene ricalcolata in background. Le persone con ruolo Testimone, Accompagnatore, Maestro/a di sci o Genitore sono sempre valide (nessun campo obbligatorio) e non entrano nelle statistiche né nell'export regionale.",
     "first_season": "Prima stagione visibile",
     "first_season_all": "Tutte le stagioni",
     "first_season_hint": "Le stagioni precedenti non compaiono nei filtri e nelle statistiche. Utile se non si caricano dati storici."

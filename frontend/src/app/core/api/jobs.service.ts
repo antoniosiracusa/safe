@@ -78,17 +78,27 @@ export class JobsService {
 
   /** PDF del rapporto evento: 200 → file immediato, 202 → job da attendere e poi scaricare. */
   async eventReportPdf(eventId: string): Promise<void> {
+    const file = await this.eventReportFile(eventId);
+    this.saveBlob(file.blob, file.filename);
+  }
+
+  /** Come sopra ma senza salvare. `full` = base del documento completo, con i campi vuoti per i dati
+   *  identificativi che il browser riempie dopo averli decifrati (vedi FullReportService). */
+  async eventReportFile(eventId: string, variant: 'standard' | 'full' = 'standard'): Promise<{ blob: Blob; filename: string }> {
     const res = await firstValueFrom(
-      this.http.get(this.api.url(`events/${eventId}/report.pdf`), { observe: 'response', responseType: 'blob' }),
+      this.http.get(this.api.url(`events/${eventId}/report.pdf`), {
+        observe: 'response',
+        responseType: 'blob',
+        params: variant === 'full' ? { variant } : {},
+      }),
     );
     const fallback = `report-${eventId.slice(-8).toUpperCase()}.pdf`;
     if (res.status === 202 && res.body) {
       const job = JSON.parse(await res.body.text()) as AsyncJob;
       const done = await this.waitFor(job);
-      this.saveBlob(await this.download(done), done.result_filename ?? fallback);
-      return;
+      return { blob: await this.download(done), filename: done.result_filename ?? fallback };
     }
     if (!res.body) throw new Error('empty_response');
-    this.saveBlob(res.body, filenameFrom(res.headers.get('Content-Disposition')) ?? fallback);
+    return { blob: res.body, filename: filenameFrom(res.headers.get('Content-Disposition')) ?? fallback };
   }
 }

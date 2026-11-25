@@ -20,7 +20,7 @@ from rest_framework.views import APIView
 
 from safe.apps.authz.drf import HasPermission
 from safe.apps.core.filters import GlobalFilterSet
-from safe.apps.rescue.models import Event, Person
+from safe.apps.rescue.models import Event, Person, rescued_q
 from safe.apps.rescue.views import scope_events
 from safe.apps.tenancy.models import Company
 
@@ -81,8 +81,10 @@ class StatsView(APIView):
         return GlobalFilterSet(params, queryset=qs).qs
 
     def persons(self, events: QuerySet | None = None) -> QuerySet:
+        """Persone soccorse degli eventi filtrati: testimoni, accompagnatori, maestri e genitori sono
+        esclusi da tutte le statistiche."""
         events = self.events() if events is None else events
-        return Person.objects.filter(deleted_at__isnull=True, event__in=events.values("id"))
+        return Person.objects.filter(rescued_q(), deleted_at__isnull=True, event__in=events.values("id"))
 
     # --- cache ----------------------------------------------------------------
     def cache_key(self) -> str:

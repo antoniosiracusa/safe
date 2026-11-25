@@ -129,6 +129,7 @@ HEADERS = {
             "Primo soccorso prestato",
             "Responsabilità",
             "Violazioni amministrative",
+            "Ruolo",
             "Valido",
         ],
         "en": [
@@ -162,6 +163,7 @@ HEADERS = {
             "First aid given",
             "Responsibility",
             "Administrative violations",
+            "Role",
             "Valid",
         ],
         "de": [
@@ -195,6 +197,7 @@ HEADERS = {
             "Erste Hilfe",
             "Verantwortung",
             "Verwaltungsverstöße",
+            "Rolle",
             "Gültig",
         ],
     },
@@ -280,6 +283,7 @@ def person_rows(qs: QuerySet, lb: Labels, tz: str) -> list[list[Any]]:
                 ", ".join(f.first_aid.label(lb.lang) for f in p.person_first_aid.all()),
                 lb.of(p.responsibility),
                 lb.yesno(p.administrative_violations),
+                lb.of(p.role) if p.role_id else "",
                 lb.yesno(p.valid),
             ]
         )

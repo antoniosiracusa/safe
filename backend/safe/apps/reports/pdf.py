@@ -19,7 +19,7 @@ from .static_map import static_map_data_uri
 
 # Versione dell'impaginazione: fa parte della chiave di cache dei PDF (un cambio di layout o di logo
 # rigenera i rapporti già prodotti anche se l'evento non è cambiato).
-PDF_LAYOUT = 3
+PDF_LAYOUT = 4
 
 LANG_LABELS = {
     "it": {"unclassified": "Non classificato", "yes": "Sì", "no": "No", "none": "—"},
@@ -106,7 +106,9 @@ def person_context(p: Person, lb: Labeler) -> dict[str, Any]:
     }
 
 
-def build_context(event: Event, lang: str, *, downloaded_by: str, with_map: bool = True) -> dict[str, Any]:
+def build_context(
+    event: Event, lang: str, *, downloaded_by: str, with_map: bool = True, full: bool = False
+) -> dict[str, Any]:
     lb = Labeler(lang)
     tz = zoneinfo.ZoneInfo(event.company.timezone)
     local = event.dateandtime.astimezone(tz)
@@ -134,6 +136,7 @@ def build_context(event: Event, lang: str, *, downloaded_by: str, with_map: bool
     )
     return {
         "lang": lb.lang,
+        "full": full,
         **brand_context(),
         "event": event,
         "company": event.company,
@@ -176,18 +179,25 @@ def build_context(event: Event, lang: str, *, downloaded_by: str, with_map: bool
     }
 
 
-def render_pdf(event: Event, lang: str, *, downloaded_by: str, with_map: bool = True) -> bytes:
+def render_pdf(
+    event: Event, lang: str, *, downloaded_by: str, with_map: bool = True, full: bool = False
+) -> bytes:
+    """Rapporto PDF dell'evento. Con `full=True` è la base del "documento completo": per ogni persona
+    con dati identificativi il PDF contiene campi modulo vuoti (uno per dato, di nome
+    `pii__<id persona>__<campo>`). Il server non conosce quei dati: li scrive il browser di chi ha
+    la chiave sbloccata, nelle posizioni dei campi, prima di salvare il file."""
     from weasyprint import HTML
 
     html = render_to_string(
         "reports/event_report.html",
-        build_context(event, lang, downloaded_by=downloaded_by, with_map=with_map),
+        build_context(event, lang, downloaded_by=downloaded_by, with_map=with_map, full=full),
     )
-    return HTML(string=html, base_url=".").write_pdf()
+    return HTML(string=html, base_url=".").write_pdf(pdf_forms=full)
 
 
-def filename_for(event: Event) -> str:
-    return f"report-evento-{event.dateandtime:%Y-%m-%d}-{str(event.id)[-8:]}.pdf"
+def filename_for(event: Event, *, full: bool = False) -> str:
+    suffix = "-completo" if full else ""
+    return f"report-evento-{event.dateandtime:%Y-%m-%d}-{str(event.id)[-8:]}{suffix}.pdf"
 
 
 _ = UNCLASSIFIED
