@@ -45,5 +45,22 @@ docker exec "$NAME" psql -U postgres -d safe -Atc "
   select 'confini ISTAT: '||count(*) from istat_admin_unit union all
   select 'audit: '||count(*) from audit_log" | sed 's/^/  /'
 docker exec "$NAME" psql -U postgres -d keycloak -Atc "select 'utenti Keycloak: '||count(*) from user_entity" | sed 's/^/  /'
+
+# foto: ogni foto registrata nel database ripristinato deve avere il suo contenuto (cifrato) nella copia
+# esterna; senza quel file la foto sarebbe persa. Il contenuto non si può aprire qui (serve la chiave).
+if [ -n "${BACKUP_S3_BUCKET:-}" ]; then
+  docker exec "$NAME" psql -U postgres -d safe -Atc "select object_key from event_photo" | sort > /tmp/safe-photos-db.txt
+  docker run --rm -e AWS_ACCESS_KEY_ID="$BACKUP_S3_ACCESS_KEY" -e AWS_SECRET_ACCESS_KEY="$BACKUP_S3_SECRET_KEY" \
+    amazon/aws-cli:2.27.50 s3 ls "s3://$BACKUP_S3_BUCKET/photos/" --recursive --endpoint-url "$BACKUP_S3_ENDPOINT" \
+    | awk '{print $4}' | sort > /tmp/safe-photos-remote.txt
+  missing=$(comm -23 /tmp/safe-photos-db.txt /tmp/safe-photos-remote.txt | wc -l)
+  echo "  foto: $(wc -l < /tmp/safe-photos-db.txt) nel database, $(wc -l < /tmp/safe-photos-remote.txt) nella copia esterna," \
+    "$missing mancanti"
+  rm -f /tmp/safe-photos-db.txt /tmp/safe-photos-remote.txt
+  if [ "$missing" -gt 0 ]; then
+    echo "ATTENZIONE: foto del database senza copia esterna (la copia notturna delle foto è fallita?)"
+    docker rm -f "$NAME" >/dev/null; exit 1
+  fi
+fi
 docker rm -f "$NAME" >/dev/null
 echo "prova di ripristino riuscita; container temporaneo rimosso"

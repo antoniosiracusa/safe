@@ -7,11 +7,13 @@ import base64
 from typing import cast
 
 from django.db.models import Count, Q, QuerySet
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
@@ -21,13 +23,17 @@ from safe.apps.authz.drf import HasPermission, PermissionDenied
 from safe.apps.authz.resolve import effective_permissions
 from safe.apps.core.exceptions import ConflictError
 from safe.apps.crypto.models import CompanyKey, CompanyKeyGrant
+from safe.apps.jobs import storage
 from safe.apps.org.models import UserTeam
 
+from . import photos as photo_service
 from . import services
 from .filters import EventFilterSet, PersonFilterSet
-from .models import Event, Person
+from .models import Event, EventPhoto, Person
 from .serializers import (
     EventDetailSerializer,
+    EventPhotoSerializer,
+    EventPhotoUploadSerializer,
     EventSerializer,
     EventWriteSerializer,
     PersonSerializer,
@@ -112,6 +118,8 @@ class EventViewSet(viewsets.ModelViewSet):
         "unlock": ("events.unlock",),
         "persons": ("events.view", "persons.view"),
         "add_person": ("events.view", "persons.edit"),
+        "photos": ("events.view",),
+        "add_photo": ("events.view", "events.edit"),
     }
     filterset_class = EventFilterSet
     ordering_fields = [
@@ -251,9 +259,97 @@ class EventViewSet(viewsets.ModelViewSet):
         )
         return Response(PersonSerializer(self._person(person.pk)).data, status=201)
 
+    @extend_schema(responses=EventPhotoSerializer(many=True))
+    @action(detail=True, methods=["get"], parser_classes=[JSONParser, MultiPartParser])
+    def photos(self, request: Request, pk=None) -> Response:  # noqa: ANN001
+        """Metadati delle foto (cifrate): numero, chi le ha caricate, chiave avvolta."""
+        event = self.get_object()
+        items = EventPhoto.objects.filter(event=event).select_related("created_by")
+        return Response(EventPhotoSerializer(items, many=True).data)
+
+    @extend_schema(request=EventPhotoUploadSerializer, responses={201: EventPhotoSerializer})
+    @photos.mapping.post
+    def add_photo(self, request: Request, pk=None) -> Response:  # noqa: ANN001
+        event = self.get_object()
+        services.ensure_unlocked(event)
+        assert_can_edit(event, request.user)
+        ser = EventPhotoUploadSerializer(data=request.data)
+        ser.is_valid(raise_exception=True)
+        d = ser.validated_data
+        if not CompanyKey.objects.filter(version=d["key_version"]).exists():
+            raise ConflictError({"detail": "Versione della chiave sconosciuta.", "code": "key_version"})
+        photo, created = photo_service.create(
+            event,
+            data=d["file"].read(),
+            key_wrapped=d["key_wrapped"],
+            key_version=d["key_version"],
+            client_uuid=d.get("client_uuid"),
+            request=request,
+        )
+        return Response(EventPhotoSerializer(photo).data, status=201 if created else 200)
+
     @staticmethod
     def _person(pk) -> Person:  # noqa: ANN001
         return Person.objects.select_related(*PERSON_SELECT).prefetch_related(*PERSON_PREFETCH).get(pk=pk)
+
+
+class EventPhotoViewSet(mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    """Contenuto cifrato e cancellazione di una foto. Il contenuto si dà solo a chi ha la chiave
+    della società (come i dati identificativi) e ogni lettura è registrata."""
+
+    permission_classes = [HasPermission]
+    permission_map = {
+        "destroy": ("events.edit",),
+        "content": ("events.view", "persons.reveal_identity"),
+    }
+    serializer_class = EventPhotoSerializer
+
+    def get_queryset(self) -> QuerySet:
+        qs = EventPhoto.objects.filter(event__deleted_at__isnull=True).select_related("event", "created_by")
+        if "events.view_own_teams_only" in effective_permissions(self.request.user):
+            qs = qs.filter(event__team_id__in=user_team_ids(self.request.user))
+        return qs
+
+    def get_throttles(self):  # noqa: ANN201
+        if getattr(self, "action", None) == "content":
+            self.throttle_scope = "photo"
+            return [ScopedRateThrottle()]
+        return super().get_throttles()
+
+    def destroy(self, request: Request, *args, **kwargs) -> Response:  # noqa: ANN002, ANN003
+        photo = self.get_object()
+        services.ensure_unlocked(photo.event)
+        assert_can_edit(photo.event, request.user)
+        photo_service.delete(photo, request=request)
+        photo_service.touch_event(photo.event)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @extend_schema(responses={200: OpenApiTypes.BINARY})
+    @action(detail=True, methods=["get"])
+    def content(self, request: Request, pk=None) -> HttpResponse:  # noqa: ANN001
+        photo = self.get_object()
+        granted = CompanyKeyGrant.objects.filter(
+            user=request.user, company_key__version=photo.key_version, revoked_at__isnull=True
+        ).exists()
+        audit.record(
+            "photo.read",
+            "event_photo",
+            object_id=photo.id,
+            event_id=photo.event_id,
+            request=request,
+            metadata={"granted": granted},
+        )
+        if not granted:
+            raise ConflictError(
+                {"detail": "Non disponi della chiave di decifratura.", "code": "no_key_grant"}
+            )
+        if not storage.exists(photo.object_key):
+            return Response(
+                {"code": "not_found", "detail": "Contenuto della foto non disponibile."}, status=404
+            )
+        resp = HttpResponse(storage.get(photo.object_key), content_type="application/octet-stream")
+        resp["Cache-Control"] = "private, no-store"
+        return resp
 
 
 class PersonViewSet(

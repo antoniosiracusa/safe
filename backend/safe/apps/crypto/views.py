@@ -27,7 +27,7 @@ from safe.apps.authz import resolve
 from safe.apps.authz.drf import HasPermission
 from safe.apps.core.exceptions import BusinessError
 from safe.apps.org.models import AppUser
-from safe.apps.rescue.models import Person
+from safe.apps.rescue.models import EventPhoto, Person
 
 from .models import CompanyKey, CompanyKeyGrant, CompanyKeyRecovery, UserKey
 
@@ -76,8 +76,16 @@ class GrantSerializer(serializers.Serializer):
 
 
 class RewrapItemSerializer(serializers.Serializer):
-    person_id = serializers.UUIDField()
+    """Una data key ri-sigillata: di una persona (dati identificativi) o di una foto."""
+
+    person_id = serializers.UUIDField(required=False)
+    photo_id = serializers.UUIDField(required=False)
     key_wrapped = Base64Field(min_len=32)
+
+    def validate(self, attrs: dict) -> dict:
+        if bool(attrs.get("person_id")) == bool(attrs.get("photo_id")):
+            raise serializers.ValidationError("Indicare person_id oppure photo_id.")
+        return attrs
 
 
 class RewrapSerializer(serializers.Serializer):
@@ -227,7 +235,11 @@ class CompanyKeyRotateView(APIView):
         remaining = Person.objects.filter(
             pii_ciphertext__isnull=False, pii_key_version__lt=key.version
         ).count()
-        return Response({**key_payload(key), "persons_to_rewrap": remaining}, status=status.HTTP_201_CREATED)
+        photos = EventPhoto.objects.filter(key_version__lt=key.version).count()
+        return Response(
+            {**key_payload(key), "persons_to_rewrap": remaining, "photos_to_rewrap": photos},
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class RewrapView(APIView):
@@ -242,6 +254,12 @@ class RewrapView(APIView):
             "pii_key_version", "id"
         )
 
+    def _pending_photos(self, key: CompanyKey) -> QuerySet:
+        return EventPhoto.objects.filter(key_version__lt=key.version).order_by("key_version", "id")
+
+    def _remaining(self, key: CompanyKey) -> int:
+        return self._pending(key).count() + self._pending_photos(key).count()
+
     @extend_schema(tags=["crypto"], responses={200: {"type": "object"}})
     def get(self, request: Request) -> Response:
         key = active_key()
@@ -253,7 +271,13 @@ class RewrapView(APIView):
             {"person_id": str(p.id), "key_wrapped": b64(p.pii_key_wrapped), "key_version": p.pii_key_version}
             for p in pending[:limit]
         ]
-        return Response({"active_version": key.version, "remaining": pending.count(), "items": items})
+        # finite le persone, le foto (stesso schema: data key sigillata con la pubblica della società)
+        if len(items) < limit:
+            items += [
+                {"photo_id": str(f.id), "key_wrapped": b64(f.key_wrapped), "key_version": f.key_version}
+                for f in self._pending_photos(key)[: limit - len(items)]
+            ]
+        return Response({"active_version": key.version, "remaining": self._remaining(key), "items": items})
 
     @extend_schema(tags=["crypto"], request=RewrapSerializer, responses={200: {"type": "object"}})
     def post(self, request: Request) -> Response:
@@ -265,10 +289,15 @@ class RewrapView(APIView):
         updated = 0
         with transaction.atomic():
             for item in ser.validated_data["items"]:
+                if item.get("photo_id"):
+                    updated += EventPhoto.objects.filter(
+                        pk=item["photo_id"], key_version__lt=key.version
+                    ).update(key_wrapped=item["key_wrapped"], key_version=key.version)
+                    continue
                 updated += Person.objects.filter(
                     pk=item["person_id"], pii_ciphertext__isnull=False, pii_key_version__lt=key.version
                 ).update(pii_key_wrapped=item["key_wrapped"], pii_key_version=key.version)
-        remaining = self._pending(key).count()
+        remaining = self._remaining(key)
         if updated:
             audit.record(
                 "crypto.rewrap",

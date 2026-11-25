@@ -34,7 +34,7 @@ def retention_run() -> dict[str, int]:
 
     from . import retention
 
-    totals = {"persons_anonymized": 0, "audit_rows_purged": 0}
+    totals = {"persons_anonymized": 0, "audit_rows_purged": 0, "photos_deleted": 0}
     with bypass_tenant():
         companies = list(Company.objects.filter(is_active=True))
     for company in companies:

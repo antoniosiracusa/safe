@@ -25,6 +25,7 @@ su larga scala e con geolocalizzazione, di interessati vulnerabili (minori, pers
 | T5 | Report PDF dell'intervento | pseudonimizzato (iniziali, età, città non inclusa); dal 25/11/2026 anche **documento completo** con gli identificativi, prodotto solo nel browser di un utente con chiave sbloccata e abilitazione alla lettura (il server prepara l'impaginazione con gli spazi vuoti e non riceve i dati in chiaro) | idem | come T1 |
 | T6 | Gestione utenti e dispositivi | nome, email, IP, dispositivo, log accessi | personale interno | art. 6.1.b/f |
 | T7 | Audit log | id utente, azione, id oggetto, IP | personale interno | art. 6.1.c/f (accountability, art. 32) |
+| T9 | Foto dell'evento (dal 25/11/2026) | immagini del luogo e della situazione, che possono ritrarre persone e lesioni (dati sanitari); max 6 per evento | persone soccorse, terzi presenti | come T1. Ridotte e cifrate sul dispositivo con la chiave della società (il fornitore non può vederle), dati EXIF eliminati, visibili solo con chiave sbloccata e abilitazione, ogni lettura in audit; nel PDF solo nel documento completo; cancellate con l'evento e alla scadenza della retention dei dati identificativi, anche dalle copie di sicurezza |
 | T8 | Cartografia | posizione dell'evento (non dell'interessato in senso proprio) | — | come T1; il GeoJSON non contiene identificativi |
 
 ## 3. Principi e misure (privacy by design)

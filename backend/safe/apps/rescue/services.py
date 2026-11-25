@@ -140,6 +140,11 @@ def auto_lock_due_events(now: dt.datetime | None = None) -> int:
 def soft_delete(obj: Event | Person, user, request=None) -> None:  # noqa: ANN001
     obj.deleted_at = timezone.now()
     obj.save(update_fields=["deleted_at", "updated_at"])
+    if isinstance(obj, Event):
+        # le foto non servono più e sono dati personali: si cancellano con l'evento (anche dall'archivio)
+        from . import photos
+
+        photos.delete_for_event(obj, request=request, actor=user, reason="event_deleted")
     kind = obj.__class__.__name__.lower()
     audit.record(
         f"{kind}.delete",

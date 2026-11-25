@@ -19,7 +19,7 @@ from .static_map import static_map_data_uri
 
 # Versione dell'impaginazione: fa parte della chiave di cache dei PDF (un cambio di layout o di logo
 # rigenera i rapporti già prodotti anche se l'evento non è cambiato).
-PDF_LAYOUT = 4
+PDF_LAYOUT = 5
 
 LANG_LABELS = {
     "it": {"unclassified": "Non classificato", "yes": "Sì", "no": "No", "none": "—"},
@@ -172,6 +172,16 @@ def build_context(
         "coords": f"{event.geom.y:.5f}, {event.geom.x:.5f}" if event.geom else None,
         "map_uri": map_uri,
         "persons": [person_context(p, lb) for p in persons],
+        # foto cifrate: il server conosce solo quante sono; nel documento completo prepara per ognuna un
+        # riquadro (campo vuoto `photo__<id>`) dove il browser disegna l'immagine decifrata
+        "photos": [
+            {
+                "id": str(ph.id),
+                "created_at": ph.created_at.astimezone(tz),
+                "by": (ph.created_by.full_name if ph.created_by else ""),
+            }
+            for ph in event.photos.select_related("created_by")
+        ],
         "downloaded_by": downloaded_by,
         "generated_at": dt.datetime.now(tz),
         "unclassified": lb.t["unclassified"],

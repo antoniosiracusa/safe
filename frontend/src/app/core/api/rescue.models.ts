@@ -65,6 +65,7 @@ export interface EventDetail extends EventRow {
   last_unlocked_at: string | null;
   persons: Person[];
   created_by: Ref | null;
+  photos_count: number;
 }
 
 export interface EventWrite {

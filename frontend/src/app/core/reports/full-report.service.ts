@@ -3,6 +3,7 @@ import { TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 
 import { JobsService } from '../api/jobs.service';
+import { PhotosService } from '../photos/photos.service';
 import { RescueService } from '../api/rescue.service';
 import { KeyStoreService } from '../crypto/key-store.service';
 import { SessionService } from '../session/session.service';
@@ -19,6 +20,7 @@ export class FullReportService {
   private readonly keyStore = inject(KeyStoreService);
   private readonly session = inject(SessionService);
   private readonly transloco = inject(TranslocoService);
+  private readonly photosApi = inject(PhotosService);
 
   readonly available = computed(
     () => this.session.can('reports.pdf') && this.session.can('persons.reveal_identity') && this.keyStore.canDecrypt(),
@@ -36,8 +38,19 @@ export class FullReportService {
       if (data['document_type']) data['document_type'] = this.transloco.translate(`identity.document_types.${data['document_type']}`);
       identities.set(person.id, data);
     }
+    // foto: decifrate qui come i dati identificativi; una foto non apribile lascia il riquadro con un avviso
+    const photos = new Map<string, Uint8Array | null>();
+    if (event.photos_count) {
+      for (const p of await firstValueFrom(this.photosApi.list(eventId))) {
+        try {
+          photos.set(p.id, await this.photosApi.open(p));
+        } catch {
+          photos.set(p.id, null);
+        }
+      }
+    }
     const { fillIdentityFields } = await import('./identity-pdf');
-    const bytes = await fillIdentityFields(await file.blob.arrayBuffer(), identities);
+    const bytes = await fillIdentityFields(await file.blob.arrayBuffer(), identities, photos, this.transloco.translate('photos.unavailable'));
     this.jobs.saveBlob(new Blob([bytes as BlobPart], { type: 'application/pdf' }), file.filename);
   }
 }

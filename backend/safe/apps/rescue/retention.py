@@ -15,7 +15,7 @@ from safe.apps.audit import service as audit
 from safe.apps.audit.models import AuditLog
 from safe.apps.tenancy.models import Company
 
-from .models import Person
+from .models import EventPhoto, Person
 
 
 def identity_cutoff(company: Company, now: dt.datetime | None = None) -> dt.datetime:
@@ -65,25 +65,36 @@ def anonymize(person: Person, *, actor: Any = None, request: Any = None, reason:
 
 
 def run_for_company(company: Company, *, actor: Any = None) -> dict[str, int]:
-    """Anonimizza le persone scadute e cancella l'audit oltre la retention. Da chiamare nel tenant."""
+    """Anonimizza le persone scadute, cancella le foto degli eventi oltre la stessa soglia e l'audit
+    oltre la sua retention. Da chiamare nel tenant."""
+    from . import photos
+
     count = 0
     for p in due_persons(company).iterator(chunk_size=500):
         anonymize(p, actor=actor)
         count += 1
+    photos_deleted = 0
+    for photo in EventPhoto.objects.filter(event__dateandtime__lt=identity_cutoff(company)):
+        photos.delete(photo, actor=actor, reason="retention")
+        photos_deleted += 1
     audit_cutoff = timezone.now() - dt.timedelta(days=365 * company.retention_audit_years)
     with transaction.atomic():
         with connection.cursor() as cur:
             cur.execute("SET LOCAL app.audit_purge = 'on'")
         purged, _ = AuditLog.objects.filter(created_at__lt=audit_cutoff).delete()
-    if count or purged:
+    if count or purged or photos_deleted:
         audit.record(
             "retention.run",
             "company",
             object_id=company.id,
             actor=actor,
-            metadata={"persons_anonymized": count, "audit_rows_purged": purged},
+            metadata={
+                "persons_anonymized": count,
+                "audit_rows_purged": purged,
+                "photos_deleted": photos_deleted,
+            },
         )
-    return {"persons_anonymized": count, "audit_rows_purged": purged}
+    return {"persons_anonymized": count, "audit_rows_purged": purged, "photos_deleted": photos_deleted}
 
 
 def status_for(company: Company) -> dict[str, Any]:

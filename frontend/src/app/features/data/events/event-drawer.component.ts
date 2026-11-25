@@ -24,6 +24,7 @@ import { PdfButtonComponent } from '../../../shared/ui/pdf-button.component';
 import { StateTagComponent } from '../../../shared/ui/state-tag.component';
 import { PersonFormComponent } from '../persons/person-form.component';
 import { EventFormComponent } from './event-form.component';
+import { EventPhotosComponent } from './event-photos.component';
 
 /** Drawer laterale: dettaglio evento (Dati, Persone, Storico), modifica, blocco/sblocco, eliminazione,
  *  oppure creazione di un nuovo evento. */
@@ -33,7 +34,7 @@ import { EventFormComponent } from './event-form.component';
     DatePipe, DecimalPipe, JsonPipe,
     FormsModule, TranslocoDirective, DrawerModule, TabsModule, ButtonModule, DialogModule, ConfirmDialogModule,
     SkeletonModule, TextareaModule, TooltipModule, CanDirective, LookupLabelPipe, StateTagComponent, PdfButtonComponent,
-    EventFormComponent, PersonFormComponent,
+    EventFormComponent, EventPhotosComponent, PersonFormComponent,
   ],
   providers: [ConfirmationService],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -176,6 +177,12 @@ export class EventDrawerComponent {
 
   editPerson(p: Person): void {
     this.personDialog.set({ person: p });
+  }
+
+  /** Foto aggiunte o eliminate: si aggiorna il conteggio senza ricaricare l'evento (e le immagini). */
+  onPhotosChanged(count: number): void {
+    this.changed.set(true);
+    this.event.update((ev) => (ev ? { ...ev, photos_count: count } : ev));
   }
 
   onPersonSaved(): void {

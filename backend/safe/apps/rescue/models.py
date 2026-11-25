@@ -223,6 +223,34 @@ class Event(TenantModel):
         super().save(*args, **kwargs)
 
 
+class EventPhoto(TenantModel):
+    """Foto dell'evento, cifrata sul dispositivo come i dati identificativi: data key casuale
+    (XChaCha20-Poly1305) sigillata con la chiave pubblica della società. Il server conserva solo il
+    contenuto cifrato nell'archivio oggetti (`object_key`) e non può vederla."""
+
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="photos")
+    client_uuid = models.UUIDField(null=True, blank=True)  # idempotenza della coda della modalità pista
+    object_key = models.CharField(max_length=200)
+    size_bytes = models.PositiveIntegerField()
+    key_wrapped = models.BinaryField()
+    key_version = models.PositiveIntegerField()
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+
+    class Meta(TenantModel.Meta):
+        db_table = "event_photo"
+        ordering = ["created_at", "id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["company", "client_uuid"],
+                condition=Q(client_uuid__isnull=False),
+                name="ux_event_photo_client_uuid",
+            ),
+        ]
+        indexes = [models.Index(fields=["company", "event"], name="ix_event_photo_event")]
+
+
 class EventOperator(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="operators")
     user = models.ForeignKey(

@@ -2,7 +2,10 @@
 # Backup notturno: dump del database (SAFE + Keycloak) cifrato con passphrase, conservato in
 # /opt/safe/backups per BACKUP_KEEP_DAYS giorni e, se configurato, copiato su un bucket S3 esterno
 # (Backblaze B2, Aruba Object Storage, ...) dove resta BACKUP_S3_KEEP_DAYS giorni.
-# I file di MinIO (PDF, export) sono rigenerabili e non vengono salvati.
+# I file di MinIO (PDF, export) sono rigenerabili e non vengono salvati, tranne le foto degli eventi
+# (prefisso photos/, già cifrate nel browser): queste hanno una copia INCREMENTALE a parte, in
+# ./photos-mirror e nel bucket esterno sotto photos/ (ogni foto viaggia una sola volta, invece di
+# finire ogni notte in un dump da conservare 90 giorni).
 #
 # Ripristino: vedi runbook-produzione.md ("Ripristino da backup").
 set -euo pipefail
@@ -40,4 +43,24 @@ if [ -n "${BACKUP_S3_BUCKET:-}" ]; then
       safe-*.sql.gz.gpg) if [[ "$day" < "$CUTOFF" ]]; then s3 rm "s3://$BACKUP_S3_BUCKET/$name" --only-show-errors && echo "rimosso dal bucket: $name"; fi ;;
     esac
   done
+
+  # --- foto degli eventi: copia incrementale ---------------------------------------------------
+  # 1) MinIO (rete interna dei container) → ./photos-mirror   2) ./photos-mirror → bucket esterno photos/
+  # --delete: una foto eliminata nel portale (dall'utente, con l'evento o dalla retention) sparisce
+  # anche dalle copie la notte successiva, come richiede la protezione dei dati.
+  MIRROR=./photos-mirror
+  mkdir -p "$MIRROR" && chmod 700 "$MIRROR"
+  MINIO_NET=$(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}} {{end}}' \
+    "$($COMPOSE ps -q minio)" | awk '{print $1}')
+  docker run --rm --network "$MINIO_NET" -v "$PWD/$MIRROR:/mirror" \
+    -e AWS_ACCESS_KEY_ID="$S3_ACCESS_KEY" -e AWS_SECRET_ACCESS_KEY="$S3_SECRET_KEY" \
+    amazon/aws-cli:2.27.50 s3 sync "s3://${S3_BUCKET:-safe-files}/photos/" /mirror/ --delete --only-show-errors \
+    --endpoint-url "${S3_ENDPOINT_URL:-http://minio:9000}"
+  docker run --rm -v "$PWD/$MIRROR:/mirror:ro" \
+    -e AWS_ACCESS_KEY_ID="$BACKUP_S3_ACCESS_KEY" -e AWS_SECRET_ACCESS_KEY="$BACKUP_S3_SECRET_KEY" \
+    amazon/aws-cli:2.27.50 s3 sync /mirror/ "s3://$BACKUP_S3_BUCKET/photos/" --delete --only-show-errors \
+    --endpoint-url "$BACKUP_S3_ENDPOINT"
+  date +%s > "$DEST/.last-photos-sync"   # letto da monitor.sh
+  echo "foto copiate su s3://$BACKUP_S3_BUCKET/photos/: $(find "$MIRROR" -type f | wc -l) file," \
+    "$(du -sh "$MIRROR" | cut -f1)"
 fi

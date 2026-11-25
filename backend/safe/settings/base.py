@@ -127,6 +127,7 @@ REST_FRAMEWORK = {
         "anon": "60/min",
         "user": "600/min",
         "identity": "30/min",
+        "photo": "120/min",
         "recovery": "5/hour",
         "invite": "30/hour",
     },

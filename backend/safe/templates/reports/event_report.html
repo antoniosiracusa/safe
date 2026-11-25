@@ -44,6 +44,10 @@
   .idgrid div.w3 { grid-column: span 3; }
   .idgrid b { color: #333; white-space: nowrap; }
   .idgrid input { flex: 1 1 0; width: 0; min-width: 0; height: 4mm; border: 0; padding: 0; margin: 0; background: none; font: inherit; }
+  .photos { page-break-before: always; }
+  .photo { page-break-inside: avoid; margin-bottom: 5mm; }
+  .photo input { display: block; width: 100%; height: 112mm; border: 1px solid #bbb; padding: 0; margin: 0; background: none; }
+  .photo .small { margin-top: 1mm; }
   .privacy { font-size: 7pt; color: #555; margin-top: 3mm; border-top: 1px dashed #bbb; padding-top: 1mm; }
 </style>
 </head>
@@ -63,6 +67,7 @@
   <div><b>Tempo dall'incidente</b> {{ event.time_since_incident|default:"—" }}</div>
   <div><b>Ora chiamata soccorso esterno</b> {{ event.external_rescue_call_at|default:"—" }}</div>
   <div><b>Stato</b> {% if event.fully_valid %}valido{% else %}non valido{% endif %}{% if event.locked_at %} · bloccato{% endif %}</div>
+  <div><b>Foto</b> {% if photos %}{{ photos|length }}{% if full %} (in fondo al documento){% else %} (cifrate: solo nel documento completo){% endif %}{% else %}—{% endif %}</div>
 </div>
 
 <div class="grids">
@@ -154,6 +159,12 @@
 </div>
 {% endfor %}
 
+{% if full and photos %}
+<div class="photos">
+  <h2>Foto dell'evento ({{ photos|length }})</h2>
+  {% for ph in photos %}<div class="photo"><input type="text" name="photo__{{ ph.id }}" value=""><div class="small">Foto {{ forloop.counter }} di {{ photos|length }} · caricata il {{ ph.created_at|date:"d/m/Y H:i" }}{% if ph.by %} da {{ ph.by }}{% endif %}</div></div>{% endfor %}
+</div>
+{% endif %}
 <p class="privacy">{% if full %}Documento completo e riservato: contiene i dati identificativi delle persone, decifrati sul dispositivo di chi lo ha scaricato. Va custodito e trasmesso come dato personale.{% else %}Documento pseudonimizzato: contiene solo iniziali, età e nazione delle persone soccorse; i dati identificativi restano cifrati nel sistema.{% endif %} Scaricato da: {{ downloaded_by }} | {{ generated_at|date:"d/m/Y, H:i:s" }}</p>
 {% endwith %}
 </body>

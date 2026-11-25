@@ -24,6 +24,7 @@ DDL completo in [`02-ddl.sql`](02-ddl.sql). Questo documento spiega le scelte di
    codici assicurazione/skipass, "consegnato a", documento di riconoscimento) sta in `pii_ciphertext` (JSON cifrato con data key)
    e `pii_key_wrapped` (data key sigillata con la chiave pubblica della società).
 6-bis. **Ruoli non soccorsi**: le persone con ruolo `witness`, `companion`, `instructor`, `parent` (`NON_RESCUED_ROLES` in `rescue/models.py`) non hanno campi obbligatori per la validità e sono escluse da statistiche ed export regionale; restano nell'elenco persone e nell'export dataset (colonna Ruolo).
+6-ter. **Foto** (`event_photo`): solo metadati e data key sigillata (`key_wrapped`, `key_version`); il contenuto cifrato è nell'archivio oggetti sotto `photos/<società>/<evento>/<foto>.bin`. Rotazione delle chiavi e retention le trattano come i dati identificativi (rescue/photos.py).
 7. **Diagnosi e lesioni**: `person.diagnosis_id` è la diagnosi presunta principale; le secondarie in
    `person_diagnosis`. `person.gravest_injury_id` è la parte del corpo principale (mappa corporea),
    `person.injury_place_id` la macro-sede (arti inferiori, …) derivata o impostata a mano.
@@ -73,6 +74,7 @@ erDiagram
   slope o|--o{ event : ""
   event ||--o{ person : involves
   event ||--o{ event_operator : ""
+  event ||--o{ event_photo : "max 6, cifrate"
   person ||--o{ person_evacuation_mean : "ordered"
   person ||--o{ person_diagnosis : "secondary"
   person ||--o{ person_injury : "body map"

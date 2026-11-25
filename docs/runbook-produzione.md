@@ -113,9 +113,18 @@ fermano per qualche minuto anche quel sito.
   bucket "Keep only the last version" così le cancellazioni liberano spazio). Log in
   `/var/log/safe-backup.log`.
 - Snapshot della macchina dal pannello Aruba: utile in aggiunta, non in sostituzione.
-- I file su MinIO (PDF, export) sono rigenerabili e non fanno parte del backup.
+- I file su MinIO (PDF, export) sono rigenerabili e non fanno parte del backup, **tranne le foto degli eventi**
+  (dal 25/11/2026, prefisso `photos/` del bucket, contenuto già cifrato nel browser con la chiave della società).
+  `backup.sh` le copia in modo **incrementale** dopo il dump: MinIO → `/opt/safe/photos-mirror` → bucket esterno
+  `photos/` (`aws s3 sync --delete`: ogni foto viaggia una volta sola; una foto eliminata nel portale, con il suo
+  evento o dalla retention sparisce dalle copie la notte dopo). Ordine di grandezza: ~0,3 MB a foto, con 700 eventi a
+  stagione e qualche foto ciascuno circa 1-2 GB a stagione. `monitor.sh` segnala se la copia è più vecchia di 26 ore
+  (oltre all'avviso del disco all'80%, `ALERT_DISK_PERCENT`).
+- Ripristino delle foto: dopo il database, `aws s3 sync s3://<bucket esterno>/photos/ <cartella>` e poi dalla cartella
+  verso `s3://<S3_BUCKET>/photos/` di MinIO (rete interna dei container, come in `backup.sh`). Le foto si aprono solo
+  con la chiave della società, che sta nel database (grant) e nel kit di recupero.
 - `restore-test.sh`: prova di ripristino dell'ultimo backup in un PostgreSQL temporaneo (conteggi di
-  società, utenti, eventi, Keycloak), poi rimosso. Eseguita il 12/09/2026; da ripetere ogni anno.
+  società, utenti, eventi, Keycloak; ogni foto registrata deve avere il suo file nella copia esterna), poi rimosso. Eseguita il 12/09/2026; da ripetere ogni anno.
 - `monitor.sh` (cron ogni ora, riepilogo lunedì 08:00): disco, container, API, Keycloak, scadenza
   certificato, backup < 26 h e copia esterna. Email a `ALERT_EMAIL` quando lo stato cambia;
   `./monitor.sh --test` invia un'email di prova. Log in `/var/log/safe-monitor.log`. In aggiunta è

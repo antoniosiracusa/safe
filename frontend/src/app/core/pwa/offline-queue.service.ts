@@ -4,15 +4,26 @@ import { firstValueFrom } from 'rxjs';
 import { RescueService } from '../api/rescue.service';
 import { EventWrite, PersonWrite } from '../api/rescue.models';
 import { errorMessage } from '../api/errors';
+import { EncryptedPhoto, PhotosService } from '../photos/photos.service';
 import { PwaService } from './pwa.service';
 
+/** Foto in coda: già ridotta e cifrata sul telefono. Dopo l'invio il contenuto si toglie dalla coda. */
+export interface QueuedPhoto {
+  client_uuid: string;
+  ciphertext: Uint8Array | null;
+  key_wrapped: string;
+  key_version: number;
+  sent: boolean;
+}
+
 /** Intervento registrato in pista, in attesa di invio o già inviato (M8.1). I dati identificativi
- *  delle persone sono già cifrati (campo `pii`): su disco non resta nulla in chiaro. */
+ *  delle persone e le foto sono già cifrati: su disco non resta nulla in chiaro. */
 export interface QueuedIntervention {
   id: string; // client_uuid dell'evento
   created_at: string;
   event: EventWrite;
   persons: PersonWrite[];
+  photos?: QueuedPhoto[];
   status: 'pending' | 'sending' | 'sent' | 'error';
   attempts: number;
   last_error: string | null;
@@ -57,6 +68,7 @@ function tx<T>(db: IDBDatabase, mode: IDBTransactionMode, fn: (store: IDBObjectS
 @Injectable({ providedIn: 'root' })
 export class OfflineQueueService {
   private readonly rescue = inject(RescueService);
+  private readonly photosApi = inject(PhotosService);
   private readonly pwa = inject(PwaService);
   private db: Promise<IDBDatabase> | null = null;
   private syncPromise: Promise<void> | null = null;
@@ -99,13 +111,20 @@ export class OfflineQueueService {
   }
 
   /** Salva un nuovo intervento in coda e prova subito a inviarlo. */
-  async enqueue(event: EventWrite, persons: PersonWrite[], gpsAccuracy: number | null): Promise<QueuedIntervention> {
+  async enqueue(event: EventWrite, persons: PersonWrite[], gpsAccuracy: number | null, photos: EncryptedPhoto[] = []): Promise<QueuedIntervention> {
     const id = event.client_uuid ?? crypto.randomUUID();
     const item: QueuedIntervention = {
       id,
       created_at: new Date().toISOString(),
       event: { ...event, client_uuid: id },
       persons: persons.map((p) => ({ ...p, client_uuid: p.client_uuid ?? crypto.randomUUID() })),
+      photos: photos.map((ph) => ({
+        client_uuid: crypto.randomUUID(),
+        ciphertext: ph.ciphertext,
+        key_wrapped: ph.key_wrapped,
+        key_version: ph.key_version,
+        sent: false,
+      })),
       status: 'pending',
       attempts: 0,
       last_error: null,
@@ -191,6 +210,17 @@ export class OfflineQueueService {
       }
       for (const p of cur.persons) {
         await firstValueFrom(this.rescue.addPerson(cur.server_id!, p)); // idempotente su client_uuid
+      }
+      // foto una alla volta (anche con poca rete); ognuna inviata si segna subito, così una ripresa
+      // dopo un'interruzione non la rimanda, e il suo contenuto lascia il telefono
+      const photos = cur.photos ?? [];
+      for (let i = 0; i < photos.length; i++) {
+        const ph = photos[i];
+        if (ph.sent || !ph.ciphertext) continue;
+        await firstValueFrom(this.photosApi.upload(cur.server_id!, { ciphertext: ph.ciphertext, key_wrapped: ph.key_wrapped, key_version: ph.key_version }, ph.client_uuid));
+        photos[i] = { ...ph, sent: true, ciphertext: null };
+        cur = { ...cur, photos: [...photos] };
+        await this.put(cur);
       }
       await this.put({ ...cur, status: 'sent', sent_at: new Date().toISOString(), last_error: null });
       return true;

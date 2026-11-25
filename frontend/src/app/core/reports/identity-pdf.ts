@@ -6,6 +6,8 @@
  * con lo stesso carattere del rapporto, poi i campi vengono rimossi, così il file risulta un PDF normale.
  */
 const FIELD_NAME = /^pii__([0-9a-f-]{36})__([a-z_]+)$/;
+const PHOTO_FIELD = /^photo__([0-9a-f-]{36})$/;
+const PHOTO_PADDING = 3;
 const FONT_URL = 'fonts/DejaVuSans.ttf';
 const FONT_SIZE = 8.5; // come il corpo del rapporto
 const MIN_FONT_SIZE = 5.5;
@@ -17,7 +19,13 @@ function clean(value: string): string {
   return value.replace(/\s+/g, ' ').trim();
 }
 
-export async function fillIdentityFields(pdf: ArrayBuffer, identities: Identities): Promise<Uint8Array> {
+/** `photos`: id foto → JPEG decifrato (null = non disponibile: nel riquadro compare `unavailableText`). */
+export async function fillIdentityFields(
+  pdf: ArrayBuffer,
+  identities: Identities,
+  photos: ReadonlyMap<string, Uint8Array | null> = new Map(),
+  unavailableText = '',
+): Promise<Uint8Array> {
   const [{ PDFDocument, PDFName, rgb }, fontkit, fontBytes] = await Promise.all([
     import('pdf-lib'),
     import('@pdf-lib/fontkit').then((m) => m.default),
@@ -33,11 +41,28 @@ export async function fillIdentityFields(pdf: ArrayBuffer, identities: Identitie
 
   for (const field of form.getFields()) {
     const match = FIELD_NAME.exec(field.getName());
+    const photoMatch = PHOTO_FIELD.exec(field.getName());
     const text = match ? clean(identities.get(match[1])?.[match[2]] ?? '') : '';
     for (const widget of field.acroField.getWidgets()) {
       const ref = doc.context.getObjectRef(widget.dict);
       const page = ref ? doc.findPageForAnnotationRef(ref) : undefined;
-      if (page && text) {
+      if (page && photoMatch) {
+        const r = widget.getRectangle();
+        const box = { x: Math.min(r.x, r.x + r.width), y: Math.min(r.y, r.y + r.height), w: Math.abs(r.width), h: Math.abs(r.height) };
+        const jpeg = photos.get(photoMatch[1]);
+        if (jpeg) {
+          // immagine intera, centrata nel riquadro, senza deformarla
+          const img = await doc.embedJpg(jpeg);
+          const scale = Math.min((box.w - 2 * PHOTO_PADDING) / img.width, (box.h - 2 * PHOTO_PADDING) / img.height);
+          const w = img.width * scale;
+          const h = img.height * scale;
+          page.drawImage(img, { x: box.x + (box.w - w) / 2, y: box.y + (box.h - h) / 2, width: w, height: h });
+        } else if (unavailableText) {
+          const size = FONT_SIZE;
+          const tw = font.widthOfTextAtSize(unavailableText, size);
+          page.drawText(unavailableText, { x: box.x + (box.w - tw) / 2, y: box.y + box.h / 2, size, font, color: rgb(0.4, 0.4, 0.4) });
+        }
+      } else if (page && text) {
         const rect = widget.getRectangle();
         const width = Math.abs(rect.width);
         const height = Math.abs(rect.height);

@@ -4,20 +4,24 @@ import { of, throwError } from 'rxjs';
 
 import { RescueService } from '../api/rescue.service';
 import { EventDetail, Person } from '../api/rescue.models';
+import { EventPhoto, PhotosService } from '../photos/photos.service';
 import { OfflineQueueService } from './offline-queue.service';
 import { PwaService } from './pwa.service';
 
 describe('OfflineQueueService', () => {
   let rescue: jasmine.SpyObj<RescueService>;
+  let photos: jasmine.SpyObj<PhotosService>;
   let online: { online: () => boolean };
   let service: OfflineQueueService;
 
   beforeEach(async () => {
     rescue = jasmine.createSpyObj<RescueService>('RescueService', ['createEvent', 'addPerson']);
+    photos = jasmine.createSpyObj<PhotosService>('PhotosService', ['upload']);
     online = { online: () => true };
     TestBed.configureTestingModule({
       providers: [
         { provide: RescueService, useValue: rescue },
+        { provide: PhotosService, useValue: photos },
         { provide: PwaService, useValue: online },
       ],
     });
@@ -87,5 +91,32 @@ describe('OfflineQueueService', () => {
     items = await q.refresh();
     expect(items[0].status).toBe('sent');
     expect(rescue.createEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('invia le foto dopo le persone, una volta sola, e ne toglie il contenuto dal telefono', async () => {
+    rescue.createEvent.and.returnValue(of({ id: 'cccccccc-0000-0000-0000-000000000003' } as EventDetail));
+    rescue.addPerson.and.returnValue(of({} as Person));
+    // la seconda foto fallisce la prima volta (rete instabile in quota)
+    let calls = 0;
+    photos.upload.and.callFake(() => (++calls === 2 ? throwError(() => ({ status: 500 })) : of({} as EventPhoto)));
+    const q = service;
+    const enc = (n: number) => ({ ciphertext: new Uint8Array([n, n, n]), key_wrapped: 'k' + n, key_version: 1 });
+    await q.enqueue({ dateandtime: '2026-12-01T10:00:00Z', team: 't1' }, [{ age: 30 }], null, [enc(1), enc(2)]);
+    await q.sync();
+    let items = await q.refresh();
+    expect(items[0].status).toBe('error');
+    expect(items[0].photos!.map((p) => p.sent)).toEqual([true, false]);
+    expect(items[0].photos![0].ciphertext).toBeNull(); // inviata: il contenuto lascia il telefono
+    expect(items[0].photos![1].ciphertext).toEqual(new Uint8Array([2, 2, 2])); // da rimandare, conservata cifrata
+
+    await q.retry(items[0].id);
+    await q.sync();
+    items = await q.refresh();
+    expect(items[0].status).toBe('sent');
+    expect(photos.upload).toHaveBeenCalledTimes(3); // la prima non viene rimandata
+    const [eventId, sent, clientUuid] = photos.upload.calls.mostRecent().args;
+    expect(eventId).toBe('cccccccc-0000-0000-0000-000000000003');
+    expect(sent.key_wrapped).toBe('k2');
+    expect(clientUuid).toBe(items[0].photos![1].client_uuid); // idempotenza lato server
   });
 });

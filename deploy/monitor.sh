@@ -51,6 +51,16 @@ else
   fi
 fi
 
+# copia incrementale delle foto (backup.sh): deve essere avvenuta nelle ultime 26 ore
+if [ -n "${BACKUP_S3_BUCKET:-}" ]; then
+  synced=$(cat backups/.last-photos-sync 2>/dev/null || echo 0)
+  if [ $(( $(date +%s) - synced )) -gt 93600 ]; then
+    problems+=("la copia delle foto sul bucket esterno non è aggiornata (vedi /var/log/safe-backup.log)")
+  else
+    info+=("foto copiate: $(find photos-mirror -type f 2>/dev/null | wc -l) ($(du -sh photos-mirror 2>/dev/null | cut -f1))")
+  fi
+fi
+
 if [ ${#problems[@]} -eq 0 ]; then status="OK"; else status="PROBLEMI"; fi
 body="Server ${DOMAIN} - $(date '+%d/%m/%Y %H:%M')"$'\n\n'
 if [ ${#problems[@]} -gt 0 ]; then

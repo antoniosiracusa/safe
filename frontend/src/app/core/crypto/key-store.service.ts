@@ -5,7 +5,8 @@ import { ApiService } from '../api/api.service';
 import { SessionService } from '../session/session.service';
 import { DeviceUnlockService } from './device-unlock.service';
 import {
-  ALGORITHMS, EncryptedPrivateKey, KeyPair, b64, decryptPii, decryptPrivateKey, encryptPii, encryptPrivateKey,
+  ALGORITHMS, EncryptedPrivateKey, KeyPair, b64, decryptBytes, decryptPii, decryptPrivateKey, encryptBytes, encryptPii,
+  encryptPrivateKey,
   generateKeyPair, generateRecoveryCode, publicKeyOf, seal, unseal,
 } from './sodium';
 
@@ -237,6 +238,21 @@ export class KeyStoreService {
     return { ...enc, key_version: ck.version };
   }
 
+  /** Cifra una foto (già ridotta) con la chiave pubblica della società: basta la chiave pubblica. */
+  async encryptPhoto(bytes: Uint8Array): Promise<{ ciphertext: Uint8Array; key_wrapped: string; key_version: number } | null> {
+    const ck = this.companyKey() ?? (await this.loadCompanyKey());
+    if (!ck) return null;
+    return { ...(await encryptBytes(bytes, b64.decode(ck.public_key))), key_version: ck.version };
+  }
+
+  /** Decifra una foto: serve la chiave sbloccata e l'abilitazione alla versione con cui è stata cifrata. */
+  async decryptPhoto(ciphertext: Uint8Array, keyWrapped: string, keyVersion: number): Promise<Uint8Array> {
+    if (!this.userKeyPair) throw new Error('locked');
+    const kp = this.companyKeys.get(keyVersion);
+    if (!kp) throw new Error('no_key_grant');
+    return decryptBytes(ciphertext, keyWrapped, kp);
+  }
+
   /** Legge e decifra l'identità di una persona (l'accesso è registrato in audit dal server). */
   async readIdentity(personId: string): Promise<Record<string, string>> {
     if (!this.userKeyPair) throw new Error('locked');
@@ -310,16 +326,21 @@ export class KeyStoreService {
     const ckp = await generateKeyPair();
     const words = await generateRecoveryCode();
     const info = await firstValueFrom(
-      this.api.post<CompanyKeyInfo & { persons_to_rewrap: number }>('crypto/company-key/rotate', await this.companyKeyPayload(ckp, ukp, words.join(' '))),
+      this.api.post<CompanyKeyInfo & { persons_to_rewrap: number; photos_to_rewrap?: number }>(
+        'crypto/company-key/rotate',
+        await this.companyKeyPayload(ckp, ukp, words.join(' ')),
+      ),
     );
     this.companyKeys.set(info.version, ckp);
     this.companyKey.set(info);
-    const total = info.persons_to_rewrap;
+    const total = info.persons_to_rewrap + (info.photos_to_rewrap ?? 0); // dati identificativi e foto
     let done = 0;
     onProgress(0, total);
     for (;;) {
       const batch = await firstValueFrom(
-        this.api.get<{ items: { person_id: string; key_wrapped: string; key_version: number }[]; remaining: number }>('crypto/company-key/rewrap?limit=200'),
+        this.api.get<{ items: { person_id?: string; photo_id?: string; key_wrapped: string; key_version: number }[]; remaining: number }>(
+          'crypto/company-key/rewrap?limit=200',
+        ),
       );
       if (!batch.items.length) break;
       const items = [];
@@ -327,7 +348,8 @@ export class KeyStoreService {
         const oldKp = this.companyKeys.get(it.key_version);
         if (!oldKp) continue;
         const dataKey = await unseal(b64.decode(it.key_wrapped), oldKp);
-        items.push({ person_id: it.person_id, key_wrapped: b64.encode(await seal(dataKey, ckp.publicKey)) });
+        const key_wrapped = b64.encode(await seal(dataKey, ckp.publicKey));
+        items.push(it.photo_id ? { photo_id: it.photo_id, key_wrapped } : { person_id: it.person_id, key_wrapped });
       }
       if (!items.length) break;
       const res = await firstValueFrom(this.api.post<{ updated: number; remaining: number }>('crypto/company-key/rewrap', { items }));

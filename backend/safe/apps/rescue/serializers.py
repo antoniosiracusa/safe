@@ -579,6 +579,7 @@ class EventDetailSerializer(EventSerializer):
     extended = serializers.SerializerMethodField()
     persons = serializers.SerializerMethodField()
     created_by = serializers.SerializerMethodField()
+    photos_count = serializers.SerializerMethodField()
 
     class Meta(EventSerializer.Meta):
         fields = EventSerializer.Meta.fields + [
@@ -591,8 +592,12 @@ class EventDetailSerializer(EventSerializer):
             "last_unlocked_at",
             "persons",
             "created_by",
+            "photos_count",
         ]
         read_only_fields = fields
+
+    def get_photos_count(self, obj: Event) -> int:
+        return obj.photos.count()
 
     def get_extended(self, obj: Event) -> dict:
         return {
@@ -776,6 +781,50 @@ class EventWriteSerializer(serializers.ModelSerializer):
         event.save()
         self._apply_operators(event, ext)
         return event
+
+
+# ----------------------------------------------------------------------------- photos
+
+
+class EventPhotoSerializer(serializers.Serializer):
+    """Metadati di una foto: il contenuto cifrato si scarica da /photos/{id}/content."""
+
+    id = serializers.UUIDField()
+    event_id = serializers.UUIDField()
+    client_uuid = serializers.UUIDField(allow_null=True)
+    created_at = serializers.DateTimeField()
+    created_by = serializers.SerializerMethodField()
+    size_bytes = serializers.IntegerField()
+    key_wrapped = Base64Field()
+    key_version = serializers.IntegerField()
+
+    def get_created_by(self, obj: Any) -> str | None:
+        u = obj.created_by
+        return (u.full_name or u.email) if u else None
+
+
+class EventPhotoUploadSerializer(serializers.Serializer):
+    """Caricamento multipart: `file` è il contenuto già cifrato nel browser (nonce || box)."""
+
+    file = serializers.FileField()
+    key_wrapped = Base64Field()
+    key_version = serializers.IntegerField(min_value=1)
+    client_uuid = serializers.UUIDField(required=False, allow_null=True)
+
+    def validate_key_wrapped(self, value: bytes) -> bytes:
+        # crypto_box_seal di una chiave di 32 byte: 32 + 48 di intestazione = 80 byte
+        if not 48 <= len(value) <= 256:
+            raise serializers.ValidationError("Chiave avvolta non valida.")
+        return value
+
+    def validate_file(self, value: Any) -> Any:
+        from .photos import MAX_PHOTO_BYTES
+
+        if value.size > MAX_PHOTO_BYTES:
+            raise serializers.ValidationError("Foto troppo grande: va ridotta prima dell'invio.")
+        if value.size < 64:
+            raise serializers.ValidationError("Contenuto non valido.")
+        return value
 
 
 class UnlockSerializer(serializers.Serializer):

@@ -13,6 +13,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { firstValueFrom } from 'rxjs';
 
 import { EventWrite, PersonWrite, Slope } from '../../core/api/rescue.models';
+import { EncryptedPhoto, MAX_PHOTOS_PER_EVENT, PhotosService } from '../../core/photos/photos.service';
 import { RescueService } from '../../core/api/rescue.service';
 import { KeyStoreService } from '../../core/crypto/key-store.service';
 import { sodiumReady } from '../../core/crypto/sodium';
@@ -96,7 +97,7 @@ function emptyPerson(): PersonDraft {
             </div>
             <div class="row small">
               <span>{{ zoneName(it.event.zone) }}@if (it.event.slope) { · {{ slopeName(it.event.slope) }} }</span>
-              <span>{{ it.persons.length }} <i class="pi pi-user" aria-hidden="true"></i></span>
+              <span>{{ it.persons.length }} <i class="pi pi-user" aria-hidden="true"></i>@if (it.photos?.length) { · {{ it.photos!.length }} <i class="pi pi-camera" aria-hidden="true"></i> }</span>
             </div>
             @if (it.status === 'error' && it.last_error) { <p class="err">{{ it.last_error }}</p> }
             <div class="row actions">
@@ -192,6 +193,24 @@ function emptyPerson(): PersonDraft {
             </div>
           }
           <p-button [label]="t('pista.add_person')" icon="pi pi-user-plus" [outlined]="true" styleClass="w-full" (onClick)="persons.push(newPerson())" />
+
+          <h2>{{ t('pista.photos', { max: maxPhotos }) }}</h2>
+          @if (identityAvailable()) {
+            <p class="muted small">{{ t('pista.photos_hint') }}</p>
+            @if (photos.length) {
+              <div class="thumbs">
+                @for (ph of photos; track ph.client_uuid; let i = $index) {
+                  <div class="thumb"><img [src]="ph.preview" alt="" /><p-button icon="pi pi-times" [rounded]="true" size="small" severity="danger" [attr.aria-label]="t('pista.photo_remove')" (onClick)="removePhoto(i)" /></div>
+                }
+              </div>
+            }
+            @if (photos.length < maxPhotos) {
+              <input #cam type="file" accept="image/*" multiple hidden (change)="addPhotos(cam)" />
+              <p-button [label]="t('pista.photos_add')" icon="pi pi-camera" [outlined]="true" styleClass="w-full" [loading]="photoBusy()" (onClick)="cam.click()" />
+            }
+          } @else {
+            <p class="muted small">{{ t('pista.photos_unavailable') }}</p>
+          }
         }
 
         @if (error()) { <p class="err">{{ error() }}</p> }
@@ -234,6 +253,10 @@ function emptyPerson(): PersonDraft {
     .row.actions a { margin-right: auto; font-size: 0.9rem; }
     .footer { position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; gap: 0.5rem; padding: 0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom)); background: var(--p-surface-0); border-top: 1px solid var(--p-surface-200); z-index: 5; }
     .big { display: block; margin: 0.25rem 0 0.5rem; }
+    .thumbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 0.6rem; }
+    .thumb { position: relative; aspect-ratio: 1; border-radius: 6px; overflow: hidden; background: var(--p-surface-100); }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .thumb p-button { position: absolute; top: 0.2rem; right: 0.2rem; }
     :host ::ng-deep .big .p-button { font-size: 1.1rem; padding: 0.9rem; width: 100%; justify-content: center; }
     :host ::ng-deep safe-map-picker .map { height: 220px; }
     @media (max-width: 480px) { .grid2 { grid-template-columns: 1fr; } }
@@ -248,6 +271,7 @@ export class PistaPageComponent {
   private readonly rescue = inject(RescueService);
   private readonly keyStore = inject(KeyStoreService);
   private readonly transloco = inject(TranslocoService);
+  private readonly photosApi = inject(PhotosService);
   readonly lang = toSignal(this.transloco.langChanges$, { initialValue: this.transloco.getActiveLang() });
 
   readonly view = signal<'list' | 'new'>('list');
@@ -261,6 +285,10 @@ export class PistaPageComponent {
 
   draft: Draft = this.emptyDraft();
   persons: PersonDraft[] = [];
+  /** foto già ridotte e cifrate; `preview` è un URL temporaneo in memoria, mai salvato */
+  photos: (EncryptedPhoto & { client_uuid: string; preview: string })[] = [];
+  readonly maxPhotos = MAX_PHOTOS_PER_EVENT;
+  readonly photoBusy = signal(false);
 
   readonly teamOptions = computed(() => this.session.teams().map((t) => ({ value: t.id, label: t.name })));
   readonly zoneOptions = computed(() => this.filterOptions.options().zones.map((z) => ({ value: z.value, label: z.label })));
@@ -301,6 +329,7 @@ export class PistaPageComponent {
   startNew(): void {
     this.draft = this.emptyDraft();
     this.persons = [];
+    this.clearPhotos();
     this.draftZone.set(null);
     this.error.set(null);
     this.gpsError.set(false);
@@ -333,6 +362,35 @@ export class PistaPageComponent {
     } finally {
       this.gpsBusy.set(false);
     }
+  }
+
+  /** Foto scattate o scelte: ridotte e cifrate subito sul telefono, prima di entrare nella coda. */
+  async addPhotos(input: HTMLInputElement): Promise<void> {
+    const files = Array.from(input.files ?? []).slice(0, this.maxPhotos - this.photos.length);
+    input.value = '';
+    this.photoBusy.set(true);
+    this.error.set(null);
+    try {
+      for (const file of files) {
+        const p = await this.photosApi.prepare(file);
+        this.photos.push({ ciphertext: p.ciphertext, key_wrapped: p.key_wrapped, key_version: p.key_version, client_uuid: crypto.randomUUID(), preview: URL.createObjectURL(p.preview) });
+      }
+    } catch (err) {
+      const code = err instanceof Error ? err.message : '';
+      this.error.set(this.transloco.translate(code === 'photo_unreadable' || code === 'company_key_missing' ? 'photos.' + code : 'photos.error_upload'));
+    } finally {
+      this.photoBusy.set(false);
+    }
+  }
+
+  removePhoto(i: number): void {
+    URL.revokeObjectURL(this.photos[i].preview);
+    this.photos.splice(i, 1);
+  }
+
+  private clearPhotos(): void {
+    for (const p of this.photos) URL.revokeObjectURL(p.preview);
+    this.photos = [];
   }
 
   statusSeverity(it: QueuedIntervention): 'success' | 'warn' | 'danger' | 'info' {
@@ -399,7 +457,13 @@ export class PistaPageComponent {
           pii: pii ?? undefined,
         });
       }
-      await this.queue.enqueue(event, persons, d.gps_accuracy);
+      await this.queue.enqueue(
+        event,
+        persons,
+        d.gps_accuracy,
+        this.photos.map(({ ciphertext, key_wrapped, key_version }) => ({ ciphertext, key_wrapped, key_version })),
+      );
+      this.clearPhotos();
       this.view.set('list');
     } catch (err) {
       this.error.set(err instanceof Error ? err.message : String(err));

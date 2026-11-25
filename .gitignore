@@ -51,3 +51,4 @@ frontend/public/vendor/
 deploy/.env
 deploy/generated/
 deploy/backups/
+deploy/photos-mirror/

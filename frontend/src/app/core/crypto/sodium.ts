@@ -252,6 +252,30 @@ export async function decryptPii(
   return JSON.parse(s.to_string(plain)) as Record<string, string>;
 }
 
+/** Contenuto binario (foto) → nonce || box con una data key casuale (XChaCha20-Poly1305), data key sigillata
+ *  per la società: stesso schema dei dati identificativi, ma in binario (niente base64 sui 0,5 MB). */
+export async function encryptBytes(
+  data: Uint8Array,
+  companyPublicKey: Uint8Array,
+): Promise<{ ciphertext: Uint8Array; key_wrapped: string }> {
+  const s = await sodiumReady();
+  const dataKey = s.crypto_aead_xchacha20poly1305_ietf_keygen();
+  const nonce = s.randombytes_buf(s.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
+  const box = s.crypto_aead_xchacha20poly1305_ietf_encrypt(data, null, null, nonce, dataKey);
+  assertRoundTrip(s, () => s.crypto_aead_xchacha20poly1305_ietf_decrypt(null, box, null, nonce, dataKey), data);
+  const out = new Uint8Array(nonce.length + box.length);
+  out.set(nonce);
+  out.set(box, nonce.length);
+  return { ciphertext: out, key_wrapped: b64.encode(await seal(dataKey, companyPublicKey)) };
+}
+
+export async function decryptBytes(ciphertext: Uint8Array, keyWrapped: string, companyKeyPair: KeyPair): Promise<Uint8Array> {
+  const s = await sodiumReady();
+  const dataKey = await unseal(b64.decode(keyWrapped), companyKeyPair);
+  const n = s.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
+  return s.crypto_aead_xchacha20poly1305_ietf_decrypt(null, ciphertext.slice(n), null, ciphertext.slice(0, n), dataKey);
+}
+
 /** Codice di recupero: 24 parole BIP-39 (256 bit di entropia + checksum), mostrato una sola volta. */
 export async function generateRecoveryCode(): Promise<string[]> {
   const s = await sodiumReady();
