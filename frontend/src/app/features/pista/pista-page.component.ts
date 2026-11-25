@@ -43,6 +43,7 @@ interface PersonDraft {
 interface Draft {
   dateandtime: string; // datetime-local
   team: string | null;
+  second_rescuer: string;
   zone: string | null;
   slope: string | null;
   location_type: string | null;
@@ -147,6 +148,8 @@ function emptyPerson(): PersonDraft {
           <input id="f-when" type="datetime-local" [(ngModel)]="draft.dateandtime" class="native w-full" />
           <label for="f-team">{{ t('pista.team') }} *</label>
           <p-select inputId="f-team" [options]="teamOptions()" optionLabel="label" optionValue="value" [(ngModel)]="draft.team" appendTo="body" styleClass="w-full" />
+          <label for="f-second_rescuer">{{ t('pista.second_rescuer') }}</label>
+          <input id="f-second_rescuer" pInputText [(ngModel)]="draft.second_rescuer" maxlength="120" autocomplete="off" class="w-full" />
           <label for="f-cause">{{ t('pista.cause') }}</label>
           <p-select inputId="f-cause" [options]="lookups.options('cause')" optionLabel="label" optionValue="value" [(ngModel)]="draft.cause" [filter]="true" [showClear]="true" appendTo="body" styleClass="w-full" />
           <label for="f-event_type">{{ t('pista.event_type') }}</label>
@@ -282,7 +285,7 @@ export class PistaPageComponent {
 
   private emptyDraft(): Draft {
     const def = this.session.teams().find((t) => t.is_default) ?? this.session.teams()[0];
-    return { dateandtime: localNow(), team: def?.id ?? null, zone: null, slope: null, location_type: null, location_description: '', cause: null, event_type: null, note: '', geometry: null, gps_accuracy: null };
+    return { dateandtime: localNow(), team: def?.id ?? null, second_rescuer: '', zone: null, slope: null, location_type: null, location_description: '', cause: null, event_type: null, note: '', geometry: null, gps_accuracy: null };
   }
 
   newPerson(): PersonDraft {
@@ -370,8 +373,11 @@ export class PistaPageComponent {
         geometry: d.geometry ? { type: 'Point', coordinates: d.geometry } : null,
         cause: d.cause,
         note: d.note.trim(),
-        extended: d.event_type ? { event_type: d.event_type } : undefined,
       };
+      const secondRescuer = d.second_rescuer.trim();
+      if (d.event_type || secondRescuer) {
+        event.extended = { ...(d.event_type ? { event_type: d.event_type } : {}), ...(secondRescuer ? { second_rescuer: secondRescuer } : {}) };
+      }
       const persons: PersonWrite[] = [];
       for (const p of this.persons) {
         const identity: Record<string, string> = { firstname: p.firstname, surname: p.surname, birth_date: p.birth_date, phone: p.phone };

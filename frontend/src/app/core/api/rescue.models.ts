@@ -44,6 +44,7 @@ export interface EventRow {
 
 export interface EventExtended {
   caller: string | null;
+  second_rescuer: string | null;
   call_received_at: string | null;
   time_since_incident: number | null;
   external_rescue_call_at: string | null;

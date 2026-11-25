@@ -66,6 +66,7 @@
               <dl class="props">
                 <dt>{{ t('fields.dateandtime') }}</dt><dd>{{ ev.dateandtime | date: 'dd/MM/yyyy HH:mm' }}</dd>
                 <dt>{{ t('fields.team') }}</dt><dd>{{ ev.team?.name }}</dd>
+                <dt>{{ t('fields.second_rescuer') }}</dt><dd>{{ ev.extended.second_rescuer || '—' }}</dd>
                 <dt>{{ t('fields.ski_area') }}</dt><dd>{{ ev.ski_area?.name || '—' }}</dd>
                 <dt>{{ t('fields.zone') }}</dt><dd>{{ ev.zone?.name || '—' }}</dd>
                 <dt>{{ t('fields.slope') }}</dt><dd>{{ ev.slope?.name || '—' }} @if (ev.slope?.regional_code) { <small>({{ ev.slope?.regional_code }})</small> }</dd>

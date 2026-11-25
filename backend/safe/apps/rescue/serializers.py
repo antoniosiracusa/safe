@@ -597,6 +597,7 @@ class EventDetailSerializer(EventSerializer):
     def get_extended(self, obj: Event) -> dict:
         return {
             "caller": obj.caller or None,
+            "second_rescuer": obj.second_rescuer or None,
             "call_received_at": obj.call_received_at.isoformat() if obj.call_received_at else None,
             "time_since_incident": obj.time_since_incident.total_seconds()
             if obj.time_since_incident
@@ -655,6 +656,7 @@ class EventDetailSerializer(EventSerializer):
 
 class ExtendedEventSerializer(serializers.Serializer):
     caller = serializers.CharField(max_length=120, required=False, allow_blank=True, allow_null=True)
+    second_rescuer = serializers.CharField(max_length=120, required=False, allow_blank=True, allow_null=True)
     call_received_at = serializers.TimeField(required=False, allow_null=True)
     time_since_incident = serializers.DurationField(required=False, allow_null=True)
     external_rescue_call_at = serializers.TimeField(required=False, allow_null=True)
@@ -722,6 +724,7 @@ class EventWriteSerializer(serializers.ModelSerializer):
 
     SCALAR_EXTENDED = (
         "caller",
+        "second_rescuer",
         "call_received_at",
         "time_since_incident",
         "external_rescue_call_at",
@@ -737,7 +740,8 @@ class EventWriteSerializer(serializers.ModelSerializer):
         for k in self.SCALAR_EXTENDED:
             if k in ext:
                 value = ext[k]
-                setattr(event, k, value if value is not None else ("" if k == "caller" else None))
+                empty = "" if k in ("caller", "second_rescuer") else None
+                setattr(event, k, value if value is not None else empty)
 
     def _apply_operators(self, event: Event, ext: dict | None) -> None:
         """Dopo il salvataggio: le righe figlie richiedono l'evento già presente (FK e RLS)."""

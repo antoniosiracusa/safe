@@ -315,6 +315,7 @@ CREATE TABLE event (
   witnesses             boolean,                               -- NULL = non classificato
   -- campi estesi (opzionali, dal rapporto di riferimento)
   caller                text,
+  second_rescuer        text,
   call_received_at      time,
   time_since_incident   interval,
   external_rescue_call_at time,

@@ -127,6 +127,7 @@ erDiagram
     int unlock_count
     text istat_comune_code "trigger spaziale"
     text caller "esteso"
+    text second_rescuer "esteso: nome e cognome del secondo soccorritore"
     time call_received_at "esteso"
     interval time_since_incident "esteso"
     uuid created_by FK

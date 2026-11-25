@@ -36,17 +36,30 @@ PERSON_CHECKS = {
 }
 
 
+# Ruoli che non indicano una persona soccorsa: di un testimone si raccolgono solo le generalità (dati
+# identificativi cifrati e sezione "Persona"), quindi nessun campo statistico è obbligatorio.
+ROLES_WITHOUT_REQUIRED_FIELDS = frozenset({"witness"})
+
+
 def _rules(company: Company) -> dict[str, list[str]]:
     return company.validity_rules
 
 
+def is_exempt_from_person_rules(person: Person) -> bool:
+    return person.role_id is not None and person.role.code in ROLES_WITHOUT_REQUIRED_FIELDS
+
+
 def compute_person_validity(person: Person, rules: dict[str, list[str]] | None = None) -> list[dict]:
     rules = rules or _rules(person.company)
-    errors = [
-        {"field": name, "code": "required"}
-        for name in rules["person_required"]
-        if name in PERSON_CHECKS and not PERSON_CHECKS[name](person)
-    ]
+    errors = (
+        []
+        if is_exempt_from_person_rules(person)
+        else [
+            {"field": name, "code": "required"}
+            for name in rules["person_required"]
+            if name in PERSON_CHECKS and not PERSON_CHECKS[name](person)
+        ]
+    )
     person.validation_errors = errors
     person.valid = not errors
     return errors
@@ -61,7 +74,7 @@ def compute_event_validity(event: Event, *, save: bool = True) -> None:
         for name in rules["event_required"]
         if name in EVENT_CHECKS and not EVENT_CHECKS[name](event)
     ]
-    persons = list(event.persons.filter(deleted_at__isnull=True))
+    persons = list(event.persons.filter(deleted_at__isnull=True).select_related("role"))
     all_persons_valid = True
     for p in persons:
         compute_person_validity(p, rules)

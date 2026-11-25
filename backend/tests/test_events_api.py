@@ -62,6 +62,7 @@ def test_create_event_computes_validity_and_is_idempotent(as_admin, seeded, team
         "geometry": {"type": "Point", "coordinates": [12.09, 46.45]},
         "extended": {
             "caller": "MAESTRO DI SCI",
+            "second_rescuer": "Mario Rossi",
             "call_received_at": "11:02:00",
             "operators": [{"name": "G. Ben"}],
         },
@@ -77,9 +78,44 @@ def test_create_event_computes_validity_and_is_idempotent(as_admin, seeded, team
     assert {"field": "persons", "code": "required"} in body["validation_errors"]
     assert body["extended"]["caller"] == "MAESTRO DI SCI"
     assert body["extended"]["operators"] == [{"user_id": None, "name": "G. Ben"}]
+    assert body["extended"]["second_rescuer"] == "Mario Rossi"
     # stessa client_uuid → 200 con lo stesso oggetto
     r2 = as_admin.post("/api/v1/events", payload, format="json")
     assert r2.status_code == 200 and r2.json()["id"] == body["id"]
+    # il secondo soccorritore si può correggere e svuotare
+    r3 = as_admin.patch(
+        f"/api/v1/events/{body['id']}", {"extended": {"second_rescuer": "Luca Bianchi"}}, format="json"
+    )
+    assert r3.status_code == 200 and r3.json()["extended"]["second_rescuer"] == "Luca Bianchi"
+    r4 = as_admin.patch(f"/api/v1/events/{body['id']}", {"extended": {"second_rescuer": None}}, format="json")
+    assert r4.status_code == 200 and r4.json()["extended"]["second_rescuer"] is None
+
+
+def test_witness_needs_no_clinical_data_for_validity(as_admin, seeded, company):
+    """Di un testimone si raccolgono solo le generalità: non deve rendere non valido l'evento."""
+    from safe.apps.rescue import services
+
+    e1 = seeded["e1"]  # evento completo con una persona soccorsa completa
+    with tenant_context(company.id):
+        services.compute_event_validity(e1)
+    assert as_admin.get(f"/api/v1/events/{e1.id}").json()["fully_valid"] is True
+    # una persona senza ruolo e senza dati clinici rende l'evento non valido...
+    r = as_admin.post(f"/api/v1/events/{e1.id}/persons", {"age": 35, "gender": "male"}, format="json")
+    assert r.status_code == 201, r.content
+    incomplete = r.json()
+    assert incomplete["valid"] is False
+    assert as_admin.get(f"/api/v1/events/{e1.id}").json()["fully_valid"] is False
+    # ...ma se è un testimone no, anche senza età e genere
+    r = as_admin.patch(f"/api/v1/persons/{incomplete['id']}", {"role": "witness"}, format="json")
+    assert r.status_code == 200, r.content
+    assert r.json()["valid"] is True and r.json()["validation_errors"] == []
+    r = as_admin.post(f"/api/v1/events/{e1.id}/persons", {"role": "witness"}, format="json")
+    assert r.status_code == 201 and r.json()["valid"] is True
+    assert as_admin.get(f"/api/v1/events/{e1.id}").json()["fully_valid"] is True
+    # tolto il ruolo, tornano le regole ordinarie
+    r = as_admin.patch(f"/api/v1/persons/{incomplete['id']}", {"role": "companion"}, format="json")
+    assert r.status_code == 200 and r.json()["valid"] is False
+    assert as_admin.get(f"/api/v1/events/{e1.id}").json()["fully_valid"] is False
 
 
 def test_create_event_rejects_wrong_lookup_and_territory(as_admin, seeded, team, company):

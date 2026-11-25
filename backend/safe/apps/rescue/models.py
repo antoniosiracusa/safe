@@ -113,6 +113,8 @@ class Event(TenantModel):
     witnesses = models.BooleanField(null=True, blank=True)  # NULL = non classificato
     # estesi (opzionali)
     caller = models.CharField(max_length=120, blank=True, default="")
+    # nome e cognome del secondo soccorritore intervenuto (il primo è chi registra l'intervento)
+    second_rescuer = models.CharField(max_length=120, blank=True, default="")
     call_received_at = models.TimeField(null=True, blank=True)
     time_since_incident = models.DurationField(null=True, blank=True)
     external_rescue_call_at = models.TimeField(null=True, blank=True)

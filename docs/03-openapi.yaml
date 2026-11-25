@@ -1001,7 +1001,7 @@ components:
           properties:
             geometry: { type: [object, "null"], description: GeoJSON Point }
             altitude_m: { type: [number, "null"] }
-            extended: { type: object, description: campi estesi opzionali (caller, call_received_at, time_since_incident, location_feature, traffic, snow_making, event_type, operators) }
+            extended: { type: object, description: campi estesi opzionali (caller, second_rescuer, call_received_at, time_since_incident, location_feature, traffic, snow_making, event_type, operators) }
             note: { type: [string, "null"] }
             validation_errors: { type: array, items: { type: object, properties: { field: { type: string }, code: { type: string } } } }
             unlock_count: { type: integer }

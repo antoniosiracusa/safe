@@ -49,6 +49,7 @@
   <div><b>Pista / luogo</b> {{ slope }}{% if regional_code %} ({{ regional_code }}){% endif %} · {{ zone }}</div>
   <div><b>Altitudine</b> {% if event.altitude_m %}{{ event.altitude_m }} m{% else %}—{% endif %}</div>
   <div><b>Squadra</b> {{ team }}</div>
+  <div><b>Secondo soccorritore</b> {{ event.second_rescuer|default:"—" }}</div>
   <div><b>Chiamante</b> {{ event.caller|default:"—" }}</div>
   <div><b>Ora ricezione chiamata</b> {{ event.call_received_at|default:"—" }}</div>
   <div><b>Tempo dall'incidente</b> {{ event.time_since_incident|default:"—" }}</div>

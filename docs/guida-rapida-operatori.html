@@ -41,7 +41,7 @@
   <img src="{{LOGO}}" alt="Ski Civetta">
   <div class="title">SAFECIVETTA.IT</div>
   <div class="sub">Guida rapida per gli operatori del soccorso piste</div>
-  <div class="meta">Consorzio Impianti a Fune Civetta · portale https://safecivetta.it<br>Versione 1.2 · settembre 2026</div>
+  <div class="meta">Consorzio Impianti a Fune Civetta · portale https://safecivetta.it<br>Versione 1.3 · novembre 2026</div>
 </div>
 
 <h1 class="first">Indice</h1>
@@ -116,7 +116,8 @@
 <ul>
   <li><span class="ui">Data e ora</span> dell'intervento (proposta l'ora attuale).</li>
   <li><span class="ui">Squadra</span>: la tua squadra predefinita è già selezionata.</li>
-  <li><span class="ui">Operatori</span> intervenuti, <span class="ui">Chiamante</span>, <span class="ui">Ora ricezione chiamata</span>, <span class="ui">Tipo di evento</span>.</li>
+  <li><span class="ui">Secondo soccorritore</span>: nome e cognome del collega intervenuto con te (facoltativo; compare anche nel rapporto PDF).</li>
+  <li><span class="ui">Chiamante</span>, <span class="ui">Ora ricezione chiamata</span>, <span class="ui">Tipo di evento</span>.</li>
 </ul>
 
 <h2>Dove</h2>
@@ -138,12 +139,13 @@
 <h1>6. Aggiungere le persone soccorse</h1>
 <ol class="steps">
   <li>Apri l'evento e vai alla scheda <span class="ui">Persone</span>, poi <span class="ui">Aggiungi persona</span>.</li>
-  <li><span class="ui">Persona</span>: età, genere, nazione, iniziali, ruolo (sciatore, snowboarder, pedone…), casco.</li>
+  <li><span class="ui">Persona</span>: età, genere, nazione, iniziali, ruolo (coinvolto, testimone, accompagnatore…), casco.</li>
   <li><span class="ui">Attrezzatura e protezioni</span>: attrezzatura, proprietà, stato, altre protezioni.</li>
   <li><span class="ui">Dati clinici</span>: diagnosi presunta e secondarie, lesione principale e sede, mezzi di evacuazione (aggiungine più di uno se serve), <span class="ui">condizioni generali</span> (cosciente, dolore forte, privo di coscienza…) e <span class="ui">primo soccorso prestato</span> (disinfezione, tamponamento, fasciatura, immobilizzazione, trasporto: puoi scegliere più voci), soccorso rifiutato.</li>
   <li><span class="ui">Assicurazione, alloggio, responsabilità</span>: assicurazione, alloggio, destinazione (pronto soccorso, ambulatorio…), responsabilità, violazioni amministrative.</li>
   <li><span class="ui">Dati identificativi (cifrati)</span>: nome, cognome, data di nascita, telefono, email, indirizzo, codice assicurazione o skipass, consegnato a, documento di riconoscimento (tipo: carta d'identità, passaporto, patente o altro; rilasciato da; numero). Compaiono solo se la tua chiave è sbloccata e sei abilitato. Vengono cifrati nel momento in cui salvi.</li>
   <li><span class="ui">Salva</span>. Ripeti per ogni persona coinvolta.</li>
+  <li><strong>Testimoni</strong>: aggiungi una persona con ruolo <span class="ui">Testimone</span> e compila solo la sezione <span class="ui">Persona</span> e i dati identificativi. Non servono dati clinici: un testimone risulta sempre valido e non rende non valido l'evento.</li>
 </ol>
 <div class="box"><span class="t">Mai dati personali nei campi liberi</span>Nome, telefono, targa, numero di stanza e simili vanno <strong>solo</strong> nella sezione "Dati identificativi": è l'unica cifrata. Note, descrizione del luogo e relazione di servizio sono leggibili da tutti gli utenti autorizzati e finiscono negli export.</div>
 <p>Per rileggere i dati identificativi di una persona: chiave sbloccata, poi <span class="ui">Mostra</span> accanto a "Dati identificativi cifrati presenti". Ogni lettura viene registrata nel registro delle operazioni.</p>
@@ -185,8 +187,8 @@
 <table>
   <tr><th style="width:14%">Passo</th><th>Cosa compilare</th></tr>
   <tr><td><span class="ui">Dove</span></td><td>Zona e pista (o tipo di luogo se non sei su una pista). Il telefono rileva la <span class="ui">posizione GPS</span> da solo: controlla la precisione in metri e, se serve, sposta il punto toccando la mappa.</td></tr>
-  <tr><td><span class="ui">Cosa</span></td><td>Data e ora (già proposte), squadra (già proposta), causa, tipo di evento, una nota breve. <b>Niente nomi o telefoni nella nota.</b></td></tr>
-  <tr><td><span class="ui">Chi</span></td><td><span class="ui">Aggiungi persona</span>: età, genere, nazione, ruolo, diagnosi presunta, sede della lesione, mezzo di evacuazione, destinazione, condizioni generali e primo soccorso prestato (più voci). Sotto, i <span class="ui">dati identificativi</span>: nome, cognome, data di nascita, telefono. Vengono cifrati sul telefono prima dell'invio.</td></tr>
+  <tr><td><span class="ui">Cosa</span></td><td>Data e ora (già proposte), squadra (già proposta), secondo soccorritore (nome e cognome, facoltativo), causa, tipo di evento, una nota breve. <b>Niente nomi o telefoni nella nota.</b></td></tr>
+  <tr><td><span class="ui">Chi</span></td><td><span class="ui">Aggiungi persona</span>: età, genere, nazione, ruolo, diagnosi presunta, sede della lesione, mezzo di evacuazione, destinazione, condizioni generali e primo soccorso prestato (più voci). Sotto, i <span class="ui">dati identificativi</span>: nome, cognome, data di nascita, telefono. Vengono cifrati sul telefono prima dell'invio. Per un testimone bastano ruolo e dati identificativi.</td></tr>
 </table>
 <p>Tocca <span class="ui">Salva e invia</span>. L'intervento compare in <span class="ui">I miei interventi</span> con lo stato:</p>
 <ul>
@@ -238,7 +240,7 @@
   <li>Non fotografare lo schermo e non copiare dati in messaggi o chat.</li>
   <li>I dati identificativi vengono cancellati automaticamente dopo il periodo di conservazione stabilito dalla società (10 anni); gli eventi restano in forma anonima per le statistiche.</li>
 </ul>
-<p class="small">Per assistenza rivolgiti all'amministratore del portale del Consorzio. Questa guida si riferisce alla versione del portale di settembre 2026.</p>
+<p class="small">Per assistenza rivolgiti all'amministratore del portale del Consorzio. Questa guida si riferisce alla versione del portale di novembre 2026.</p>
 
 </body>
 </html>

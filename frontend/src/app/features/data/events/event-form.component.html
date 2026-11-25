@@ -17,6 +17,10 @@
         @if (errorOf('team'); as e) { <small class="err">{{ t('errors.' + e) }}</small> }
       </div>
       <div class="field">
+        <label for="f-second_rescuer">{{ t('fields.second_rescuer') }}</label>
+        <input pInputText id="f-second_rescuer" formControlName="second_rescuer" maxlength="120" autocomplete="off" [placeholder]="t('fields.second_rescuer_hint')" />
+      </div>
+      <div class="field">
         <label for="f-event_type">{{ t('fields.event_type') }}</label>
         <p-select inputId="f-event_type" formControlName="event_type" [options]="lookups.options('event_type')" optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.unclassified')" appendTo="body" styleClass="w-full" />
       </div>

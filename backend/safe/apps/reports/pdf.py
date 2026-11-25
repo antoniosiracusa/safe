@@ -19,7 +19,7 @@ from .static_map import static_map_data_uri
 
 # Versione dell'impaginazione: fa parte della chiave di cache dei PDF (un cambio di layout o di logo
 # rigenera i rapporti già prodotti anche se l'evento non è cambiato).
-PDF_LAYOUT = 2
+PDF_LAYOUT = 3
 
 LANG_LABELS = {
     "it": {"unclassified": "Non classificato", "yes": "Sì", "no": "No", "none": "—"},

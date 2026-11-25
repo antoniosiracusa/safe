@@ -70,6 +70,7 @@ export class EventFormComponent implements OnInit {
     note: this.fb.control(''),
     event_type: this.fb.control<string | null>(null),
     caller: this.fb.control(''),
+    second_rescuer: this.fb.control(''),
     call_received_at: this.fb.control<Date | null>(null),
     location_feature: this.fb.control<string | null>(null),
     traffic: this.fb.control<string | null>(null),
@@ -136,6 +137,7 @@ export class EventFormComponent implements OnInit {
         note: ev.note ?? '',
         event_type: ev.extended.event_type,
         caller: ev.extended.caller ?? '',
+        second_rescuer: ev.extended.second_rescuer ?? '',
         call_received_at: ev.extended.call_received_at ? new Date(`1970-01-01T${ev.extended.call_received_at}`) : null,
         location_feature: ev.extended.location_feature,
         traffic: ev.extended.traffic,
@@ -173,6 +175,7 @@ export class EventFormComponent implements OnInit {
       extended: {
         event_type: v.event_type,
         caller: v.caller || null,
+        second_rescuer: v.second_rescuer?.trim() || null,
         call_received_at: time(v.call_received_at),
         location_feature: v.location_feature,
         traffic: v.traffic,
