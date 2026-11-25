@@ -10,7 +10,8 @@
 - CI GitHub Actions: lint + test back-end con PostGIS e Redis di servizio, lint + test + build
   front-end, build delle immagini.
 - Endpoint di verifica: `GET /api/v1/health` (stato DB e versione PostGIS), `GET /api/schema/`,
-  `GET /api/docs/`.
+  `GET /api/docs/` (schema e documentazione sono attivi solo in sviluppo o con `API_DOCS_ENABLED=true`: in
+  produzione rispondono 404).
 
 ## Prerequisiti su Windows
 

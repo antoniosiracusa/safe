@@ -1,6 +1,7 @@
 from .base import *  # noqa: F403
 
 DEBUG = False
+API_DOCS_ENABLED = True  # lo schema viene generato e verificato nei test
 SECRET_KEY = "test"
 CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
 CELERY_TASK_ALWAYS_EAGER = True

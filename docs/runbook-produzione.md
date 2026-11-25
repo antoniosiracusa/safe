@@ -8,13 +8,13 @@ per i file.
 
 | Componente | Immagine | Esposizione |
 |---|---|---|
-| Traefik v3 | `traefik:v3.3` | 80 → redirect 443; 443 con certificati Let's Encrypt (HTTP-01) |
+| Traefik v3 | `traefik:v3.7.x` | 80 → redirect 443; 443 con certificati Let's Encrypt (HTTP-01) |
 | Web (SPA) | `ghcr.io/antoniosiracusa/safe-web` (nginx) | `https://DOMINIO/` |
 | API | `ghcr.io/antoniosiracusa/safe-api` (gunicorn, 3 worker) | `https://DOMINIO/api/...` |
 | WebSocket | stessa immagine (daphne) | `https://DOMINIO/ws/...` |
 | Worker + beat | stessa immagine (Celery) | interni |
-| Keycloak 26 | `quay.io/keycloak/keycloak:26.3` | `https://auth.DOMINIO/` |
-| PostgreSQL 16 + PostGIS | `postgis/postgis:16-3.4` | interno, volume `db-data` |
+| Keycloak 26 | `quay.io/keycloak/keycloak:26.8` | `https://auth.DOMINIO/` |
+| PostgreSQL 16 + PostGIS | `postgis/postgis:16-3.6` | interno, volume `db-data` |
 | Redis 7 | `redis:7-alpine` | interno |
 | MinIO (o Aruba Object Storage) | `minio/minio` | interno, volume `minio-data` |
 
@@ -77,6 +77,32 @@ cd /opt/safe && ./deploy.sh v1.1.0     # rilascio con tag (creato in CI dal tag 
 servizi cambiati. Tempo di indisponibilità: pochi secondi per l'API. Per tornare indietro:
 `./deploy.sh <tag-precedente>` (le migrazioni non vengono annullate: verificare le note di rilascio).
 
+## Aggiornamento dei componenti di terze parti
+
+`deploy.sh` aggiorna solo le immagini del portale (api, web). Traefik, PostgreSQL/PostGIS, Keycloak e Redis si
+aggiornano cambiando il tag in `docker-compose.prod.yml`, sempre dopo `./backup.sh`:
+
+- **PostgreSQL/PostGIS** (stessa versione maggiore, es. 16-3.4 → 16-3.6): `docker compose ... pull db`, `up -d db`,
+  poi `./db-post-upgrade.sh` (reindicizza per la nuova glibc, aggiorna la collation e l'estensione PostGIS) e
+  riavvio di api, ws, worker, beat e keycloak. Un cambio di versione maggiore (16 → 17) richiede invece dump e
+  ripristino.
+- **Keycloak**: la migrazione del database avviene da sola al primo avvio (qualche secondo dopo "started"). Dalla
+  26.8 l'Admin API accetta solo token con lo scope `kc-admin-api`: per i realm creati prima va eseguito una volta
+  `keycloak-admin-api-scope.sql` sul database `keycloak` e riavviato Keycloak, altrimenti inviti e disattivazioni
+  rispondono 401. Verifica: `docker compose ... exec api python manage.py shell -c "from safe.apps.org import
+  keycloak; print(keycloak.get_client()._req('GET','/users/count').status_code)"` deve dare 200.
+- **Traefik**: cambio del tag e `./deploy.sh` (ricrea il contenitore: pochi secondi di fermo per tutti i siti).
+- Prima di un aggiornamento di Keycloak o del database conviene una prova su una copia: `pg_basebackup` del
+  database in un contenitore temporaneo su una rete isolata, nuova immagine, controlli; fatta il 25/11/2026.
+
+### Altri siti sullo stesso server
+
+Dal 14/11/2026 il server ospita anche il sito civettadolomiti.it (`/srv/skicivetta`, progetto separato con il suo
+compose). Passa da questo Traefik tramite la rete Docker `skicivetta_proxy`: `EXTRA_PROXY_NETWORKS=skicivetta_proxy`
+in `.env` fa sì che `deploy.sh` ricolleghi la rete ogni volta che Traefik viene ricreato. `--remove-orphans` agisce
+solo sul progetto `safe` e non tocca quei contenitori. Riavvii del server e aggiornamenti di Docker o di Traefik
+fermano per qualche minuto anche quel sito.
+
 ## Backup e ripristino
 
 - `backup.sh` (cron 02:30): `pg_dumpall` di SAFE e Keycloak, compresso e cifrato con AES-256
@@ -129,6 +155,8 @@ esercizio: eseguita con successo il 12/09/2026, da ripetere almeno una volta l'a
   `.env` e rilanciare `deploy.sh` (per le password del database serve anche `ALTER ROLE`).
 - Traefik: HSTS, TLS ≥ 1.2, header di sicurezza; l'API aggiunge CSP `default-src 'none'` e
   `no-store`; la SPA ha la propria CSP nel template nginx.
+- Schema e documentazione dell'API (`/api/schema/`, `/api/docs/`) sono chiusi in produzione (404); si riattivano
+  solo con `API_DOCS_ENABLED=true`.
 - Keycloak: brute force detection, password policy (12 caratteri, storico 3), sessioni 30 min di
   inattività, MFA attivabile per utente (`mfa_required` nell'invito). La console admin è raggiungibile
   solo con l'utente `KEYCLOAK_ADMIN`: usare una password lunga e attivare OTP al primo accesso.
@@ -154,6 +182,7 @@ esercizio: eseguita con successo il 12/09/2026, da ripetere almeno una volta l'a
 
 L'interfaccia di prova gira su `https://beta.DOMINIO` con la **stessa API e gli stessi dati** della
 produzione: solo il frontend è diverso (immagine `safe-web:beta`, costruita dalla CI dai rami `m8-*`).
+Gli instradamenti `beta.DOMINIO` (web, API, WebSocket) esistono solo con il profilo `beta` attivo.
 Attivazione, una tantum:
 
 1. DNS: record `A` per `beta.DOMINIO` verso il server (Aruba).

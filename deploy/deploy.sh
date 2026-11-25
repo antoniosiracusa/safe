@@ -20,6 +20,18 @@ $COMPOSE pull --quiet api web $( [ "${COMPOSE_PROFILES:-}" = "beta" ] && echo we
 $COMPOSE up -d --wait db redis   # attende gli healthcheck (al primo avvio initdb richiede qualche secondo)
 $COMPOSE run --rm --no-deps api python manage.py migrate --noinput   # include seed di vocabolari e ruoli
 $COMPOSE up -d --remove-orphans
+# Altri progetti ospitati sullo stesso server (es. il sito istituzionale) passano da questo Traefik tramite una
+# loro rete Docker: va ricollegata ogni volta che il contenitore di Traefik viene ricreato. Elenco in .env
+# (EXTRA_PROXY_NETWORKS, separato da spazi); le reti inesistenti vengono ignorate.
+EXTRA_PROXY_NETWORKS="${EXTRA_PROXY_NETWORKS:-$(grep ^EXTRA_PROXY_NETWORKS= .env | cut -d= -f2- || true)}"
+TRAEFIK_ID="$($COMPOSE ps -q traefik)"
+for net in $EXTRA_PROXY_NETWORKS; do
+  if docker network inspect "$net" >/dev/null 2>&1; then
+    docker network connect "$net" "$TRAEFIK_ID" 2>/dev/null && echo "traefik collegato alla rete $net" || true
+  else
+    echo "avviso: rete $net non trovata, non collegata"
+  fi
+done
 $COMPOSE ps
 DOMAIN="${DOMAIN:-$(grep ^DOMAIN= .env | cut -d= -f2)}"
 # la SPA risponde 200 su qualsiasi percorso: verifichiamo che /api risponda davvero con il JSON dell'API

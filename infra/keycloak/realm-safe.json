@@ -57,6 +57,28 @@
   ],
   "clientScopes": [
     {
+      "name": "kc-admin-api",
+      "description": "Audience per l'Admin REST API (richiesta da Keycloak 26.8: senza, il client di servizio riceve 401)",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "admin-api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-admin-api-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "access.token.claim": "true",
+            "introspection.token.claim": "true",
+            "lightweight.claim": "true"
+          }
+        }
+      ]
+    },
+    {
       "name": "basic",
       "description": "OpenID Connect built-in scope: basic (sub, auth_time)",
       "protocol": "openid-connect",
@@ -338,7 +360,8 @@
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": true,
       "defaultClientScopes": [
-        "basic"
+        "basic",
+        "kc-admin-api"
       ]
     },
     {

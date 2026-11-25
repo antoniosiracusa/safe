@@ -16,6 +16,9 @@ environ.Env.read_env(BASE_DIR.parent / ".env")
 
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
+# Schema OpenAPI e Swagger (/api/schema/, /api/docs/): descrivono tutta l'API, quindi in produzione restano
+# chiusi; attivi in sviluppo (DEBUG) o impostando API_DOCS_ENABLED=true.
+API_DOCS_ENABLED = env.bool("API_DOCS_ENABLED", default=DEBUG)
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 
 INSTALLED_APPS = [

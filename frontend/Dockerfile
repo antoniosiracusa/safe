@@ -6,7 +6,7 @@ COPY . .
 # prebuild genera public/vendor/sodium.js (libsodium come script separato)
 RUN npm run build -- --configuration=production
 
-FROM nginx:1.27-alpine
+FROM nginx:1.30-alpine
 # nginx sostituisce ${DOMAIN} nel template all'avvio (20-envsubst-on-templates.sh)
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY security-headers.inc.template /etc/nginx/templates/security-headers.inc.template

@@ -31,7 +31,7 @@ x-api-base: &api-base
 
 services:
   traefik:
-    image: traefik:v3.7.13
+    image: traefik:v3.7.20
     restart: unless-stopped
     environment:
       DOCKER_API_VERSION: "1.44"  # Docker Engine recenti rifiutano il client 1.24 predefinito del provider
@@ -103,6 +103,15 @@ services:
       - traefik.http.routers.web-beta.entrypoints=websecure
       - traefik.http.routers.web-beta.middlewares=security@file
       - traefik.http.services.web-beta.loadbalancer.server.port=80
+      # la beta usa la stessa API e lo stesso WebSocket dal proprio host (serve beta.DOMINIO in ALLOWED_HOSTS).
+      # Sono qui e non sui servizi api/ws: a beta spenta non resta alcun instradamento verso beta.DOMINIO.
+      - traefik.http.routers.api-beta.rule=Host(`beta.${DOMAIN}`) && PathPrefix(`/api`)
+      - traefik.http.routers.api-beta.entrypoints=websecure
+      - traefik.http.routers.api-beta.middlewares=security@file
+      - traefik.http.routers.api-beta.service=api
+      - traefik.http.routers.ws-beta.rule=Host(`beta.${DOMAIN}`) && PathPrefix(`/ws`)
+      - traefik.http.routers.ws-beta.entrypoints=websecure
+      - traefik.http.routers.ws-beta.service=ws
     networks: [internal]
 
   api:
@@ -114,11 +123,6 @@ services:
       - traefik.http.routers.api.entrypoints=websecure
       - traefik.http.routers.api.middlewares=security@file
       - traefik.http.services.api.loadbalancer.server.port=8000
-      # la beta usa la stessa API dal proprio host (nessun CORS, stesso ALLOWED_HOSTS con beta.DOMINIO)
-      - traefik.http.routers.api-beta.rule=Host(`beta.${DOMAIN}`) && PathPrefix(`/api`)
-      - traefik.http.routers.api-beta.entrypoints=websecure
-      - traefik.http.routers.api-beta.middlewares=security@file
-      - traefik.http.routers.api-beta.service=api
     healthcheck:
       # Host 'api' (in ALLOWED_HOSTS): con 127.0.0.1 Django risponde 400 e Traefik esclude il container "unhealthy"
       test: ["CMD-SHELL", "python -c \"import urllib.request;urllib.request.urlopen(urllib.request.Request('http://127.0.0.1:8000/api/v1/health',headers={'Host':'api'}),timeout=5)\""]
@@ -134,9 +138,6 @@ services:
       - traefik.http.routers.ws.rule=Host(`${DOMAIN}`) && PathPrefix(`/ws`)
       - traefik.http.routers.ws.entrypoints=websecure
       - traefik.http.services.ws.loadbalancer.server.port=8001
-      - traefik.http.routers.ws-beta.rule=Host(`beta.${DOMAIN}`) && PathPrefix(`/ws`)
-      - traefik.http.routers.ws-beta.entrypoints=websecure
-      - traefik.http.routers.ws-beta.service=ws
 
   worker:
     <<: *api-base
@@ -147,7 +148,7 @@ services:
     command: ["celery", "-A", "safe", "beat", "-l", "INFO", "-s", "/tmp/celerybeat-schedule"]
 
   db:
-    image: postgis/postgis:16-3.4
+    image: postgis/postgis:16-3.6
     restart: unless-stopped
     environment:
       POSTGRES_DB: postgres
@@ -180,7 +181,7 @@ services:
     logging: *logging
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.3
+    image: quay.io/keycloak/keycloak:26.8
     restart: unless-stopped
     command: ["start", "--import-realm", "--http-port=8080"]
     environment:
