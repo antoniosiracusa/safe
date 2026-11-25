@@ -1,9 +1,9 @@
 from django.conf import settings
-from django.urls import include, path
+from django.urls import URLPattern, URLResolver, include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework.permissions import AllowAny
 
-urlpatterns = [
+urlpatterns: list[URLPattern | URLResolver] = [
     path("api/v1/", include("safe.apps.core.urls")),
     path("api/v1/", include("safe.apps.authz.urls")),
     path("api/v1/", include("safe.apps.lookups.urls")),
